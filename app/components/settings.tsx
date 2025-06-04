@@ -237,6 +237,7 @@ function UserPromptModal(props: { onClose?: () => void }) {
 function DangerItems() {
   const chatStore = useChatStore();
   const appConfig = useAppConfig();
+  const bedrockModelsStore = useBedrockModelsStore();
 
   return (
     <List>
@@ -248,7 +249,37 @@ function DangerItems() {
           text={Locale.Settings.Danger.Reset.Action}
           onClick={async () => {
             if (await showConfirm(Locale.Settings.Danger.Reset.Confirm)) {
+              console.log('[Settings] Resetting all configurations...');
+              
+              // Reset all stores first
               appConfig.reset();
+              bedrockModelsStore.reset();
+              
+              // After reset, load models and apply all suggestion settings
+              console.log('[Settings] Loading models and applying suggestion settings...');
+              
+              try {
+                // Load models first (since reset cleared them)
+                await bedrockModelsStore.loadModels();
+                
+                // Now apply suggestions to all active models
+                const activeModels = bedrockModelsStore.getActiveModels();
+                let appliedCount = 0;
+                
+                for (const model of activeModels) {
+                  const suggestions = bedrockModelsStore.applySuggestionSettingsIfNew(model.modelId);
+                  if (suggestions && Object.keys(suggestions).length > 0) {
+                    appliedCount++;
+                    console.log(`[Settings] Applied ${Object.keys(suggestions).length} suggestions for ${model.modelName}:`, suggestions);
+                  }
+                }
+                
+                console.log(`[Settings] All configurations reset successfully. Applied suggestions to ${appliedCount} models.`);
+                showToast(`All settings reset and suggestion settings applied to ${appliedCount} models`);
+              } catch (error) {
+                console.error('[Settings] Error during reset and suggestion application:', error);
+                showToast("Settings reset successfully, but some suggestion settings could not be applied");
+              }
             }
           }}
           type="danger"
@@ -283,6 +314,10 @@ function BedrockModelSettings() {
     setSelectedModel,
     checkConfigVersion,
     syncModelsWithConfig,
+    getModelById,
+    getSupportedParameters,
+    getSuggestionSettings,
+    applySuggestionSettingsIfNew,
   } = useBedrockModelsStore();
 
   const [checkingUpdates, setCheckingUpdates] = useState(false);
@@ -440,6 +475,79 @@ function BedrockModelSettings() {
           <div>• Streaming support: {activeModels.filter(m => m.responseStreamingSupported).length}</div>
         </div>
       </ListItem>
+
+      {/* Selected Model Details with Suggestion Settings */}
+      {selectedModelId && (
+        <>
+          {(() => {
+            const selectedModel = getModelById(selectedModelId);
+            const supportedParams = getSupportedParameters(selectedModelId);
+            const suggestionSettings = getSuggestionSettings(selectedModelId);
+            
+            return (
+              <>
+                <ListItem
+                  title="Selected Model Parameters"
+                  subTitle={`${selectedModel?.modelName} - Parameter Support`}
+                >
+                  <div style={{ fontSize: "0.9em", color: "#666" }}>
+                    {supportedParams.length > 0 ? (
+                      <div>
+                        <div><strong>Supported Parameters:</strong></div>
+                        <div style={{ marginLeft: "10px" }}>
+                          {supportedParams.map((param: string) => (
+                            <div key={param}>• {param}</div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>• No additional parameters supported</div>
+                    )}
+                  </div>
+                </ListItem>
+
+                {Object.keys(suggestionSettings).length > 0 && (
+                  <ListItem
+                    title="Suggested Settings"
+                    subTitle="Recommended parameter values for optimal performance"
+                  >
+                    <div style={{ fontSize: "0.9em", color: "#666" }}>
+                      <div><strong>Suggested Values:</strong></div>
+                      <div style={{ marginLeft: "10px" }}>
+                        {Object.entries(suggestionSettings).map(([param, value]) => (
+                          <div key={param}>• {param}: {typeof value === 'number' ? value.toFixed(2) : String(value)}</div>
+                        ))}
+                      </div>
+                      <div style={{ marginTop: "8px", fontSize: "0.8em", color: "#888" }}>
+                        Note: These are suggestions only. Your custom settings won't be overwritten.
+                      </div>
+                    </div>
+                  </ListItem>
+                )}
+
+                <ListItem
+                  title="Apply Suggestions"
+                  subTitle="Apply suggested settings if not already customized"
+                >
+                  <IconButton
+                    icon={<ResetIcon />}
+                    text="Apply Suggestions"
+                    onClick={() => {
+                      const suggestions = applySuggestionSettingsIfNew(selectedModelId);
+                      if (suggestions && Object.keys(suggestions).length > 0) {
+                        showToast(`Applied ${Object.keys(suggestions).length} suggested settings for ${selectedModel?.modelName}`);
+                        console.log('[BedrockModelSettings] Applied suggestions:', suggestions);
+                      } else {
+                        showToast("No new suggestions to apply or already customized");
+                      }
+                    }}
+                  />
+                </ListItem>
+              </>
+            );
+          })()}
+        </>
+      )}
 
       {isLoading && (
         <ListItem

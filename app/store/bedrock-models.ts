@@ -24,6 +24,7 @@ const DEFAULT_MODEL_CONFIG_STATE: ModelConfigStore = {
   error: null,
   lastUpdate: Date.now(),
   storeVersion: "1.0",
+  appliedSuggestions: {},
 };
 
 /**
@@ -442,10 +443,86 @@ export const useBedrockModelsStore = createPersistStore(
 
       return hasInputs && hasOutputs;
     },
+
+    /**
+     * Get supported parameters for a model
+     */
+    getSupportedParameters(modelId: string): string[] {
+      const state = get();
+      const model = state.models.find(m => m.modelId === modelId);
+      return model?.supportedParameters || [];
+    },
+
+    /**
+     * Get suggestion settings for a model, filtered by supported parameters
+     */
+    getSuggestionSettings(modelId: string): Record<string, any> {
+      const state = get();
+      const model = state.models.find(m => m.modelId === modelId);
+      
+      if (!model?.suggestionSettings) {
+        return {};
+      }
+      
+      const supportedParams = model.supportedParameters || [];
+      const filteredSettings: Record<string, any> = {};
+      
+      // Only include settings for supported parameters
+      supportedParams.forEach(param => {
+        if (param in model.suggestionSettings!) {
+          filteredSettings[param] = model.suggestionSettings![param];
+        }
+      });
+      
+      console.log(`[BedrockModels] Suggestion settings for ${modelId}:`, {
+        supportedParams,
+        allSuggestions: model.suggestionSettings,
+        filteredSettings,
+      });
+      
+      return filteredSettings;
+    },
+
+    /**
+     * Apply suggestion settings if user hasn't modified them yet
+     * Returns the suggested settings if they should be applied, null otherwise
+     */
+    applySuggestionSettingsIfNew(modelId: string): Record<string, any> | null {
+      const state = get();
+      const model = state.models.find(m => m.modelId === modelId);
+      
+      if (!model?.suggestionSettings || !model.supportedParameters?.length) {
+        console.log(`[BedrockModels] No suggestions available for ${modelId}`);
+        return null;
+      }
+      
+      const lastAppliedVersion = state.appliedSuggestions[modelId];
+      
+      // Rule 4: Update if supportedParameters was not set before (first time)
+      if (!lastAppliedVersion) {
+        console.log(`[BedrockModels] First time applying suggestions for ${modelId}`);
+        const suggestions = this.getSuggestionSettings(modelId);
+        
+        // Mark as applied
+        set((state) => ({
+          ...state,
+          appliedSuggestions: {
+            ...state.appliedSuggestions,
+            [modelId]: model.configVersion,
+          },
+        }));
+        
+        return suggestions;
+      }
+      
+      // Rule 3: Don't overwrite user modifications even if configVersion is newer
+      console.log(`[BedrockModels] Suggestions already applied for ${modelId} at version ${lastAppliedVersion}, skipping`);
+      return null;
+    },
   }),
   {
     name: StoreKey.BedrockModels,
-    version: 1.1, // Increased version for new configVersion feature
+    version: 1.2, // Increased version for supportedParameters and suggestionSettings features
     migrate(persistedState, version) {
       const state = persistedState as any;
       
@@ -454,11 +531,18 @@ export const useBedrockModelsStore = createPersistStore(
         state.storeVersion = "1.0";
       }
       
+      // Add appliedSuggestions if it doesn't exist
+      if (!state.appliedSuggestions) {
+        state.appliedSuggestions = {};
+      }
+      
       // Ensure all models have configVersion
       if (state.models && Array.isArray(state.models)) {
         state.models = state.models.map((model: any) => ({
           ...model,
           configVersion: model.configVersion || "0.0",
+          supportedParameters: model.supportedParameters || [],
+          suggestionSettings: model.suggestionSettings || {},
         }));
       }
       

@@ -136,7 +136,9 @@ export function validateBedrockModel(model: any): model is BedrockModel {
     typeof model.uuid === 'string' &&
     typeof model.anthropicVersion === 'string' &&
     typeof model.isReasoningModel === 'boolean' &&
-    typeof model.configVersion === 'string'
+    typeof model.configVersion === 'string' &&
+    (model.supportedParameters === undefined || Array.isArray(model.supportedParameters)) &&
+    (model.suggestionSettings === undefined || typeof model.suggestionSettings === 'object')
   );
 }
 
@@ -224,4 +226,67 @@ export function getModelsNeedingUpdate(
   }
   
   return { toUpdate, toAdd, toRemove };
+}
+
+/**
+ * Filter suggestion settings by supported parameters
+ * Rule 2: Only include settings that are in the supportedParameters list
+ */
+export function filterSuggestionSettings(
+  suggestionSettings: Record<string, any>, 
+  supportedParameters: string[]
+): Record<string, any> {
+  const filtered: Record<string, any> = {};
+  
+  supportedParameters.forEach(param => {
+    if (param in suggestionSettings) {
+      filtered[param] = suggestionSettings[param];
+    }
+  });
+  
+  return filtered;
+}
+
+/**
+ * Check if a model has suggestion settings available
+ */
+export function hasSuggestionSettings(model: BedrockModel): boolean {
+  return !!(
+    model.suggestionSettings && 
+    Object.keys(model.suggestionSettings).length > 0 &&
+    model.supportedParameters &&
+    model.supportedParameters.length > 0
+  );
+}
+
+/**
+ * Get applicable suggestion settings for a model
+ * Filters suggestionSettings by supportedParameters list
+ */
+export function getApplicableSuggestions(model: BedrockModel): Record<string, any> {
+  if (!hasSuggestionSettings(model)) {
+    return {};
+  }
+  
+  return filterSuggestionSettings(
+    model.suggestionSettings!,
+    model.supportedParameters!
+  );
+}
+
+/**
+ * Check if two parameter settings are different
+ */
+export function areSettingsDifferent(
+  settings1: Record<string, any>, 
+  settings2: Record<string, any>
+): boolean {
+  const keys1 = Object.keys(settings1);
+  const keys2 = Object.keys(settings2);
+  
+  if (keys1.length !== keys2.length) {
+    return true;
+  }
+  
+  return keys1.some(key => settings1[key] !== settings2[key]);
 } 

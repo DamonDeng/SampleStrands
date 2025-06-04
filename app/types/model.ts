@@ -55,6 +55,12 @@ export interface BedrockModel {
   
   /** Configuration version for tracking updates */
   configVersion: string;
+  
+  /** List of supported parameters for this model (can be empty) */
+  supportedParameters?: string[];
+  
+  /** Suggested parameter settings for optimal performance */
+  suggestionSettings?: Record<string, any>;
 }
 
 export interface ModelConfigStore {
@@ -75,6 +81,9 @@ export interface ModelConfigStore {
   
   /** Version of the configuration schema */
   storeVersion: string;
+  
+  /** Track which models have had suggestion settings applied to avoid overwriting user changes */
+  appliedSuggestions: Record<string, string>; // modelId -> configVersion when suggestions were applied
 }
 
 export interface ModelConfigActions {
@@ -116,6 +125,15 @@ export interface ModelConfigActions {
   
   /** Check if config needs update based on version comparison */
   checkConfigVersion: () => Promise<boolean>;
+  
+  /** Get supported parameters for a model */
+  getSupportedParameters: (modelId: string) => string[];
+  
+  /** Get suggestion settings for a model, filtered by supported parameters */
+  getSuggestionSettings: (modelId: string) => Record<string, any>;
+  
+  /** Apply suggestion settings if user hasn't modified them yet */
+  applySuggestionSettingsIfNew: (modelId: string) => Record<string, any> | null;
 }
 
 export type ModelConfigStoreState = ModelConfigStore & ModelConfigActions;

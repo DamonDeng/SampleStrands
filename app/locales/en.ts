@@ -495,6 +495,48 @@ const en: LocaleType = {
       },
     },
   },
+  Agent: {
+    Name: "Agent",
+    Page: {
+      Title: "AI Agents",
+      SubTitle: (count: number) => `${count} AI agents`,
+      Search: "Search Agents",
+      Create: "Create",
+    },
+    Item: {
+      Info: (count: number) => `${count} prompts`,
+      Chat: "Chat",
+      View: "View",
+      Edit: "Edit",
+      Delete: "Delete",
+      DeleteConfirm: "Confirm to delete?",
+    },
+    EditModal: {
+      Title: (readonly: boolean) =>
+        `Edit AI Agent ${readonly ? "(readonly)" : ""}`,
+      Download: "Download",
+      Clone: "Clone",
+    },
+    Config: {
+      Avatar: "Agent Avatar",
+      Name: "Agent Name",
+      Description: "Agent Description",
+      Sync: {
+        Title: "Use Global Config",
+        SubTitle: "Use global config in this chat",
+        Confirm: "Confirm to override custom config with global config?",
+      },
+      HideContext: {
+        Title: "Hide Context Prompts",
+        SubTitle: "Do not show in-context prompts in chat",
+      },
+      Share: {
+        Title: "Share This Agent",
+        SubTitle: "Generate a link to this agent",
+        Action: "Copy Link",
+      },
+    },
+  },
   NewChat: {
     Return: "Return",
     Skip: "Just Start",

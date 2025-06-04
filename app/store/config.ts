@@ -42,6 +42,7 @@ export const DEFAULT_CONFIG = {
 
   dontShowMaskSplashScreen: false, // dont show splash screen when create chat
   hideBuiltinMasks: false, // dont add builtin masks
+  hideBuiltinAgents: false, // dont add builtin agents
 
   customModels: "",
   models: DEFAULT_MODELS as any as LLMModel[],
@@ -144,7 +145,7 @@ export const useAppConfig = createPersistStore(
   }),
   {
     name: StoreKey.Config,
-    version: 3.8,
+    version: 3.9,
     migrate(persistedState, version) {
       const state = persistedState as ChatConfig;
 
@@ -173,6 +174,10 @@ export const useAppConfig = createPersistStore(
 
       if (version < 3.8) {
         state.lastUpdate = Date.now();
+      }
+
+      if (version < 3.9) {
+        state.hideBuiltinAgents = false;
       }
 
       return state as any;

@@ -203,9 +203,9 @@ export function SideBar(props: { className?: string }) {
         />
         <IconButton
           icon={<PluginIcon />}
-          text={shouldNarrow ? undefined : Locale.Plugin.Name}
+          text={shouldNarrow ? undefined : Locale.Agent.Name}
           className={styles["sidebar-bar-button"]}
-          onClick={() => navigate(Path.PythonTest)}
+          onClick={() => navigate(Path.Agents)}
           shadow
         />
       </div>

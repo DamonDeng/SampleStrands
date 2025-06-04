@@ -3451,6 +3451,11 @@
   dependencies:
     tslib "^2.4.0"
 
+"@tauri-apps/api@^2.0.0", "@tauri-apps/api@^2.5.0":
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/@tauri-apps/api/-/api-2.5.0.tgz#f1c67b5505ba689621b549f9d0165389337586dc"
+  integrity sha512-Ldux4ip+HGAcPUmuLT8EIkk6yafl5vK0P0c0byzAKzxJh7vxelVtdPONjfgTm96PbN24yjZNESY8CKo8qniluA==
+
 "@tauri-apps/cli-darwin-arm64@1.5.7":
   version "1.5.7"
   resolved "https://registry.npmjs.org/@tauri-apps/cli-darwin-arm64/-/cli-darwin-arm64-1.5.7.tgz"
@@ -3516,6 +3521,13 @@
     "@tauri-apps/cli-win32-arm64-msvc" "1.5.7"
     "@tauri-apps/cli-win32-ia32-msvc" "1.5.7"
     "@tauri-apps/cli-win32-x64-msvc" "1.5.7"
+
+"@tauri-apps/plugin-shell@^2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@tauri-apps/plugin-shell/-/plugin-shell-2.2.1.tgz#586ab725ef622ba65a946bff1a3e166cee181903"
+  integrity sha512-G1GFYyWe/KlCsymuLiNImUgC8zGY0tI0Y3p8JgBCWduR5IEXlIJS+JuG1qtveitwYXlfJrsExt3enhv5l2/yhA==
+  dependencies:
+    "@tauri-apps/api" "^2.0.0"
 
 "@trysound/sax@0.2.0":
   version "0.2.0"

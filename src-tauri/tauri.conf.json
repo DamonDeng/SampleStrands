@@ -16,7 +16,21 @@
       "all": false,
       "shell": {
         "all": false,
-        "open": true
+        "open": true,
+        "execute": true,
+        "sidecar": true,
+        "scope": [
+          {
+            "name": "python-script",
+            "cmd": "python3",
+            "args": ["./python/main_entry.py", "--input", {"validator": "\\S+"}]
+          },
+          {
+            "name": "python-version",
+            "cmd": "python3", 
+            "args": ["--version"]
+          }
+        ]
       },
       "dialog": {
         "all": true,

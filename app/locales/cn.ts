@@ -421,8 +421,8 @@ const cn = {
     Prompt: {
       History: (content: string) => "这是历史聊天总结作为前情提要：" + content,
       Topic:
-        "Use 2 to 8 Chinese characters to summarize the brief topic of the conversation, do not explain, do not use punctuation, do not use mood words, do not add extra text, do not bold, if there is no topic, please directly return “闲聊”",
-      // "使用四到五个字直接返回这句话的简要主题，不要解释、不要标点、不要语气词、不要多余文本，不要加粗，如果没有主题，请直接返回“闲聊”",
+        "Use 2 to 8 Chinese characters to summarize the brief topic of the conversation, do not explain, do not use punctuation, do not use mood words, do not add extra text, do not bold, if there is no topic, please directly return \"闲聊\"",
+      // "使用四到五个字直接返回这句话的简要主题，不要解释、不要标点、不要语气词、不要多余文本，不要加粗，如果没有主题，请直接返回"闲聊"",
       Summarize:
         "简要总结一下对话内容，用作后续的上下文提示 prompt，控制在 200 字以内",
     },
@@ -485,6 +485,48 @@ const cn = {
       Share: {
         Title: "分享此面具",
         SubTitle: "生成此面具的直达链接",
+        Action: "复制链接",
+      },
+    },
+  },
+  Agent: {
+    Name: "智能体",
+    Page: {
+      Title: "AI 智能体",
+      SubTitle: (count: number) => `${count} 个 AI 智能体`,
+      Search: "搜索智能体",
+      Create: "新建",
+    },
+    Item: {
+      Info: (count: number) => `包含 ${count} 条预设对话`,
+      Chat: "对话",
+      View: "查看",
+      Edit: "编辑",
+      Delete: "删除",
+      DeleteConfirm: "确认删除？",
+    },
+    EditModal: {
+      Title: (readonly: boolean) =>
+        `编辑 AI 智能体 ${readonly ? "（只读）" : ""}`,
+      Download: "下载预设",
+      Clone: "克隆预设",
+    },
+    Config: {
+      Avatar: "智能体头像",
+      Name: "智能体名称",
+      Description: "智能体描述",
+      Sync: {
+        Title: "使用全局设置",
+        SubTitle: "当前对话是否使用全局模型设置",
+        Confirm: "当前对话的自定义设置将会被自动覆盖，确认启用全局设置？",
+      },
+      HideContext: {
+        Title: "隐藏预设对话",
+        SubTitle: "隐藏后预设对话不会出现在聊天界面",
+      },
+      Share: {
+        Title: "分享此智能体",
+        SubTitle: "生成此智能体的直达链接",
         Action: "复制链接",
       },
     },

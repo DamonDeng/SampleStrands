@@ -14,7 +14,7 @@ export function PythonTest() {
   useEffect(() => {
     // Check if running in Tauri environment
     const checkTauriEnv = () => {
-      return typeof window !== 'undefined' && window.__TAURI_INTERNALS__ !== undefined;
+      return typeof window !== 'undefined' && window.__TAURI__ !== undefined;
     };
     setIsTauriEnv(checkTauriEnv());
   }, []);

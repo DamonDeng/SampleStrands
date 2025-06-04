@@ -19,6 +19,7 @@ export enum Path {
   Settings = "/settings",
   NewChat = "/new-chat",
   Masks = "/masks",
+  Agents = "/agents",
   Auth = "/auth",
   PythonTest = "/python-test",
 }
@@ -35,6 +36,7 @@ export enum SlotID {
 
 export enum FileName {
   Masks = "masks.json",
+  Agents = "agents.json",
   Prompts = "prompts.json",
 }
 
@@ -43,6 +45,7 @@ export enum StoreKey {
   Access = "access-control",
   Config = "app-config",
   Mask = "mask-store",
+  Agent = "agent-store",
   Prompt = "prompt-store",
   Update = "chat-update",
   Sync = "sync",

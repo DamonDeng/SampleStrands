@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import React from "react";
 
 import styles from "./settings.module.scss";
 
@@ -73,6 +74,11 @@ import { useSyncStore } from "../store/sync";
 import { nanoid } from "nanoid";
 import { useMaskStore } from "../store/mask";
 import { ProviderType } from "../utils/cloud";
+
+// Import new Bedrock model system
+import { useBedrockModelsStore } from "../store/bedrock-models";
+import { useAutoModelSync, ModelSyncStatus } from "./model-sync-status";
+import { bedrockModelsToLLMModels } from "../utils/bedrock-models";
 
 function EditPromptModal(props: { id: string; onClose: () => void }) {
   const promptStore = usePromptStore();
@@ -262,6 +268,187 @@ function DangerItems() {
           type="danger"
         />
       </ListItem>
+    </List>
+  );
+}
+
+function BedrockModelSettings() {
+  const {
+    models,
+    selectedModelId,
+    isLoading,
+    error,
+    getActiveModels,
+    getModelsByProvider,
+    setSelectedModel,
+    checkConfigVersion,
+    syncModelsWithConfig,
+  } = useBedrockModelsStore();
+
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>("");
+
+  const activeModels = getActiveModels();
+  const modelsByProvider = getModelsByProvider();
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[BedrockModelSettings] Store state update:', {
+      modelsCount: models.length,
+      activeModelsCount: activeModels.length,
+      isLoading,
+      error,
+      selectedModelId,
+    });
+    console.log('[BedrockModelSettings] Models by provider:', modelsByProvider);
+  }, [models, activeModels, isLoading, error, selectedModelId, modelsByProvider]);
+
+  // Test HTTP access to the JSON file
+  const testJsonAccess = async () => {
+    try {
+      console.log('[BedrockModelSettings] Testing JSON file access...');
+      const response = await fetch('/ddconfig/default_models.json');
+      const status = `HTTP ${response.status} ${response.statusText}`;
+      console.log('[BedrockModelSettings] JSON access test:', status);
+      
+      if (response.ok) {
+        const text = await response.text();
+        setDebugInfo(`✅ JSON accessible - ${status} - ${text.length} bytes`);
+      } else {
+        setDebugInfo(`❌ JSON not accessible - ${status}`);
+      }
+    } catch (error) {
+      const errorMsg = `❌ Network error: ${error instanceof Error ? error.message : 'Unknown'}`;
+      console.error('[BedrockModelSettings] JSON access test failed:', error);
+      setDebugInfo(errorMsg);
+    }
+  };
+
+  const handleCheckUpdates = async () => {
+    console.log('[BedrockModelSettings] Checking for updates manually...');
+    setCheckingUpdates(true);
+    try {
+      const needsUpdate = await checkConfigVersion();
+      console.log('[BedrockModelSettings] Manual check - needs update:', needsUpdate);
+      if (needsUpdate) {
+        await syncModelsWithConfig();
+        showToast("Model configurations updated successfully");
+      } else {
+        showToast("Model configurations are up to date");
+      }
+    } catch (error) {
+      console.error('[BedrockModelSettings] Manual update check failed:', error);
+      showToast("Failed to check for model updates");
+      console.error("Model update check failed:", error);
+    } finally {
+      setCheckingUpdates(false);
+    }
+  };
+
+  console.log('[BedrockModelSettings] Rendering with:', {
+    modelsCount: models.length,
+    activeModelsCount: activeModels.length,
+    isLoading,
+    error,
+  });
+
+  return (
+    <List>
+      <ListItem
+        title="Bedrock Model Configuration"
+        subTitle={`${activeModels.length} active models available`}
+      >
+        <div style={{ display: "flex", gap: "8px" }}>
+          <IconButton
+            icon={checkingUpdates ? <LoadingIcon /> : <ResetIcon />}
+            text={checkingUpdates ? "Checking..." : "Check Updates"}
+            onClick={handleCheckUpdates}
+            disabled={checkingUpdates}
+          />
+        </div>
+      </ListItem>
+
+      {/* Debug section */}
+      <ListItem
+        title="Debug Information"
+        subTitle="Test JSON file access and store state"
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <button 
+            onClick={testJsonAccess}
+            style={{ padding: "4px 8px", fontSize: "0.8em" }}
+          >
+            Test JSON Access
+          </button>
+          {debugInfo && (
+            <div style={{ fontSize: "0.8em", color: debugInfo.includes('✅') ? 'green' : 'red' }}>
+              {debugInfo}
+            </div>
+          )}
+          <div style={{ fontSize: "0.8em", color: "#666" }}>
+            Store: {models.length} models, Loading: {isLoading ? 'Yes' : 'No'}, Error: {error || 'None'}
+          </div>
+        </div>
+      </ListItem>
+
+      {error && (
+        <ListItem
+          title="Model Loading Error"
+          subTitle={error}
+        >
+          <div style={{ color: "#d32f2f", fontSize: "0.9em" }}>
+            Failed to load model configurations
+          </div>
+        </ListItem>
+      )}
+
+      <ListItem
+        title="Selected Model"
+        subTitle={selectedModelId || "No model selected"}
+      >
+        <Select
+          value={selectedModelId || ""}
+          onChange={(e) => {
+            if (e.target.value) {
+              setSelectedModel(e.target.value);
+            }
+          }}
+        >
+          <option value="">-- Select a Bedrock Model --</option>
+          {Object.entries(modelsByProvider).map(([provider, providerModels]) => (
+            <optgroup key={provider} label={provider}>
+              {providerModels.map((model) => (
+                <option key={model.modelId} value={model.modelId}>
+                  {model.modelName}
+                  {model.isReasoningModel && " (Reasoning)"}
+                  {model.inputModalities.includes("IMAGE") && " (Vision)"}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </Select>
+      </ListItem>
+
+      <ListItem
+        title="Model Capabilities"
+        subTitle="Available model capabilities and features"
+      >
+        <div style={{ fontSize: "0.9em", color: "#666" }}>
+          <div>• Text models: {activeModels.filter(m => m.inputModalities.includes("TEXT")).length}</div>
+          <div>• Vision models: {activeModels.filter(m => m.inputModalities.includes("IMAGE")).length}</div>
+          <div>• Reasoning models: {activeModels.filter(m => m.isReasoningModel).length}</div>
+          <div>• Streaming support: {activeModels.filter(m => m.responseStreamingSupported).length}</div>
+        </div>
+      </ListItem>
+
+      {isLoading && (
+        <ListItem
+          title="Loading Models"
+          subTitle="Synchronizing model configurations..."
+        >
+          <LoadingIcon />
+        </ListItem>
+      )}
     </List>
   );
 }
@@ -565,6 +752,9 @@ export function Settings() {
   const config = useAppConfig();
   const updateConfig = config.update;
 
+  // Auto-sync Bedrock models on component mount
+  useAutoModelSync();
+
   const updateStore = useUpdateStore();
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const currentVersion = updateStore.formatVersion(updateStore.version);
@@ -623,6 +813,9 @@ export function Settings() {
   const builtinCount = SearchService.count.builtin;
   const customCount = promptStore.getUserPrompts().length ?? 0;
   const [shouldShowPromptModal, setShowPromptModal] = useState(false);
+
+  // Add state for showing model sync status
+  const [showModelSyncStatus, setShowModelSyncStatus] = useState(false);
 
   const showUsage = accessStore.isAuthorized();
   useEffect(() => {
@@ -844,6 +1037,25 @@ export function Settings() {
         </List>
 
         <SyncItems />
+
+        <List>
+          <ListItem
+            title="Model Sync Status"
+            subTitle="Bedrock model configuration synchronization"
+          >
+            <IconButton
+              icon={showModelSyncStatus ? <CloseIcon /> : <ConfigIcon />}
+              text={showModelSyncStatus ? "Hide" : "Show Status"}
+              onClick={() => setShowModelSyncStatus(!showModelSyncStatus)}
+            />
+          </ListItem>
+        </List>
+
+        {showModelSyncStatus && (
+          <div style={{ margin: "16px 0" }}>
+            <ModelSyncStatus />
+          </div>
+        )}
 
         <List>
           <ListItem
@@ -1369,6 +1581,8 @@ export function Settings() {
         {shouldShowPromptModal && (
           <UserPromptModal onClose={() => setShowPromptModal(false)} />
         )}
+
+        <BedrockModelSettings />
 
         <DangerItems />
       </div>

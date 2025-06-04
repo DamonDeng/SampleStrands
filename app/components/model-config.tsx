@@ -1,3 +1,4 @@
+import React from "react";
 import {
   ModalConfigValidator, ModelConfig, useAppConfig, useAccessStore,
 } from "../store";
@@ -12,9 +13,16 @@ import ResetIcon from "../icons/reload.svg";
 import { LLMModel } from "../client/api";
 import { DEFAULT_MODELS } from "@/app/constant";
 
+// Import new Bedrock model system
+import { useBedrockModelsStore } from "../store/bedrock-models";
+import { bedrockModelsToLLMModels } from "../utils/bedrock-models";
+
 // 每个模型的特定配置定义
 const MODEL_SPECIFIC_CONFIGS = {
   "claude-3.7-sonnet": {
+    hasReasoning: true,
+  },
+  "anthropic.claude-3-7-sonnet-20250219-v1:0": {
     hasReasoning: true,
   },
 };
@@ -31,7 +39,34 @@ export function ModelConfigList(props: {
   const appConfig = useAppConfig();
   const accessStore = useAccessStore();
 
+  // New Bedrock models store
+  const bedrockStore = useBedrockModelsStore();
+
   const { provider, useBRProxy, BRProxyUrl, openaiApiKey } = accessStore;
+
+  // Combine legacy models with new Bedrock models
+  const allAvailableModels = React.useMemo(() => {
+    const legacyModels = appConfig.models?.filter(m => m.available) || [];
+    const bedrockModels = bedrockModelsToLLMModels(bedrockStore.getActiveModels());
+    
+    // Remove duplicates by modelId, preferring Bedrock models
+    const modelMap = new Map<string, LLMModel>();
+    
+    // Add legacy models first
+    legacyModels.forEach(model => {
+      modelMap.set(model.modelId || model.name, model);
+    });
+    
+    // Add Bedrock models (will override legacy models with same ID)
+    bedrockModels.forEach(model => {
+      modelMap.set(model.modelId || model.name, {
+        ...model,
+        displayName: `[Bedrock] ${model.displayName}`, // Mark Bedrock models
+      });
+    });
+    
+    return Array.from(modelMap.values());
+  }, [appConfig.models, bedrockStore.models]);
 
   // 获取当前模型的特定配置
   const getModelConfig = (modelName: string) => {
@@ -69,13 +104,49 @@ export function ModelConfigList(props: {
     if (
       !storedModels ||
       storedModels.length === 0 ||
-      !storedModels[0].displayName
+      !storedModels[0]?.displayName
     ) {
       appConfig.update(
         (config) => (config.models = DEFAULT_MODELS as any as LLMModel[]),
       );
     }
-  });
+  }, [appConfig]);
+
+  const handleRefreshModels = async () => {
+    try {
+      const http_headers: any = {};
+      let model_url = "https://eiai.fun/bedrock-models.json";
+      
+      if (provider === "AWS" && useBRProxy === "True") {
+        http_headers["Authorization"] = `Bearer ${openaiApiKey}`;
+        model_url = BRProxyUrl + "/user/model/list-for-brclient?f=";
+      }
+
+      const response = await fetch(
+        model_url + "?f=" + new Date().getTime().toString(),
+        {
+          method: 'GET',
+          headers: http_headers,
+        },
+      );
+      
+      let remote_models = await response.json();
+      if (provider === "AWS" && useBRProxy === "True") {
+        remote_models = remote_models.data;
+      }
+      
+      // Update legacy models
+      appConfig.update(
+        (config) => (config.models = remote_models as any as LLMModel[]),
+      );
+      
+      // Also refresh Bedrock models
+      await bedrockStore.refreshModels();
+      
+    } catch (e) {
+      console.error("Failed to refresh models:", e);
+    }
+  };
 
   return (
     <>
@@ -94,49 +165,60 @@ export function ModelConfigList(props: {
               setModelSpecificConfig(getModelConfig(e.currentTarget.value));
             }}
           >
-            {appConfig.models
-              .filter((v) => v.available)
-              .map((v, i) => (
-                <option value={v.name} key={i}>
-                  {v.displayName || v.name}({v.provider?.providerName})
-                </option>
-              ))}
+            <option value="">-- Select a Model --</option>
+            
+            {/* Group models by source */}
+            {appConfig.models?.filter(v => v.available).length > 0 && (
+              <optgroup label="Legacy Models">
+                {appConfig.models
+                  .filter((v) => v.available)
+                  .map((v, i) => (
+                    <option value={v.name} key={`legacy-${i}`}>
+                      {v.displayName || v.name} ({v.provider?.providerName})
+                    </option>
+                  ))}
+              </optgroup>
+            )}
+            
+            {bedrockStore.getActiveModels().length > 0 && (
+              <optgroup label="Bedrock Models">
+                {bedrockStore.getActiveModels().map((model) => (
+                  <option value={model.modelId} key={`bedrock-${model.uuid}`}>
+                    {model.modelName} ({model.providerName})
+                    {model.isReasoningModel && " 🧠"}
+                    {model.inputModalities.includes("IMAGE") && " 👁️"}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </Select>
 
-
           <IconButton
-            onClick={async () => {
-              try {
-                const http_headers: any = {
-                };
-                let model_url = "https://eiai.fun/bedrock-models.json";
-                if (provider === "AWS" && useBRProxy === "True") {
-                  http_headers["Authorization"] = `Bearer ${openaiApiKey}`;
-                  model_url = BRProxyUrl + "/user/model/list-for-brclient?f=";
-                }
-
-                const response = await fetch(
-                  model_url + "?f=" + new Date().getTime().toString(),
-                  {
-                    method: 'GET',
-                    headers: http_headers,
-                  },
-                );
-                let remote_models = await response.json();
-                if (provider === "AWS" && useBRProxy === "True") {
-                  remote_models = remote_models.data;
-                }
-                appConfig.update(
-                  (config) =>
-                    (config.models = remote_models as any as LLMModel[]),
-                );
-              } catch (e) {
-                console.error(e);
-              }
-            }}
+            onClick={handleRefreshModels}
             icon={<ResetIcon />}
+            title="Refresh both legacy and Bedrock models"
           />
+        </div>
+      </ListItem>
 
+      {/* Show model source info */}
+      <ListItem
+        title="Model Source"
+        subTitle={
+          bedrockStore.getModelById(props.modelConfig.model) 
+            ? "Bedrock Model (New Configuration System)"
+            : "Legacy Model"
+        }
+      >
+        <div style={{ fontSize: "0.9em", color: "#666" }}>
+          {bedrockStore.getModelById(props.modelConfig.model) ? (
+            <div>
+              • Config Version: {bedrockStore.getModelById(props.modelConfig.model)?.configVersion}
+              • UUID: {bedrockStore.getModelById(props.modelConfig.model)?.uuid.slice(0, 8)}...
+            </div>
+          ) : (
+            <div>• Using legacy model configuration</div>
+          )}
         </div>
       </ListItem>
       <ListItem

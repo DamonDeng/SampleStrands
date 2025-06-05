@@ -22,6 +22,7 @@ export enum Path {
   Agents = "/agents",
   Auth = "/auth",
   PythonTest = "/python-test",
+  MCPTest = "/mcp-test",
 }
 
 export enum ApiPath {

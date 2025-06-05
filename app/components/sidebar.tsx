@@ -213,9 +213,7 @@ export function SideBar(props: { className?: string }) {
           icon={<ConnectionIcon />}
           text={shouldNarrow ? undefined : "MCP"}
           className={styles["sidebar-bar-button"]}
-          onClick={() => {
-            showToast("Coming Soon ...");
-          }}
+          onClick={() => navigate(Path.MCPTest)}
           shadow
         />
       </div>

@@ -66,6 +66,10 @@ const PythonTestPage = dynamic(async () => (await import("../python-test/page"))
   loading: () => <Loading noLogo />,
 });
 
+const MCPTestPage = dynamic(async () => (await import("../mcp-test/page")).default, {
+  loading: () => <Loading noLogo />,
+});
+
 export function useSwitchTheme() {
   const config = useAppConfig();
 
@@ -183,6 +187,7 @@ function Screen() {
                   <Route path={Path.Chat} element={<Chat />} />
                   <Route path={Path.Settings} element={<Settings />} />
                   <Route path={Path.PythonTest} element={<PythonTestPage />} />
+                  <Route path={Path.MCPTest} element={<MCPTestPage />} />
                 </Routes>
               </div>
             </>

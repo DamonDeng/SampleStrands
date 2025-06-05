@@ -38,6 +38,7 @@ import EditIcon from "../icons/rename.svg";
 import ConfirmIcon from "../icons/confirm.svg";
 import CancelIcon from "../icons/cancel.svg";
 import ImageIcon from "../icons/image.svg";
+import PluginIcon from "../icons/plugin.svg";
 
 import LightIcon from "../icons/light.svg";
 import DarkIcon from "../icons/dark.svg";
@@ -720,10 +721,10 @@ export function ChatActions(props: {
 
       <ChatAction
         onClick={() => {
-          navigate(Path.Masks);
+          navigate(Path.Agents);
         }}
-        text={Locale.Chat.InputActions.Masks}
-        icon={<MaskIcon />}
+        text="Agents"
+        icon={<PluginIcon />}
       />
 
       <ChatAction

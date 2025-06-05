@@ -127,7 +127,7 @@
     },
     {
         "modelArn": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0",
-        "modelId": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+        "modelId": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
         "modelName": "Claude 3.5 Sonnet v2",
         "providerName": "Anthropic",
         "inputModalities": [

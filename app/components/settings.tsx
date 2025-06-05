@@ -517,7 +517,7 @@ function BedrockModelSettings() {
       </ListItem>
 
       {/* Debug section */}
-      <ListItem
+      {/* <ListItem
         title="Debug Information"
         subTitle="Test JSON file access and store state"
       >
@@ -537,7 +537,7 @@ function BedrockModelSettings() {
             Store: {models.length} models, Loading: {isLoading ? 'Yes' : 'No'}, Error: {error || 'None'}
           </div>
         </div>
-      </ListItem>
+      </ListItem> */}
 
       {error && (
         <ListItem
@@ -577,7 +577,7 @@ function BedrockModelSettings() {
         </Select>
       </ListItem>
 
-      <ListItem
+      {/* <ListItem
         title="Model Capabilities"
         subTitle="Available model capabilities and features"
       >
@@ -587,7 +587,7 @@ function BedrockModelSettings() {
           <div>• Reasoning models: {activeModels.filter(m => m.isReasoningModel).length}</div>
           <div>• Streaming support: {activeModels.filter(m => m.responseStreamingSupported).length}</div>
         </div>
-      </ListItem>
+      </ListItem> */}
 
       {/* Selected Model Details with Editable Parameters */}
       {selectedModelId && (
@@ -600,7 +600,7 @@ function BedrockModelSettings() {
             
             return (
               <>
-                <ListItem
+                {/* <ListItem
                   title="Selected Model Parameters"
                   subTitle={`${selectedModel?.modelName} - Parameter Support`}
                 >
@@ -618,48 +618,43 @@ function BedrockModelSettings() {
                       <div>• No additional parameters supported</div>
                     )}
                   </div>
-                </ListItem>
+                </ListItem> */}
 
-                {/* Editable Parameter Settings */}
+                {/* Model Name and Status */}
+                {/* <ListItem
+                  title={selectedModel?.modelName ?? "Unknown Model"}
+                  subTitle="Parameter Settings (automatically saved)"
+                >
+                  <div style={{ fontSize: "0.8em", color: "#666", padding: "8px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+                    <div><strong>Model Status:</strong></div>
+                    <div>• Custom parameters: {hasCustomParameters(selectedModelId) ? 'Yes' : 'No'}</div>
+                    <div>• Parameters stored separately for each model</div>
+                  </div>
+                </ListItem> */}
+
+                {/* Individual Parameter ListItems */}
+                {supportedParams.length > 0 && supportedParams.map((param: string) => {
+                  const currentValue = currentValues[param];
+                  const suggestionValue = suggestionSettings[param];
+                  const hasCustomValue = (getModelParameters(selectedModelId) as any)[param] !== undefined;
+                  
+                  return (
+                    <ListItem
+                      key={param}
+                      title={`${param}${hasCustomValue ? ' (custom)' : ''}`}
+                      subTitle="Parameter Setting"
+                    >
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        {renderParameterInput(param, currentValue, suggestionValue)}
+                      </div>
+                    </ListItem>
+                  );
+                })}
+
                 {supportedParams.length > 0 && (
-                  <ListItem
-                    title="Parameter Settings"
-                    subTitle={`Edit parameter values for ${selectedModel?.modelName} (automatically saved)`}
-                  >
-                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                      {/* Model-specific parameter status */}
-                      <div style={{ fontSize: "0.8em", color: "#666", padding: "8px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
-                        <div><strong>Model Status:</strong></div>
-                        <div>• Custom parameters: {hasCustomParameters(selectedModelId) ? 'Yes' : 'No'}</div>
-                        <div>• Parameters stored separately for each model</div>
-                      </div>
-                      
-                      {supportedParams.map((param: string) => {
-                        const currentValue = currentValues[param];
-                        const suggestionValue = suggestionSettings[param];
-                        const hasCustomValue = (getModelParameters(selectedModelId) as any)[param] !== undefined;
-                        
-                        return (
-                          <div key={param} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "32px" }}>
-                            <div style={{ 
-                              minWidth: "120px", 
-                              fontSize: "0.9em",
-                              color: hasCustomValue ? "#333" : "#666"
-                            }}>
-                              <strong>{param}:</strong>
-                              {hasCustomValue && <span style={{ color: "#2196F3", fontSize: "0.8em", marginLeft: "4px" }}>(custom)</span>}
-                            </div>
-                            <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-                              {renderParameterInput(param, currentValue, suggestionValue)}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      <div style={{ fontSize: "0.8em", color: "#888", marginTop: "8px" }}>
-                        💡 Parameter values are saved per model. Blue "(custom)" indicates you've modified the suggested value for this specific model.
-                      </div>
-                    </div>
-                  </ListItem>
+                  <div style={{ fontSize: "0.8em", color: "#888", margin: "8px 16px" }}>
+                    💡 Parameter values are saved per model. Blue "(custom)" indicates you've modified the suggested value for this specific model.
+                  </div>
                 )}
 
                 {/* Model Parameter Management */}
@@ -702,7 +697,7 @@ function BedrockModelSettings() {
                 )}
 
                 {/* Show suggested values for reference */}
-                {Object.keys(suggestionSettings).length > 0 && (
+                {/* {Object.keys(suggestionSettings).length > 0 && (
                   <ListItem
                     title="Suggested Reference Values"
                     subTitle="Original suggested values for this model"
@@ -716,10 +711,10 @@ function BedrockModelSettings() {
                       </div>
                     </div>
                   </ListItem>
-                )}
+                )} */}
 
                 {/* Show current active parameter values for debugging */}
-                {hasCustomParameters(selectedModelId) && (
+                {/* {hasCustomParameters(selectedModelId) && (
                   <ListItem
                     title="Current Active Values"
                     subTitle="Values that will be used for API calls"
@@ -736,9 +731,9 @@ function BedrockModelSettings() {
                       </div>
                     </div>
                   </ListItem>
-                )}
+                )} */}
 
-                <ListItem
+                {/* <ListItem
                   title="Legacy Notice"
                   subTitle="About the new parameter system"
                 >
@@ -751,7 +746,7 @@ function BedrockModelSettings() {
                       💡 Tip: You can now optimize parameters differently for each model!
                     </div>
                   </div>
-                </ListItem>
+                </ListItem> */}
               </>
             );
           })()}

@@ -13,6 +13,7 @@ import DeleteIcon from "../icons/delete.svg";
 import MaskIcon from "../icons/mask.svg";
 import PluginIcon from "../icons/plugin.svg";
 import DragIcon from "../icons/drag.svg";
+import ConnectionIcon from "../icons/connection.svg";
 
 import Locale from "../locales";
 
@@ -188,7 +189,7 @@ export function SideBar(props: { className?: string }) {
       </div>
 
       <div className={styles["sidebar-header-bar"]}>
-        <IconButton
+        {/* <IconButton
           icon={<MaskIcon />}
           text={shouldNarrow ? undefined : Locale.Mask.Name}
           className={styles["sidebar-bar-button"]}
@@ -200,12 +201,21 @@ export function SideBar(props: { className?: string }) {
             }
           }}
           shadow
-        />
+        /> */}
         <IconButton
           icon={<PluginIcon />}
           text={shouldNarrow ? undefined : Locale.Agent.Name}
           className={styles["sidebar-bar-button"]}
           onClick={() => navigate(Path.Agents)}
+          shadow
+        />
+        <IconButton
+          icon={<ConnectionIcon />}
+          text={shouldNarrow ? undefined : "MCP"}
+          className={styles["sidebar-bar-button"]}
+          onClick={() => {
+            showToast("Coming Soon ...");
+          }}
           shadow
         />
       </div>

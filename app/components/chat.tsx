@@ -47,7 +47,6 @@ import StopIcon from "../icons/pause.svg";
 import RobotIcon from "../icons/robot.svg";
 import CloudIcon from "../icons/cloud-success.svg";
 
-
 import {
   ChatMessage,
   SubmitKey,
@@ -58,7 +57,6 @@ import {
   Theme,
   useAppConfig,
   DEFAULT_TOPIC,
-  ModelType,
 } from "../store";
 
 import {
@@ -68,12 +66,15 @@ import {
   useMobileScreen,
   getMessageTextContent,
   getMessageImages,
-  isVisionModel,
   compressImage,
   extractTextFromDocx,
   extractTextFromXlsx,
   readFileAsBytes,
 } from "../utils";
+
+// Import Bedrock model system
+import { useBedrockModelsStore } from "../store/bedrock-models";
+import { isVisionModel as isBedrockVisionModel } from "../utils/bedrock-models";
 
 import dynamic from "next/dynamic";
 
@@ -98,7 +99,6 @@ import {
   CHAT_PAGE_SIZE,
   LAST_INPUT_KEY,
   Path,
-  REASONING_MODEL,
   REQUEST_TIMEOUT_MS,
   UNFINISHED_INPUT,
 } from "../constant";
@@ -109,10 +109,7 @@ import { ChatCommandPrefix, useChatCommand, useCommand } from "../command";
 import { prettyObject } from "../utils/format";
 import { ExportMessageModal } from "./exporter";
 import { getClientConfig } from "../config/client";
-import { useAllModels } from "../utils/hooks";
 import { AttachmentDocument, MultimodalContent } from "../client/api";
-
-
 
 const Markdown = dynamic(async () => (await import("./markdown")).Markdown, {
   loading: () => <LoadingIcon />,
@@ -361,16 +358,12 @@ interface UploadDocumentProps {
   size: number;
 }
 
-
-
-
 export function DocumentsList(props: {
   showDocumentsList: boolean;
   onDocumentBytesSelect: (data: any) => void;
   files: UploadDocumentProps[];
   setFiles: React.Dispatch<React.SetStateAction<UploadDocumentProps[]>>;
 }) {
- 
   const [showMessage, setShowMessage]=useState(false)
   const [message, setMessage]=useState("")
   
@@ -627,6 +620,11 @@ export function ChatActions(props: {
   const navigate = useNavigate();
   const chatStore = useChatStore();
 
+  // Bedrock models store
+  const bedrockStore = useBedrockModelsStore();
+  const activeModels = bedrockStore.getActiveModels();
+  const modelsByProvider = bedrockStore.getModelsByProvider();
+
   // switch themes
   const theme = config.theme;
   function nextTheme() {
@@ -641,35 +639,31 @@ export function ChatActions(props: {
   const couldStop = ChatControllerPool.hasPending();
   const stopAll = () => ChatControllerPool.stopAll();
 
-  // switch model
-  const currentModel = chatStore.currentSession().mask.modelConfig.model;
-  const allModels = useAllModels();
-  const models = useMemo(
-    () => allModels.filter((m) => m.available),
-    [allModels],
-  );
+  // switch model - now using Bedrock models
+  const currentModelId = chatStore.currentSession().mask.modelConfig.model;
+  const currentModel = bedrockStore.getModelById(currentModelId);
+  
   const [showModelSelector, setShowModelSelector] = useState(false);
   const [showUploadImage, setShowUploadImage] = useState(false);
 
   useEffect(() => {
-    const show = isVisionModel(currentModel, allModels);
+    // Check if current model supports vision using Bedrock model structure
+    const show = currentModel ? isBedrockVisionModel(currentModel) : false;
     setShowUploadImage(show);
     if (!show) {
       props.setAttachImages([]);
       props.setUploading(false);
     }
 
-    // if current model is not available
-    // switch to first available model
-    const isUnavaliableModel = !models.some((m) => m.name === currentModel);
-    if (isUnavaliableModel && models.length > 0) {
-      const nextModel = models[0].name as ModelType;
+    // if current model is not available, switch to first available model
+    if (!currentModel && activeModels.length > 0) {
+      const nextModel = activeModels[0];
       chatStore.updateCurrentSession(
-        (session) => (session.mask.modelConfig.model = nextModel),
+        (session) => (session.mask.modelConfig.model = nextModel.modelId),
       );
-      showToast(nextModel);
+      showToast(nextModel.modelName);
     }
-  }, [chatStore, currentModel, models]);
+  }, [chatStore, currentModelId, currentModel, activeModels]);
 
   return (
     <div className={styles["chat-input-actions"]}>
@@ -763,7 +757,7 @@ export function ChatActions(props: {
 
       <ChatAction
         onClick={() => setShowModelSelector(true)}
-        text={currentModel}
+        text={currentModel?.modelName || "Select Model"}
         icon={<RobotIcon />}
       />
 
@@ -775,23 +769,26 @@ export function ChatActions(props: {
         icon={<CloudIcon />}
       />
 
-
-
       {showModelSelector && (
         <Selector
-          defaultSelectedValue={currentModel}
-          items={models.map((m) => ({
-            title: m.displayName,
-            value: m.name,
-          }))}
+          defaultSelectedValue={currentModelId}
+          items={Object.entries(modelsByProvider).flatMap(([provider, models]) => 
+            models.map((model) => ({
+              title: `${model.modelName}${model.isReasoningModel ? ' (Reasoning)' : ''}${isBedrockVisionModel(model) ? ' (Vision)' : ''}`,
+              value: model.modelId,
+            }))
+          )}
           onClose={() => setShowModelSelector(false)}
           onSelection={(s) => {
             if (s.length === 0) return;
-            chatStore.updateCurrentSession((session) => {
-              session.mask.modelConfig.model = s[0] as ModelType;
-              session.mask.syncGlobalConfig = false;
-            });
-            showToast(s[0]);
+            const selectedModel = bedrockStore.getModelById(s[0]);
+            if (selectedModel) {
+              chatStore.updateCurrentSession((session) => {
+                session.mask.modelConfig.model = s[0];
+                session.mask.syncGlobalConfig = false;
+              });
+              showToast(selectedModel.modelName);
+            }
           }}
         />
       )}
@@ -876,6 +873,23 @@ function _Chat() {
   const session = chatStore.currentSession();
   const config = useAppConfig();
   const fontSize = config.fontSize;
+
+  // Bedrock models store for model validation and selection
+  const bedrockModelsStore = useBedrockModelsStore();
+  const activeModels = bedrockModelsStore.getActiveModels();
+
+  // Initialize with a valid Bedrock model if current model is not found
+  useEffect(() => {
+    const currentModelId = session.mask.modelConfig.model;
+    const currentModel = bedrockModelsStore.getModelById(currentModelId);
+    
+    if (!currentModel && activeModels.length > 0) {
+      console.log(`[Chat] Current model ${currentModelId} not found in Bedrock models, switching to ${activeModels[0].modelId}`);
+      chatStore.updateCurrentSession((session) => {
+        session.mask.modelConfig.model = activeModels[0].modelId;
+      });
+    }
+  }, [session.mask.modelConfig.model, bedrockModelsStore, activeModels, chatStore]);
 
   const [showExport, setShowExport] = useState(false);
 
@@ -1336,13 +1350,11 @@ function _Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
-  const allModels = useAllModels();
-
   const handlePaste = useCallback(
     async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-      const currentModel = chatStore.currentSession().mask.modelConfig.model;
-      if (!isVisionModel(currentModel, allModels)) {
+      const currentModelId = chatStore.currentSession().mask.modelConfig.model;
+      const currentModel = bedrockModelsStore.getModelById(currentModelId);
+      if (!currentModel || !isBedrockVisionModel(currentModel)) {
         return;
       }
       const items = (event.clipboardData || window.clipboardData).items;
@@ -1379,7 +1391,7 @@ function _Chat() {
         }
       }
     },
-    [attachImages, chatStore],
+    [attachImages, chatStore, bedrockModelsStore],
   );
 
   async function uploadImage() {
@@ -1453,29 +1465,37 @@ function _Chat() {
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: "10px" }}>
-            <span>{session.mask.modelConfig?.model ?? ""}</span>
-            {REASONING_MODEL.includes(session.mask.modelConfig?.model ?? "")&&
-            <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <input 
-                type="checkbox"
-                style={{ margin: 0 }}
-                checked={session.mask.modelConfig?.reasoning_config?.type === "enabled"}
-                onChange={(e) => {
-                  chatStore.updateCurrentSession((session) => {
-                    if (!session.mask.modelConfig.reasoning_config) {
-                      session.mask.modelConfig.reasoning_config = {
-                        type: e.target.checked ? "enabled" : "disabled",
-                        budget_tokens: Math.min(1024, session.mask.modelConfig.max_tokens || 1024)
-                      };
-                    } else {
-                      session.mask.modelConfig.reasoning_config.type = e.target.checked ? "enabled" : "disabled";
-                    }
-                  });
-                }}
-              />
-              <span>Reasoning</span>
-            </label>
-            }
+            {(() => {
+              const currentModelId = session.mask.modelConfig?.model ?? "";
+              const currentModel = bedrockModelsStore.getModelById(currentModelId);
+              return (
+                <>
+                  <span>{currentModel?.modelName || currentModelId}</span>
+                  {currentModel?.isReasoningModel && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <input 
+                        type="checkbox"
+                        style={{ margin: 0 }}
+                        checked={session.mask.modelConfig?.reasoning_config?.type === "enabled"}
+                        onChange={(e) => {
+                          chatStore.updateCurrentSession((session) => {
+                            if (!session.mask.modelConfig.reasoning_config) {
+                              session.mask.modelConfig.reasoning_config = {
+                                type: e.target.checked ? "enabled" : "disabled",
+                                budget_tokens: Math.min(1024, session.mask.modelConfig.max_tokens || 1024)
+                              };
+                            } else {
+                              session.mask.modelConfig.reasoning_config.type = e.target.checked ? "enabled" : "disabled";
+                            }
+                          });
+                        }}
+                      />
+                      <span>Reasoning</span>
+                    </label>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
         <div className="window-actions">

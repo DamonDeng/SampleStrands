@@ -38,6 +38,7 @@ import {
   getCognitoRefreshToken,
   refreshCognitoAuthentication,
 } from "./aws_cognito";
+import { useBedrockModelsStore } from "@/app/store/bedrock-models";
 // import vi from "@/app/locales/vi";
 
 const BEDROCK_ENDPOINT = process.env.NEXT_PUBLIC_BEDROCK_ENDPOINT;
@@ -296,7 +297,10 @@ export class ClaudeApi implements LLMApi {
   }
 
   async chat(options: ChatOptions) {
-    const visionModel = isVisionModel(options.config.model);
+    // Use Bedrock models store instead of legacy models
+    const bedrockStore = useBedrockModelsStore.getState();
+    const currentModel = bedrockStore.getModelById(options.config.model);
+    const visionModel = currentModel ? currentModel.inputModalities.includes("IMAGE") : false;
 
     const modelConfig = {
       ...useAppConfig.getState().modelConfig,
@@ -306,7 +310,6 @@ export class ClaudeApi implements LLMApi {
       },
     };
 
-    const models = useAppConfig.getState().models;
     const accessStore = useAccessStore.getState();
     let credential;
 
@@ -402,9 +405,8 @@ export class ClaudeApi implements LLMApi {
       content: visionModel ? v.content : getMessageTextContent(v),
     }));
 
-    const currentModel = models.find((v) => v.name === modelConfig.model);
     const modelID = currentModel?.modelId; // this.get_model_id(modelConfig.model);
-    const modelVersion = currentModel?.anthropic_version; // this.get_model_version(modelConfig.model);
+    const modelVersion = currentModel?.anthropicVersion; // this.get_model_version(modelConfig.model);
 
     if (!modelID || !modelVersion) {
       throw new Error(`Could not find modelID or modelVersion.`);

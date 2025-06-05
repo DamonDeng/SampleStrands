@@ -32,6 +32,7 @@ import { prettyObject } from "../utils/format";
 import { estimateTokenLength } from "../utils/token";
 import { nanoid } from "nanoid";
 import { createPersistStore } from "../utils/store";
+import { useBedrockModelsStore } from "./bedrock-models";
 
 export type ChatMessage = RequestMessage & {
   date: string;
@@ -483,11 +484,27 @@ export const useChatStore = createPersistStore(
         const session = get().currentSession();
         const modelConfig = session.mask.modelConfig;
 
-        const userContent = fillTemplateWith(content, modelConfig);
+        // Get Bedrock model information
+        const bedrockStore = useBedrockModelsStore.getState();
+        const currentModel = bedrockStore.getModelById(modelConfig.model);
+        
+        if (!currentModel) {
+          throw new Error(`Could not find Bedrock model with ID: ${modelConfig.model}`);
+        }
+
+        // Create enhanced modelConfig with Bedrock model information
+        const enhancedModelConfig = {
+          ...modelConfig,
+          modelId: currentModel.modelId,
+          anthropic_version: currentModel.anthropicVersion,
+          // Get parameters from Bedrock store if available
+          ...bedrockStore.getFinalParameterValues(currentModel.modelId),
+        };
+
+        const userContent = fillTemplateWith(content, enhancedModelConfig);
         console.log("[User Input] after template: ", userContent);
 
         let mContent: string | MultimodalContent[] = userContent;
-
 
         if (attachImages && attachImages.length > 0) {
           mContent = [
@@ -507,7 +524,6 @@ export const useChatStore = createPersistStore(
             }),
           );
         }
-
 
         if (attachFile) {
           console.log(`have attachFile ${attachFile.name}`,)
@@ -536,18 +552,6 @@ export const useChatStore = createPersistStore(
           }
         };
 
-        // if (attachFile && attachFile !== "") {
-        //   mContent = [
-        //     {
-        //       type: "text",
-        //       text: userContent,
-        //     },
-        //   ];
-        //   mContent = mContent.concat([
-        //     { type: "text", text: JSON.stringify({ context: attachFile }) },
-        //   ]);
-        // }
-
         let userMessage: ChatMessage = createMessage({
           role: "user",
           content: mContent,
@@ -556,7 +560,7 @@ export const useChatStore = createPersistStore(
         const botMessage: ChatMessage = createMessage({
           role: "assistant",
           streaming: true,
-          model: modelConfig.model,
+          model: enhancedModelConfig.model,
         });
 
         // get recent messages
@@ -576,23 +580,12 @@ export const useChatStore = createPersistStore(
           ]);
         });
 
-
         var api: ClientApi = new ClientApi(ModelProvider.Claude);
-        // var api: ClientApi;
-        // if (modelConfig.model.startsWith("claude")) {
-        //   api = new ClientApi(ModelProvider.Claude);
-        // } else {
-        //   if (modelConfig.model.startsWith("gemini")) {
-        //     api = new ClientApi(ModelProvider.GeminiPro);
-        //   } else {
-        //     api = new ClientApi(ModelProvider.GPT);
-        //   }
-        // }
 
-        // make request
+        // make request with enhanced model config
         api.llm.chat({
           messages: sendMessages,
-          config: { ...modelConfig, stream: true },
+          config: { ...enhancedModelConfig, stream: true },
           onUpdate(message) {
             botMessage.streaming = true;
             if (message) {
@@ -826,7 +819,7 @@ export const useChatStore = createPersistStore(
 
         const historyMsgLength = countMessages(toBeSummarizedMsgs);
 
-        if (historyMsgLength > modelConfig?.max_tokens ?? 4000) {
+        if (historyMsgLength > modelConfig.max_tokens) {
           const n = toBeSummarizedMsgs.length;
           toBeSummarizedMsgs = toBeSummarizedMsgs.slice(
             Math.max(0, n - modelConfig.historyMessageCount),

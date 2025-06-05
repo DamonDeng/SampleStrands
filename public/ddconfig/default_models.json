@@ -1,7 +1,7 @@
 [
     {
             "modelArn": "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-pro-v1:0:300k",
-            "modelId": "amazon.nova-pro-v1:0:300k",
+            "modelId": "amazon.nova-pro-v1:0",
             "modelName": "Nova Pro",
             "providerName": "Amazon",
             "inputModalities": [
@@ -162,7 +162,7 @@
     },
     {
         "modelArn": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-7-sonnet-20250219-v1:0",
-        "modelId": "anthropic.claude-3-7-sonnet-20250219-v1:0",
+        "modelId": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
         "modelName": "Claude 3.7 Sonnet",
         "providerName": "Anthropic",
         "inputModalities": [
@@ -201,7 +201,7 @@
     },
     {
         "modelArn": "arn:aws:bedrock:us-east-1::foundation-model/deepseek.r1-v1:0",
-        "modelId": "deepseek.r1-v1:0",
+        "modelId": "us.deepseek.r1-v1:0",
         "modelName": "DeepSeek-R1",
         "providerName": "DeepSeek",
         "inputModalities": [

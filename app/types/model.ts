@@ -87,6 +87,9 @@ export interface ModelConfigStore {
   
   /** Model-specific parameter configurations */
   modelParameters: Record<string, Record<string, any>>; // modelId -> parameter settings
+  
+  /** Model-specific preferred region settings */
+  preferRegions: Record<string, string>; // modelId -> preferred region
 }
 
 export interface ModelConfigActions {
@@ -167,6 +170,18 @@ export interface ModelConfigActions {
 
   /** Get the final parameter values to use for API calls (custom + suggestion fallback) */
   getFinalParameterValues: (modelId: string) => Record<string, any>;
+  
+  /** Get preferred region for a model */
+  getPreferRegion: (modelId: string) => string | null;
+  
+  /** Set preferred region for a model */
+  setPreferRegion: (modelId: string, region: string) => void;
+  
+  /** Clear preferred region for a model (will fall back to default region) */
+  clearPreferRegion: (modelId: string) => void;
+  
+  /** Get the effective region for a model (preferred region or default) */
+  getEffectiveRegion: (modelId: string, defaultRegion?: string) => string;
 }
 
 export type ModelConfigStoreState = ModelConfigStore & ModelConfigActions;

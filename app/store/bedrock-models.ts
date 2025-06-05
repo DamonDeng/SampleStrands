@@ -26,6 +26,7 @@ const DEFAULT_MODEL_CONFIG_STATE: ModelConfigStore = {
   storeVersion: "1.0",
   appliedSuggestions: {},
   modelParameters: {},
+  preferRegions: {},
 };
 
 /**
@@ -330,9 +331,26 @@ export const useBedrockModelsStore = createPersistStore(
           }
         }
         
-        // Update store with synced models
+        // Clean up preferRegions and modelParameters for removed models
+        const currentState = get();
+        const newPreferRegions = { ...currentState.preferRegions };
+        const newModelParameters = { ...currentState.modelParameters };
+        
+        // Remove entries for models that no longer exist
+        for (const uuid of result.removedUuids) {
+          const removedModel = storedModelMap.get(uuid);
+          if (removedModel) {
+            delete newPreferRegions[removedModel.modelId];
+            delete newModelParameters[removedModel.modelId];
+            console.log(`Cleaned up custom settings for removed model: ${removedModel.modelName}`);
+          }
+        }
+
+        // Update store with synced models and cleaned custom settings
         set({
           models: updatedModels,
+          preferRegions: newPreferRegions,
+          modelParameters: newModelParameters,
           isLoading: false,
           lastUpdate: Date.now(),
           error: null,
@@ -755,10 +773,67 @@ export const useBedrockModelsStore = createPersistStore(
       console.log(`[BedrockModels] Final parameter values for ${modelId}:`, finalValues);
       return finalValues;
     },
+
+    /**
+     * Get preferred region for a model
+     * Returns null if no custom region is set (use default)
+     */
+    getPreferRegion(modelId: string): string | null {
+      const state = get();
+      return state.preferRegions[modelId] || null;
+    },
+
+    /**
+     * Set preferred region for a model
+     */
+    setPreferRegion(modelId: string, region: string) {
+      set((state) => ({
+        ...state,
+        preferRegions: {
+          ...state.preferRegions,
+          [modelId]: region.trim(),
+        },
+      }));
+      console.log(`[BedrockModels] Set preferred region for ${modelId}: ${region}`);
+    },
+
+    /**
+     * Clear preferred region for a model (will fall back to default region)
+     */
+    clearPreferRegion(modelId: string) {
+      set((state) => {
+        const newPreferRegions = { ...state.preferRegions };
+        delete newPreferRegions[modelId];
+        return {
+          ...state,
+          preferRegions: newPreferRegions,
+        };
+      });
+      console.log(`[BedrockModels] Cleared preferred region for ${modelId}`);
+    },
+
+    /**
+     * Get the effective region for a model (preferred region or default)
+     * This is the main function that should be used by API clients
+     */
+    getEffectiveRegion(modelId: string, defaultRegion?: string): string {
+      const state = get();
+      const preferredRegion = state.preferRegions[modelId];
+      
+      if (preferredRegion && preferredRegion.trim()) {
+        console.log(`[BedrockModels] Using preferred region for ${modelId}: ${preferredRegion}`);
+        return preferredRegion.trim();
+      }
+      
+      // Fall back to provided default or system default
+      const effectiveDefault = defaultRegion || 'us-west-2';
+      console.log(`[BedrockModels] Using default region for ${modelId}: ${effectiveDefault}`);
+      return effectiveDefault;
+    },
   }),
   {
     name: StoreKey.BedrockModels,
-    version: 1.3, // Increased version for model-specific parameters feature
+    version: 1.4, // Increased version for preferRegions feature
     migrate(persistedState, version) {
       const state = persistedState as any;
       
@@ -775,6 +850,11 @@ export const useBedrockModelsStore = createPersistStore(
       // Add modelParameters if it doesn't exist
       if (!state.modelParameters) {
         state.modelParameters = {};
+      }
+      
+      // Add preferRegions if it doesn't exist
+      if (!state.preferRegions) {
+        state.preferRegions = {};
       }
       
       // Ensure all models have configVersion

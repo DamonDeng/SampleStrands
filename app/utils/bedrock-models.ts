@@ -289,4 +289,25 @@ export function areSettingsDifferent(
   }
   
   return keys1.some(key => settings1[key] !== settings2[key]);
+}
+
+/**
+ * Get the effective AWS region for a Bedrock model
+ * This function checks if the model has a custom preferred region set,
+ * otherwise falls back to the provided default region or system default
+ * 
+ * @param modelId The Bedrock model ID
+ * @param defaultRegion Optional default region to use if no preference is set
+ * @returns The effective region to use for API calls
+ */
+export function getEffectiveRegionForModel(modelId: string, defaultRegion?: string): string {
+  try {
+    // Import here to avoid circular dependencies
+    const { useBedrockModelsStore } = require('../store/bedrock-models');
+    const store = useBedrockModelsStore.getState();
+    return store.getEffectiveRegion(modelId, defaultRegion);
+  } catch (error) {
+    console.warn(`[BedrockModels] Failed to get effective region for ${modelId}, using fallback:`, error);
+    return defaultRegion || 'us-west-2';
+  }
 } 

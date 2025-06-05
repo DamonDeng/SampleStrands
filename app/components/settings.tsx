@@ -327,6 +327,9 @@ function BedrockModelSettings() {
     hasCustomParameters,
     resetAllParametersToSuggestion,
     clearModelParameters,
+    getPreferRegion,
+    setPreferRegion,
+    clearPreferRegion,
   } = useBedrockModelsStore();
 
   const [checkingUpdates, setCheckingUpdates] = useState(false);
@@ -576,6 +579,38 @@ function BedrockModelSettings() {
           ))}
         </Select>
       </ListItem>
+
+      {/* Preferred Region for Selected Model */}
+      {selectedModelId && (
+        <ListItem
+          title="Preferred Region"
+          subTitle={`Custom region for ${getModelById(selectedModelId)?.modelName || 'this model'} (optional)`}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <input
+              type="text"
+              value={getPreferRegion(selectedModelId) || ""}
+              placeholder={`Default: ${useAccessStore.getState().awsRegion || 'us-west-2'}`}
+              onChange={(e) => {
+                const region = e.target.value.trim();
+                if (region) {
+                  setPreferRegion(selectedModelId, region);
+                } else {
+                  clearPreferRegion(selectedModelId);
+                }
+              }}
+              style={{ minWidth: '150px' }}
+            />
+            {getPreferRegion(selectedModelId) && (
+              <IconButton
+                icon={<ClearIcon />}
+                title="Clear custom region (use default)"
+                onClick={() => clearPreferRegion(selectedModelId)}
+              />
+            )}
+          </div>
+        </ListItem>
+      )}
 
       {/* <ListItem
         title="Model Capabilities"

@@ -318,6 +318,15 @@ function BedrockModelSettings() {
     getSupportedParameters,
     getSuggestionSettings,
     applySuggestionSettingsIfNew,
+    getCurrentParameterValues,
+    updateParameterValue,
+    resetParameterToSuggestion,
+    getParameterType,
+    getParameterConstraints,
+    getModelParameters,
+    hasCustomParameters,
+    resetAllParametersToSuggestion,
+    clearModelParameters,
   } = useBedrockModelsStore();
 
   const [checkingUpdates, setCheckingUpdates] = useState(false);
@@ -377,6 +386,110 @@ function BedrockModelSettings() {
       console.error("Model update check failed:", error);
     } finally {
       setCheckingUpdates(false);
+    }
+  };
+
+  // Helper function to render parameter input based on type
+  const renderParameterInput = (paramName: string, value: any, suggestionValue: any) => {
+    const paramType = getParameterType(paramName);
+    const constraints = getParameterConstraints(paramName);
+    const isCustomValue = value !== suggestionValue;
+
+    switch (paramType) {
+      case 'number':
+        if (constraints.min !== undefined && constraints.max !== undefined) {
+          // Use InputRange for numeric parameters with known ranges
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <InputRange
+                title={`${value?.toFixed(2) ?? suggestionValue?.toFixed(2) ?? '0'}`}
+                value={value ?? suggestionValue ?? constraints.min}
+                min={constraints.min.toString()}
+                max={constraints.max.toString()}
+                step={constraints.step?.toString() ?? '0.01'}
+                onChange={(e) => {
+                  const newValue = e.currentTarget.valueAsNumber;
+                  updateParameterValue(selectedModelId!, paramName, newValue);
+                }}
+              />
+              {isCustomValue && (
+                <IconButton
+                  icon={<ResetIcon />}
+                  title="Reset to suggested value"
+                  onClick={() => resetParameterToSuggestion(selectedModelId!, paramName)}
+                />
+              )}
+            </div>
+          );
+        } else {
+          // Use regular number input for parameters without known ranges
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="number"
+                value={value ?? suggestionValue ?? ''}
+                min={constraints.min}
+                max={constraints.max}
+                step={constraints.step ?? 'any'}
+                onChange={(e) => {
+                  const newValue = e.currentTarget.valueAsNumber;
+                  if (!isNaN(newValue)) {
+                    updateParameterValue(selectedModelId!, paramName, newValue);
+                  }
+                }}
+                style={{ width: '100px' }}
+              />
+              {isCustomValue && (
+                <IconButton
+                  icon={<ResetIcon />}
+                  title="Reset to suggested value"
+                  onClick={() => resetParameterToSuggestion(selectedModelId!, paramName)}
+                />
+              )}
+            </div>
+          );
+        }
+
+      case 'boolean':
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="checkbox"
+              checked={value ?? suggestionValue ?? false}
+              onChange={(e) => {
+                updateParameterValue(selectedModelId!, paramName, e.currentTarget.checked);
+              }}
+            />
+            {isCustomValue && (
+              <IconButton
+                icon={<ResetIcon />}
+                title="Reset to suggested value"
+                onClick={() => resetParameterToSuggestion(selectedModelId!, paramName)}
+              />
+            )}
+          </div>
+        );
+
+      default:
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="text"
+              value={value ?? suggestionValue ?? ''}
+              onChange={(e) => {
+                updateParameterValue(selectedModelId!, paramName, e.currentTarget.value);
+              }}
+              style={{ minWidth: '150px' }}
+            />
+            {isCustomValue && (
+              <IconButton
+                icon={<ResetIcon />}
+                title="Reset to suggested value"
+                onClick={() => resetParameterToSuggestion(selectedModelId!, paramName)}
+              />
+            )}
+          </div>
+        );
     }
   };
 
@@ -476,13 +589,14 @@ function BedrockModelSettings() {
         </div>
       </ListItem>
 
-      {/* Selected Model Details with Suggestion Settings */}
+      {/* Selected Model Details with Editable Parameters */}
       {selectedModelId && (
         <>
           {(() => {
             const selectedModel = getModelById(selectedModelId);
             const supportedParams = getSupportedParameters(selectedModelId);
             const suggestionSettings = getSuggestionSettings(selectedModelId);
+            const currentValues = getCurrentParameterValues(selectedModelId);
             
             return (
               <>
@@ -506,10 +620,92 @@ function BedrockModelSettings() {
                   </div>
                 </ListItem>
 
+                {/* Editable Parameter Settings */}
+                {supportedParams.length > 0 && (
+                  <ListItem
+                    title="Parameter Settings"
+                    subTitle={`Edit parameter values for ${selectedModel?.modelName} (automatically saved)`}
+                  >
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                      {/* Model-specific parameter status */}
+                      <div style={{ fontSize: "0.8em", color: "#666", padding: "8px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
+                        <div><strong>Model Status:</strong></div>
+                        <div>• Custom parameters: {hasCustomParameters(selectedModelId) ? 'Yes' : 'No'}</div>
+                        <div>• Parameters stored separately for each model</div>
+                      </div>
+                      
+                      {supportedParams.map((param: string) => {
+                        const currentValue = currentValues[param];
+                        const suggestionValue = suggestionSettings[param];
+                        const hasCustomValue = (getModelParameters(selectedModelId) as any)[param] !== undefined;
+                        
+                        return (
+                          <div key={param} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "32px" }}>
+                            <div style={{ 
+                              minWidth: "120px", 
+                              fontSize: "0.9em",
+                              color: hasCustomValue ? "#333" : "#666"
+                            }}>
+                              <strong>{param}:</strong>
+                              {hasCustomValue && <span style={{ color: "#2196F3", fontSize: "0.8em", marginLeft: "4px" }}>(custom)</span>}
+                            </div>
+                            <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+                              {renderParameterInput(param, currentValue, suggestionValue)}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div style={{ fontSize: "0.8em", color: "#888", marginTop: "8px" }}>
+                        💡 Parameter values are saved per model. Blue "(custom)" indicates you've modified the suggested value for this specific model.
+                      </div>
+                    </div>
+                  </ListItem>
+                )}
+
+                {/* Model Parameter Management */}
+                {supportedParams.length > 0 && (
+                  <ListItem
+                    title="Parameter Management"
+                    subTitle={`Manage parameter settings for ${selectedModel?.modelName}`}
+                  >
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      <IconButton
+                        icon={<ResetIcon />}
+                        text="Apply All Suggestions"
+                        onClick={() => {
+                          const success = resetAllParametersToSuggestion(selectedModelId);
+                          if (success) {
+                            showToast(`Applied all suggested settings for ${selectedModel?.modelName}`);
+                          } else {
+                            showToast("No suggestions available to apply");
+                          }
+                        }}
+                        bordered
+                      />
+                      
+                      {hasCustomParameters(selectedModelId) && (
+                        <IconButton
+                          icon={<ClearIcon />}
+                          text="Clear Custom Settings"
+                          onClick={async () => {
+                            if (await showConfirm(`Clear all custom parameter settings for ${selectedModel?.modelName}? This will revert to suggestion values only.`)) {
+                              clearModelParameters(selectedModelId);
+                              showToast(`Cleared custom settings for ${selectedModel?.modelName}`);
+                            }
+                          }}
+                          type="danger"
+                          bordered
+                        />
+                      )}
+                    </div>
+                  </ListItem>
+                )}
+
+                {/* Show suggested values for reference */}
                 {Object.keys(suggestionSettings).length > 0 && (
                   <ListItem
-                    title="Suggested Settings"
-                    subTitle="Recommended parameter values for optimal performance"
+                    title="Suggested Reference Values"
+                    subTitle="Original suggested values for this model"
                   >
                     <div style={{ fontSize: "0.9em", color: "#666" }}>
                       <div><strong>Suggested Values:</strong></div>
@@ -518,30 +714,43 @@ function BedrockModelSettings() {
                           <div key={param}>• {param}: {typeof value === 'number' ? value.toFixed(2) : String(value)}</div>
                         ))}
                       </div>
+                    </div>
+                  </ListItem>
+                )}
+
+                {/* Show current active parameter values for debugging */}
+                {hasCustomParameters(selectedModelId) && (
+                  <ListItem
+                    title="Current Active Values"
+                    subTitle="Values that will be used for API calls"
+                  >
+                    <div style={{ fontSize: "0.9em", color: "#666" }}>
+                      <div><strong>Active Parameter Values:</strong></div>
+                      <div style={{ marginLeft: "10px" }}>
+                        {Object.entries(currentValues).map(([param, value]) => (
+                          <div key={param}>• {param}: {typeof value === 'number' ? value.toFixed(2) : String(value)}</div>
+                        ))}
+                      </div>
                       <div style={{ marginTop: "8px", fontSize: "0.8em", color: "#888" }}>
-                        Note: These are suggestions only. Your custom settings won't be overwritten.
+                        🔧 These are the actual values that will be sent to the model during conversations.
                       </div>
                     </div>
                   </ListItem>
                 )}
 
                 <ListItem
-                  title="Apply Suggestions"
-                  subTitle="Apply suggested settings if not already customized"
+                  title="Legacy Notice"
+                  subTitle="About the new parameter system"
                 >
-                  <IconButton
-                    icon={<ResetIcon />}
-                    text="Apply Suggestions"
-                    onClick={() => {
-                      const suggestions = applySuggestionSettingsIfNew(selectedModelId);
-                      if (suggestions && Object.keys(suggestions).length > 0) {
-                        showToast(`Applied ${Object.keys(suggestions).length} suggested settings for ${selectedModel?.modelName}`);
-                        console.log('[BedrockModelSettings] Applied suggestions:', suggestions);
-                      } else {
-                        showToast("No new suggestions to apply or already customized");
-                      }
-                    }}
-                  />
+                  <div style={{ fontSize: "0.9em", color: "#666" }}>
+                    <div><strong>✨ New Feature:</strong></div>
+                    <div>• Each Bedrock model now has separate parameter configurations</div>
+                    <div>• Your settings are automatically saved per model</div>
+                    <div>• This replaces the shared parameter system from the legacy model config above</div>
+                    <div style={{ marginTop: "8px", fontSize: "0.8em", color: "#888" }}>
+                      💡 Tip: You can now optimize parameters differently for each model!
+                    </div>
+                  </div>
                 </ListItem>
               </>
             );

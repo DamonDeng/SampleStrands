@@ -25,6 +25,7 @@ const DEFAULT_MODEL_CONFIG_STATE: ModelConfigStore = {
   lastUpdate: Date.now(),
   storeVersion: "1.0",
   appliedSuggestions: {},
+  modelParameters: {},
 };
 
 /**
@@ -519,10 +520,245 @@ export const useBedrockModelsStore = createPersistStore(
       console.log(`[BedrockModels] Suggestions already applied for ${modelId} at version ${lastAppliedVersion}, skipping`);
       return null;
     },
+
+    /**
+     * Get current parameter values for a model
+     * Returns a combination of user's custom values and suggestion values as fallback
+     */
+    getCurrentParameterValues(modelId: string, modelConfig?: any): Record<string, any> {
+      const state = get();
+      const model = state.models.find(m => m.modelId === modelId);
+      
+      if (!model?.suggestionSettings) {
+        return {};
+      }
+      
+      const supportedParams = model.supportedParameters || [];
+      const filteredSuggestionSettings: Record<string, any> = {};
+      
+      // Get filtered suggestion settings (same logic as getSuggestionSettings)
+      supportedParams.forEach(param => {
+        if (param in model.suggestionSettings!) {
+          filteredSuggestionSettings[param] = model.suggestionSettings![param];
+        }
+      });
+      
+      const currentValues: Record<string, any> = {};
+      const modelSpecificParams = state.modelParameters[modelId] || {};
+      
+      supportedParams.forEach(param => {
+        // Use model-specific custom value if available, otherwise use suggestion
+        if (modelSpecificParams[param] !== undefined) {
+          currentValues[param] = modelSpecificParams[param];
+        } else if (filteredSuggestionSettings[param] !== undefined) {
+          currentValues[param] = filteredSuggestionSettings[param];
+        }
+      });
+      
+      return currentValues;
+    },
+
+    /**
+     * Update a specific parameter value for a specific model
+     * This is used by the UI to save user edits
+     */
+    updateParameterValue(modelId: string, paramName: string, value: any) {
+      console.log(`[BedrockModels] Updating parameter ${paramName} to ${value} for model ${modelId}`);
+      
+      set((state) => ({
+        ...state,
+        modelParameters: {
+          ...state.modelParameters,
+          [modelId]: {
+            ...state.modelParameters[modelId],
+            [paramName]: value,
+          },
+        },
+      }));
+    },
+
+    /**
+     * Reset a parameter to its suggested value for a specific model
+     */
+    resetParameterToSuggestion(modelId: string, paramName: string): boolean {
+      const state = get();
+      const model = state.models.find(m => m.modelId === modelId);
+      
+      if (!model?.suggestionSettings) {
+        console.log(`[BedrockModels] No suggestions available for ${modelId}`);
+        return false;
+      }
+      
+      const supportedParams = model.supportedParameters || [];
+      const filteredSuggestionSettings: Record<string, any> = {};
+      
+      // Get filtered suggestion settings (same logic as getSuggestionSettings)
+      supportedParams.forEach(param => {
+        if (param in model.suggestionSettings!) {
+          filteredSuggestionSettings[param] = model.suggestionSettings![param];
+        }
+      });
+      
+      if (filteredSuggestionSettings[paramName] !== undefined) {
+        console.log(`[BedrockModels] Resetting parameter ${paramName} to suggested value:`, filteredSuggestionSettings[paramName]);
+        
+        set((state) => ({
+          ...state,
+          modelParameters: {
+            ...state.modelParameters,
+            [modelId]: {
+              ...state.modelParameters[modelId],
+              [paramName]: filteredSuggestionSettings[paramName],
+            },
+          },
+        }));
+        
+        return true;
+      }
+      
+      console.log(`[BedrockModels] No suggestion available for parameter ${paramName}`);
+      return false;
+    },
+
+    /**
+     * Get all parameter values for a specific model (for use in API calls)
+     */
+    getModelParameters(modelId: string): Record<string, any> {
+      const state = get();
+      return state.modelParameters[modelId] || {};
+    },
+
+    /**
+     * Check if a model has custom parameter values
+     */
+    hasCustomParameters(modelId: string): boolean {
+      const state = get();
+      const modelParams = state.modelParameters[modelId];
+      return modelParams && Object.keys(modelParams).length > 0;
+    },
+
+    /**
+     * Reset all parameters for a model to suggested values
+     */
+    resetAllParametersToSuggestion(modelId: string): boolean {
+      const state = get();
+      const model = state.models.find(m => m.modelId === modelId);
+      
+      if (!model?.suggestionSettings) {
+        console.log(`[BedrockModels] No suggestions available for ${modelId}`);
+        return false;
+      }
+      
+      const supportedParams = model.supportedParameters || [];
+      const filteredSuggestionSettings: Record<string, any> = {};
+      
+      // Get filtered suggestion settings (same logic as getSuggestionSettings)
+      supportedParams.forEach(param => {
+        if (param in model.suggestionSettings!) {
+          filteredSuggestionSettings[param] = model.suggestionSettings![param];
+        }
+      });
+      
+      if (Object.keys(filteredSuggestionSettings).length === 0) {
+        console.log(`[BedrockModels] No suggestions available for ${modelId}`);
+        return false;
+      }
+      
+      console.log(`[BedrockModels] Resetting all parameters for ${modelId} to suggestions:`, filteredSuggestionSettings);
+      
+      set((state) => ({
+        ...state,
+        modelParameters: {
+          ...state.modelParameters,
+          [modelId]: { ...filteredSuggestionSettings },
+        },
+      }));
+      
+      return true;
+    },
+
+    /**
+     * Clear all custom parameters for a model (revert to suggestions only)
+     */
+    clearModelParameters(modelId: string) {
+      console.log(`[BedrockModels] Clearing custom parameters for ${modelId}`);
+      
+      set((state) => {
+        const newModelParameters = { ...state.modelParameters };
+        delete newModelParameters[modelId];
+        
+        return {
+          ...state,
+          modelParameters: newModelParameters,
+        };
+      });
+    },
+
+    /**
+     * Get parameter type for proper input control rendering
+     */
+    getParameterType(paramName: string): 'number' | 'boolean' | 'string' | 'select' {
+      const numberParams = ['temperature', 'top_p', 'top_k', 'max_tokens', 'max_tokens_to_sample'];
+      const booleanParams = ['stream', 'stop_sequences'];
+      
+      if (numberParams.includes(paramName)) {
+        return 'number';
+      } else if (booleanParams.includes(paramName)) {
+        return 'boolean';
+      } else {
+        return 'string';
+      }
+    },
+
+    /**
+     * Get parameter constraints for validation
+     */
+    getParameterConstraints(paramName: string): { min?: number; max?: number; step?: number } {
+      const constraints: Record<string, { min?: number; max?: number; step?: number }> = {
+        temperature: { min: 0, max: 1, step: 0.1 },
+        top_p: { min: 0, max: 1, step: 0.01 },
+        top_k: { min: 1, max: 500, step: 1 },
+        max_tokens: { min: 1, max: 8192, step: 1 },
+        max_tokens_to_sample: { min: 1, max: 8192, step: 1 },
+      };
+      
+      return constraints[paramName] || {};
+    },
+
+    /**
+     * Get the final parameter values to use for API calls
+     * Returns custom values if set, otherwise falls back to suggestions
+     */
+    getFinalParameterValues(modelId: string): Record<string, any> {
+      const state = get();
+      const model = state.models.find(m => m.modelId === modelId);
+      
+      if (!model?.supportedParameters) {
+        return {};
+      }
+      
+      const supportedParams = model.supportedParameters;
+      const modelSpecificParams = state.modelParameters[modelId] || {};
+      const suggestionSettings = model.suggestionSettings || {};
+      
+      const finalValues: Record<string, any> = {};
+      
+      supportedParams.forEach(param => {
+        // Priority: custom value > suggestion value
+        if (modelSpecificParams[param] !== undefined) {
+          finalValues[param] = modelSpecificParams[param];
+        } else if (suggestionSettings[param] !== undefined) {
+          finalValues[param] = suggestionSettings[param];
+        }
+      });
+      
+      console.log(`[BedrockModels] Final parameter values for ${modelId}:`, finalValues);
+      return finalValues;
+    },
   }),
   {
     name: StoreKey.BedrockModels,
-    version: 1.2, // Increased version for supportedParameters and suggestionSettings features
+    version: 1.3, // Increased version for model-specific parameters feature
     migrate(persistedState, version) {
       const state = persistedState as any;
       
@@ -534,6 +770,11 @@ export const useBedrockModelsStore = createPersistStore(
       // Add appliedSuggestions if it doesn't exist
       if (!state.appliedSuggestions) {
         state.appliedSuggestions = {};
+      }
+      
+      // Add modelParameters if it doesn't exist
+      if (!state.modelParameters) {
+        state.modelParameters = {};
       }
       
       // Ensure all models have configVersion

@@ -84,6 +84,9 @@ export interface ModelConfigStore {
   
   /** Track which models have had suggestion settings applied to avoid overwriting user changes */
   appliedSuggestions: Record<string, string>; // modelId -> configVersion when suggestions were applied
+  
+  /** Model-specific parameter configurations */
+  modelParameters: Record<string, Record<string, any>>; // modelId -> parameter settings
 }
 
 export interface ModelConfigActions {
@@ -134,6 +137,36 @@ export interface ModelConfigActions {
   
   /** Apply suggestion settings if user hasn't modified them yet */
   applySuggestionSettingsIfNew: (modelId: string) => Record<string, any> | null;
+
+  /** Get current parameter values for a model (custom values with suggestion fallback) */
+  getCurrentParameterValues: (modelId: string, modelConfig?: any) => Record<string, any>;
+  
+  /** Update a specific parameter value for a specific model */
+  updateParameterValue: (modelId: string, paramName: string, value: any) => void;
+  
+  /** Reset a parameter to its suggested value for a specific model */
+  resetParameterToSuggestion: (modelId: string, paramName: string) => boolean;
+  
+  /** Get parameter type for proper input control rendering */
+  getParameterType: (paramName: string) => 'number' | 'boolean' | 'string' | 'select';
+  
+  /** Get parameter constraints for validation */
+  getParameterConstraints: (paramName: string) => { min?: number; max?: number; step?: number };
+
+  /** Get all parameter values for a specific model (for use in API calls) */
+  getModelParameters: (modelId: string) => Record<string, any>;
+  
+  /** Check if a model has custom parameter values */
+  hasCustomParameters: (modelId: string) => boolean;
+  
+  /** Reset all parameters for a model to suggested values */
+  resetAllParametersToSuggestion: (modelId: string) => boolean;
+  
+  /** Clear all custom parameters for a model (revert to suggestions only) */
+  clearModelParameters: (modelId: string) => void;
+
+  /** Get the final parameter values to use for API calls (custom + suggestion fallback) */
+  getFinalParameterValues: (modelId: string) => Record<string, any>;
 }
 
 export type ModelConfigStoreState = ModelConfigStore & ModelConfigActions;

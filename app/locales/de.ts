@@ -135,6 +135,9 @@ const de: PartialLocaleType = {
       NoAccess: "API-Schlüssel eingeben, um den Kontostand zu überprüfen",
     },
     Model: "Modell",
+    DefaultModel: {
+      Title: "Standardmodell",
+    },
     Temperature: {
       Title: "Temperature", //Temperatur
       SubTitle: "Ein größerer Wert führt zu zufälligeren Antworten",

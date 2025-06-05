@@ -185,6 +185,9 @@ const fr: PartialLocaleType = {
     },
 
     Model: "Modèle",
+    DefaultModel: {
+      Title: "Modèle par défaut",
+    },
     Temperature: {
       Title: "Température",
       SubTitle: "Une valeur plus élevée rendra les réponses plus aléatoires",

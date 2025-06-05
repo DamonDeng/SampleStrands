@@ -354,6 +354,24 @@ export const useChatStore = createPersistStore(
       newSession(mask?: Mask) {
         const session = createEmptySession();
 
+        // Get the currently selected Bedrock model and use it as default
+        const bedrockStore = useBedrockModelsStore.getState();
+        const activeModels = bedrockStore.getActiveModels();
+        
+        // Try to get the model from the current session if available
+        let defaultModelId = activeModels.length > 0 ? activeModels[0].modelId : "";
+        try {
+          const currentSession = get().currentSession();
+          if (currentSession && currentSession.mask.modelConfig.model) {
+            const currentModel = bedrockStore.getModelById(currentSession.mask.modelConfig.model);
+            if (currentModel) {
+              defaultModelId = currentSession.mask.modelConfig.model;
+            }
+          }
+        } catch {
+          // If there's no current session, use the first active model
+        }
+        
         if (mask) {
           const config = useAppConfig.getState();
           const globalModelConfig = config.modelConfig;
@@ -366,6 +384,13 @@ export const useChatStore = createPersistStore(
             },
           };
           session.topic = mask.name;
+        } else {
+          // If no mask provided, use the determined default model
+          if (defaultModelId) {
+            session.mask.modelConfig.model = defaultModelId;
+            const modelName = bedrockStore.getModelById(defaultModelId)?.modelName || defaultModelId;
+            console.log(`[Chat] New session created with model: ${modelName}`);
+          }
         }
 
         set((state) => ({

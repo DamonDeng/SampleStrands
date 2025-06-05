@@ -343,6 +343,9 @@ const tw = {
     },
 
     Model: "模型 (model)",
+    DefaultModel: {
+      Title: "預設模型",
+    },
     Temperature: {
       Title: "隨機性 (temperature)",
       SubTitle: "值越大，回應越隨機",

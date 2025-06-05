@@ -150,7 +150,7 @@ export function ModelConfigList(props: {
 
   return (
     <>
-      <ListItem title={Locale.Settings.Model}>
+      <ListItem title={Locale.Settings.DefaultModel.Title}>
         <div className="password-input-container">
           <Select
             value={props.modelConfig.model}
@@ -168,7 +168,7 @@ export function ModelConfigList(props: {
             <option value="">-- Select a Model --</option>
             
             {/* Group models by source */}
-            {appConfig.models?.filter(v => v.available).length > 0 && (
+            {/* {appConfig.models?.filter(v => v.available).length > 0 && (
               <optgroup label="Legacy Models">
                 {appConfig.models
                   .filter((v) => v.available)
@@ -178,7 +178,7 @@ export function ModelConfigList(props: {
                     </option>
                   ))}
               </optgroup>
-            )}
+            )} */}
             
             {bedrockStore.getActiveModels().length > 0 && (
               <optgroup label="Bedrock Models">
@@ -193,11 +193,11 @@ export function ModelConfigList(props: {
             )}
           </Select>
 
-          <IconButton
+          {/* <IconButton
             onClick={handleRefreshModels}
             icon={<ResetIcon />}
             title="Refresh both legacy and Bedrock models"
-          />
+          /> */}
         </div>
       </ListItem>
 
@@ -221,7 +221,7 @@ export function ModelConfigList(props: {
           )}
         </div>
       </ListItem>
-      <ListItem
+      {/* <ListItem
         title={Locale.Settings.Temperature.Title}
         subTitle={Locale.Settings.Temperature.SubTitle}
       >
@@ -326,7 +326,7 @@ export function ModelConfigList(props: {
             )
           }
         ></InputRange>
-      </ListItem>
+      </ListItem> */}
 
       <ListItem
         title={Locale.Settings.CompressThreshold.Title}

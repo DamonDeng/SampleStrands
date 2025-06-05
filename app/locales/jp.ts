@@ -191,6 +191,9 @@ const jp: PartialLocaleType = {
       NoAccess: "APIキーまたはアクセスパスワードを入力して残高を表示",
     },
     Model: "モデル (model)",
+    DefaultModel: {
+      Title: "デフォルトモデル",
+    },
     Temperature: {
       Title: "ランダム性 (temperature)",
       SubTitle:

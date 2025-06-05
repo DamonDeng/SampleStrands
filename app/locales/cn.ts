@@ -381,6 +381,9 @@ const cn = {
     },
 
     Model: "模型 (model)",
+    DefaultModel: {
+      Title: "默认模型",
+    },
     Temperature: {
       Title: "随机性 (temperature)",
       SubTitle: "值越大，回复越随机",

@@ -393,7 +393,7 @@ function BedrockModelSettings() {
   };
 
   // Helper function to render parameter input based on type
-  const renderParameterInput = (paramName: string, value: any, suggestionValue: any) => {
+  const renderParameterInput = (paramName: string, value: any, suggestionValue: any, uuid: string) => {
     const paramType = getParameterType(paramName);
     const constraints = getParameterConstraints(paramName);
     const isCustomValue = value !== suggestionValue;
@@ -412,14 +412,14 @@ function BedrockModelSettings() {
                 step={constraints.step?.toString() ?? '0.01'}
                 onChange={(e) => {
                   const newValue = e.currentTarget.valueAsNumber;
-                  updateParameterValue(selectedModelId!, paramName, newValue);
+                  updateParameterValue(uuid, paramName, newValue);
                 }}
               />
               {isCustomValue && (
                 <IconButton
                   icon={<ResetIcon />}
                   title="Reset to suggested value"
-                  onClick={() => resetParameterToSuggestion(selectedModelId!, paramName)}
+                  onClick={() => resetParameterToSuggestion(uuid, paramName)}
                 />
               )}
             </div>
@@ -437,7 +437,7 @@ function BedrockModelSettings() {
                 onChange={(e) => {
                   const newValue = e.currentTarget.valueAsNumber;
                   if (!isNaN(newValue)) {
-                    updateParameterValue(selectedModelId!, paramName, newValue);
+                    updateParameterValue(uuid, paramName, newValue);
                   }
                 }}
                 style={{ width: '100px' }}
@@ -446,7 +446,7 @@ function BedrockModelSettings() {
                 <IconButton
                   icon={<ResetIcon />}
                   title="Reset to suggested value"
-                  onClick={() => resetParameterToSuggestion(selectedModelId!, paramName)}
+                  onClick={() => resetParameterToSuggestion(uuid, paramName)}
                 />
               )}
             </div>
@@ -460,14 +460,14 @@ function BedrockModelSettings() {
               type="checkbox"
               checked={value ?? suggestionValue ?? false}
               onChange={(e) => {
-                updateParameterValue(selectedModelId!, paramName, e.currentTarget.checked);
+                updateParameterValue(uuid, paramName, e.currentTarget.checked);
               }}
             />
             {isCustomValue && (
               <IconButton
                 icon={<ResetIcon />}
                 title="Reset to suggested value"
-                onClick={() => resetParameterToSuggestion(selectedModelId!, paramName)}
+                onClick={() => resetParameterToSuggestion(uuid, paramName)}
               />
             )}
           </div>
@@ -480,7 +480,7 @@ function BedrockModelSettings() {
               type="text"
               value={value ?? suggestionValue ?? ''}
               onChange={(e) => {
-                updateParameterValue(selectedModelId!, paramName, e.currentTarget.value);
+                updateParameterValue(uuid, paramName, e.currentTarget.value);
               }}
               style={{ minWidth: '150px' }}
             />
@@ -488,7 +488,7 @@ function BedrockModelSettings() {
               <IconButton
                 icon={<ResetIcon />}
                 title="Reset to suggested value"
-                onClick={() => resetParameterToSuggestion(selectedModelId!, paramName)}
+                onClick={() => resetParameterToSuggestion(uuid, paramName)}
               />
             )}
           </div>
@@ -589,23 +589,31 @@ function BedrockModelSettings() {
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <input
               type="text"
-              value={getPreferRegion(selectedModelId) || ""}
+              value={getPreferRegion(getModelById(selectedModelId)?.uuid || '') || ""}
               placeholder={`Default: ${useAccessStore.getState().awsRegion || 'us-west-2'}`}
               onChange={(e) => {
+                const selectedModel = getModelById(selectedModelId);
+                if (!selectedModel) return;
+                
                 const region = e.target.value.trim();
                 if (region) {
-                  setPreferRegion(selectedModelId, region);
+                  setPreferRegion(selectedModel.uuid, region);
                 } else {
-                  clearPreferRegion(selectedModelId);
+                  clearPreferRegion(selectedModel.uuid);
                 }
               }}
               style={{ minWidth: '150px' }}
             />
-            {getPreferRegion(selectedModelId) && (
+            {getPreferRegion(getModelById(selectedModelId)?.uuid || '') && (
               <IconButton
                 icon={<ClearIcon />}
                 title="Clear custom region (use default)"
-                onClick={() => clearPreferRegion(selectedModelId)}
+                onClick={() => {
+                  const selectedModel = getModelById(selectedModelId);
+                  if (selectedModel) {
+                    clearPreferRegion(selectedModel.uuid);
+                  }
+                }}
               />
             )}
           </div>
@@ -629,9 +637,11 @@ function BedrockModelSettings() {
         <>
           {(() => {
             const selectedModel = getModelById(selectedModelId);
+            if (!selectedModel) return null;
+            
             const supportedParams = getSupportedParameters(selectedModelId);
             const suggestionSettings = getSuggestionSettings(selectedModelId);
-            const currentValues = getCurrentParameterValues(selectedModelId);
+            const currentValues = getCurrentParameterValues(selectedModel.uuid);
             
             return (
               <>
@@ -662,7 +672,7 @@ function BedrockModelSettings() {
                 >
                   <div style={{ fontSize: "0.8em", color: "#666", padding: "8px", backgroundColor: "#f5f5f5", borderRadius: "4px" }}>
                     <div><strong>Model Status:</strong></div>
-                    <div>• Custom parameters: {hasCustomParameters(selectedModelId) ? 'Yes' : 'No'}</div>
+                    <div>• Custom parameters: {hasCustomParameters(selectedModel.uuid) ? 'Yes' : 'No'}</div>
                     <div>• Parameters stored separately for each model</div>
                   </div>
                 </ListItem> */}
@@ -671,7 +681,7 @@ function BedrockModelSettings() {
                 {supportedParams.length > 0 && supportedParams.map((param: string) => {
                   const currentValue = currentValues[param];
                   const suggestionValue = suggestionSettings[param];
-                  const hasCustomValue = (getModelParameters(selectedModelId) as any)[param] !== undefined;
+                  const hasCustomValue = (getModelParameters(selectedModel.uuid) as any)[param] !== undefined;
                   
                   return (
                     <ListItem
@@ -680,7 +690,7 @@ function BedrockModelSettings() {
                       subTitle="Parameter Setting"
                     >
                       <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                        {renderParameterInput(param, currentValue, suggestionValue)}
+                        {renderParameterInput(param, currentValue, suggestionValue, selectedModel.uuid)}
                       </div>
                     </ListItem>
                   );
@@ -703,7 +713,7 @@ function BedrockModelSettings() {
                         icon={<ResetIcon />}
                         text="Apply All Suggestions"
                         onClick={() => {
-                          const success = resetAllParametersToSuggestion(selectedModelId);
+                          const success = resetAllParametersToSuggestion(selectedModel.uuid);
                           if (success) {
                             showToast(`Applied all suggested settings for ${selectedModel?.modelName}`);
                           } else {
@@ -713,13 +723,13 @@ function BedrockModelSettings() {
                         bordered
                       />
                       
-                      {hasCustomParameters(selectedModelId) && (
+                      {hasCustomParameters(selectedModel.uuid) && (
                         <IconButton
                           icon={<ClearIcon />}
                           text="Clear Custom Settings"
                           onClick={async () => {
                             if (await showConfirm(`Clear all custom parameter settings for ${selectedModel?.modelName}? This will revert to suggestion values only.`)) {
-                              clearModelParameters(selectedModelId);
+                              clearModelParameters(selectedModel.uuid);
                               showToast(`Cleared custom settings for ${selectedModel?.modelName}`);
                             }
                           }}
@@ -749,7 +759,7 @@ function BedrockModelSettings() {
                 )} */}
 
                 {/* Show current active parameter values for debugging */}
-                {/* {hasCustomParameters(selectedModelId) && (
+                {/* {hasCustomParameters(selectedModel.uuid) && (
                   <ListItem
                     title="Current Active Values"
                     subTitle="Values that will be used for API calls"

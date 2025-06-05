@@ -340,8 +340,8 @@ export const useBedrockModelsStore = createPersistStore(
         for (const uuid of result.removedUuids) {
           const removedModel = storedModelMap.get(uuid);
           if (removedModel) {
-            delete newPreferRegions[removedModel.modelId];
-            delete newModelParameters[removedModel.modelId];
+            delete newPreferRegions[uuid];
+            delete newModelParameters[uuid];
             console.log(`Cleaned up custom settings for removed model: ${removedModel.modelName}`);
           }
         }
@@ -543,9 +543,9 @@ export const useBedrockModelsStore = createPersistStore(
      * Get current parameter values for a model
      * Returns a combination of user's custom values and suggestion values as fallback
      */
-    getCurrentParameterValues(modelId: string, modelConfig?: any): Record<string, any> {
+    getCurrentParameterValues(uuid: string, modelConfig?: any): Record<string, any> {
       const state = get();
-      const model = state.models.find(m => m.modelId === modelId);
+      const model = state.models.find(m => m.uuid === uuid);
       
       if (!model?.suggestionSettings) {
         return {};
@@ -562,7 +562,7 @@ export const useBedrockModelsStore = createPersistStore(
       });
       
       const currentValues: Record<string, any> = {};
-      const modelSpecificParams = state.modelParameters[modelId] || {};
+      const modelSpecificParams = state.modelParameters[uuid] || {};
       
       supportedParams.forEach(param => {
         // Use model-specific custom value if available, otherwise use suggestion
@@ -580,15 +580,15 @@ export const useBedrockModelsStore = createPersistStore(
      * Update a specific parameter value for a specific model
      * This is used by the UI to save user edits
      */
-    updateParameterValue(modelId: string, paramName: string, value: any) {
-      console.log(`[BedrockModels] Updating parameter ${paramName} to ${value} for model ${modelId}`);
+    updateParameterValue(uuid: string, paramName: string, value: any) {
+      console.log(`[BedrockModels] Updating parameter ${paramName} to ${value} for model uuid ${uuid}`);
       
       set((state) => ({
         ...state,
         modelParameters: {
           ...state.modelParameters,
-          [modelId]: {
-            ...state.modelParameters[modelId],
+          [uuid]: {
+            ...state.modelParameters[uuid],
             [paramName]: value,
           },
         },
@@ -598,12 +598,12 @@ export const useBedrockModelsStore = createPersistStore(
     /**
      * Reset a parameter to its suggested value for a specific model
      */
-    resetParameterToSuggestion(modelId: string, paramName: string): boolean {
+    resetParameterToSuggestion(uuid: string, paramName: string): boolean {
       const state = get();
-      const model = state.models.find(m => m.modelId === modelId);
+      const model = state.models.find(m => m.uuid === uuid);
       
       if (!model?.suggestionSettings) {
-        console.log(`[BedrockModels] No suggestions available for ${modelId}`);
+        console.log(`[BedrockModels] No suggestions available for uuid ${uuid}`);
         return false;
       }
       
@@ -624,8 +624,8 @@ export const useBedrockModelsStore = createPersistStore(
           ...state,
           modelParameters: {
             ...state.modelParameters,
-            [modelId]: {
-              ...state.modelParameters[modelId],
+            [uuid]: {
+              ...state.modelParameters[uuid],
               [paramName]: filteredSuggestionSettings[paramName],
             },
           },
@@ -641,29 +641,29 @@ export const useBedrockModelsStore = createPersistStore(
     /**
      * Get all parameter values for a specific model (for use in API calls)
      */
-    getModelParameters(modelId: string): Record<string, any> {
+    getModelParameters(uuid: string): Record<string, any> {
       const state = get();
-      return state.modelParameters[modelId] || {};
+      return state.modelParameters[uuid] || {};
     },
 
     /**
      * Check if a model has custom parameter values
      */
-    hasCustomParameters(modelId: string): boolean {
+    hasCustomParameters(uuid: string): boolean {
       const state = get();
-      const modelParams = state.modelParameters[modelId];
+      const modelParams = state.modelParameters[uuid];
       return modelParams && Object.keys(modelParams).length > 0;
     },
 
     /**
      * Reset all parameters for a model to suggested values
      */
-    resetAllParametersToSuggestion(modelId: string): boolean {
+    resetAllParametersToSuggestion(uuid: string): boolean {
       const state = get();
-      const model = state.models.find(m => m.modelId === modelId);
+      const model = state.models.find(m => m.uuid === uuid);
       
       if (!model?.suggestionSettings) {
-        console.log(`[BedrockModels] No suggestions available for ${modelId}`);
+        console.log(`[BedrockModels] No suggestions available for uuid ${uuid}`);
         return false;
       }
       
@@ -678,17 +678,17 @@ export const useBedrockModelsStore = createPersistStore(
       });
       
       if (Object.keys(filteredSuggestionSettings).length === 0) {
-        console.log(`[BedrockModels] No suggestions available for ${modelId}`);
+        console.log(`[BedrockModels] No suggestions available for uuid ${uuid}`);
         return false;
       }
       
-      console.log(`[BedrockModels] Resetting all parameters for ${modelId} to suggestions:`, filteredSuggestionSettings);
+      console.log(`[BedrockModels] Resetting all parameters for uuid ${uuid} to suggestions:`, filteredSuggestionSettings);
       
       set((state) => ({
         ...state,
         modelParameters: {
           ...state.modelParameters,
-          [modelId]: { ...filteredSuggestionSettings },
+          [uuid]: { ...filteredSuggestionSettings },
         },
       }));
       
@@ -698,12 +698,12 @@ export const useBedrockModelsStore = createPersistStore(
     /**
      * Clear all custom parameters for a model (revert to suggestions only)
      */
-    clearModelParameters(modelId: string) {
-      console.log(`[BedrockModels] Clearing custom parameters for ${modelId}`);
+    clearModelParameters(uuid: string) {
+      console.log(`[BedrockModels] Clearing custom parameters for uuid ${uuid}`);
       
       set((state) => {
         const newModelParameters = { ...state.modelParameters };
-        delete newModelParameters[modelId];
+        delete newModelParameters[uuid];
         
         return {
           ...state,
@@ -747,16 +747,16 @@ export const useBedrockModelsStore = createPersistStore(
      * Get the final parameter values to use for API calls
      * Returns custom values if set, otherwise falls back to suggestions
      */
-    getFinalParameterValues(modelId: string): Record<string, any> {
+    getFinalParameterValues(uuid: string): Record<string, any> {
       const state = get();
-      const model = state.models.find(m => m.modelId === modelId);
+      const model = state.models.find(m => m.uuid === uuid);
       
       if (!model?.supportedParameters) {
         return {};
       }
       
       const supportedParams = model.supportedParameters;
-      const modelSpecificParams = state.modelParameters[modelId] || {};
+      const modelSpecificParams = state.modelParameters[uuid] || {};
       const suggestionSettings = model.suggestionSettings || {};
       
       const finalValues: Record<string, any> = {};
@@ -770,7 +770,7 @@ export const useBedrockModelsStore = createPersistStore(
         }
       });
       
-      console.log(`[BedrockModels] Final parameter values for ${modelId}:`, finalValues);
+      console.log(`[BedrockModels] Final parameter values for uuid ${uuid}:`, finalValues);
       return finalValues;
     },
 
@@ -778,57 +778,73 @@ export const useBedrockModelsStore = createPersistStore(
      * Get preferred region for a model
      * Returns null if no custom region is set (use default)
      */
-    getPreferRegion(modelId: string): string | null {
+    getPreferRegion(uuid: string): string | null {
       const state = get();
-      return state.preferRegions[modelId] || null;
+      return state.preferRegions[uuid] || null;
     },
 
     /**
      * Set preferred region for a model
      */
-    setPreferRegion(modelId: string, region: string) {
+    setPreferRegion(uuid: string, region: string) {
       set((state) => ({
         ...state,
         preferRegions: {
           ...state.preferRegions,
-          [modelId]: region.trim(),
+          [uuid]: region.trim(),
         },
       }));
-      console.log(`[BedrockModels] Set preferred region for ${modelId}: ${region}`);
+      console.log(`[BedrockModels] Set preferred region for uuid ${uuid}: ${region}`);
     },
 
     /**
      * Clear preferred region for a model (will fall back to default region)
      */
-    clearPreferRegion(modelId: string) {
+    clearPreferRegion(uuid: string) {
       set((state) => {
         const newPreferRegions = { ...state.preferRegions };
-        delete newPreferRegions[modelId];
+        delete newPreferRegions[uuid];
         return {
           ...state,
           preferRegions: newPreferRegions,
         };
       });
-      console.log(`[BedrockModels] Cleared preferred region for ${modelId}`);
+      console.log(`[BedrockModels] Cleared preferred region for uuid ${uuid}`);
     },
 
     /**
      * Get the effective region for a model (preferred region or default)
      * This is the main function that should be used by API clients
      */
-    getEffectiveRegion(modelId: string, defaultRegion?: string): string {
+    getEffectiveRegion(uuid: string, defaultRegion?: string): string {
       const state = get();
-      const preferredRegion = state.preferRegions[modelId];
+      const preferredRegion = state.preferRegions[uuid];
       
       if (preferredRegion && preferredRegion.trim()) {
-        console.log(`[BedrockModels] Using preferred region for ${modelId}: ${preferredRegion}`);
+        console.log(`[BedrockModels] Using preferred region for uuid ${uuid}: ${preferredRegion}`);
         return preferredRegion.trim();
       }
       
       // Fall back to provided default or system default
       const effectiveDefault = defaultRegion || 'us-west-2';
-      console.log(`[BedrockModels] Using default region for ${modelId}: ${effectiveDefault}`);
+      console.log(`[BedrockModels] Using default region for uuid ${uuid}: ${effectiveDefault}`);
       return effectiveDefault;
+    },
+
+    /**
+     * Get the effective region for a model by modelId (convenience method for API clients)
+     * This method looks up the model by modelId and then gets the effective region
+     */
+    getEffectiveRegionByModelId(modelId: string, defaultRegion?: string): string {
+      const state = get();
+      const model = state.models.find(m => m.modelId === modelId);
+      
+      if (!model) {
+        console.warn(`[BedrockModels] Model not found for modelId ${modelId}, using default region`);
+        return defaultRegion || 'us-west-2';
+      }
+      
+      return this.getEffectiveRegion(model.uuid, defaultRegion);
     },
   }),
   {

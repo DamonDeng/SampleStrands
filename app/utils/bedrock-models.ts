@@ -296,7 +296,7 @@ export function areSettingsDifferent(
  * This function checks if the model has a custom preferred region set,
  * otherwise falls back to the provided default region or system default
  * 
- * @param modelId The Bedrock model ID
+ * @param modelId The Bedrock model ID (e.g., "anthropic.claude-3-5-sonnet-20241022-v2:0")
  * @param defaultRegion Optional default region to use if no preference is set
  * @returns The effective region to use for API calls
  */
@@ -305,9 +305,9 @@ export function getEffectiveRegionForModel(modelId: string, defaultRegion?: stri
     // Import here to avoid circular dependencies
     const { useBedrockModelsStore } = require('../store/bedrock-models');
     const store = useBedrockModelsStore.getState();
-    return store.getEffectiveRegion(modelId, defaultRegion);
+    return store.getEffectiveRegionByModelId(modelId, defaultRegion);
   } catch (error) {
-    console.warn(`[BedrockModels] Failed to get effective region for ${modelId}, using fallback:`, error);
+    console.warn(`[BedrockModels] Failed to get effective region for modelId ${modelId}, using fallback:`, error);
     return defaultRegion || 'us-west-2';
   }
 } 

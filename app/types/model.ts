@@ -86,10 +86,10 @@ export interface ModelConfigStore {
   appliedSuggestions: Record<string, string>; // modelId -> configVersion when suggestions were applied
   
   /** Model-specific parameter configurations */
-  modelParameters: Record<string, Record<string, any>>; // modelId -> parameter settings
+  modelParameters: Record<string, Record<string, any>>; // uuid -> parameter settings
   
   /** Model-specific preferred region settings */
-  preferRegions: Record<string, string>; // modelId -> preferred region
+  preferRegions: Record<string, string>; // uuid -> preferred region
 }
 
 export interface ModelConfigActions {
@@ -142,13 +142,13 @@ export interface ModelConfigActions {
   applySuggestionSettingsIfNew: (modelId: string) => Record<string, any> | null;
 
   /** Get current parameter values for a model (custom values with suggestion fallback) */
-  getCurrentParameterValues: (modelId: string, modelConfig?: any) => Record<string, any>;
+  getCurrentParameterValues: (uuid: string, modelConfig?: any) => Record<string, any>;
   
   /** Update a specific parameter value for a specific model */
-  updateParameterValue: (modelId: string, paramName: string, value: any) => void;
+  updateParameterValue: (uuid: string, paramName: string, value: any) => void;
   
   /** Reset a parameter to its suggested value for a specific model */
-  resetParameterToSuggestion: (modelId: string, paramName: string) => boolean;
+  resetParameterToSuggestion: (uuid: string, paramName: string) => boolean;
   
   /** Get parameter type for proper input control rendering */
   getParameterType: (paramName: string) => 'number' | 'boolean' | 'string' | 'select';
@@ -157,31 +157,34 @@ export interface ModelConfigActions {
   getParameterConstraints: (paramName: string) => { min?: number; max?: number; step?: number };
 
   /** Get all parameter values for a specific model (for use in API calls) */
-  getModelParameters: (modelId: string) => Record<string, any>;
+  getModelParameters: (uuid: string) => Record<string, any>;
   
   /** Check if a model has custom parameter values */
-  hasCustomParameters: (modelId: string) => boolean;
+  hasCustomParameters: (uuid: string) => boolean;
   
   /** Reset all parameters for a model to suggested values */
-  resetAllParametersToSuggestion: (modelId: string) => boolean;
+  resetAllParametersToSuggestion: (uuid: string) => boolean;
   
   /** Clear all custom parameters for a model (revert to suggestions only) */
-  clearModelParameters: (modelId: string) => void;
+  clearModelParameters: (uuid: string) => void;
 
   /** Get the final parameter values to use for API calls (custom + suggestion fallback) */
-  getFinalParameterValues: (modelId: string) => Record<string, any>;
+  getFinalParameterValues: (uuid: string) => Record<string, any>;
   
   /** Get preferred region for a model */
-  getPreferRegion: (modelId: string) => string | null;
+  getPreferRegion: (uuid: string) => string | null;
   
   /** Set preferred region for a model */
-  setPreferRegion: (modelId: string, region: string) => void;
+  setPreferRegion: (uuid: string, region: string) => void;
   
   /** Clear preferred region for a model (will fall back to default region) */
-  clearPreferRegion: (modelId: string) => void;
+  clearPreferRegion: (uuid: string) => void;
   
   /** Get the effective region for a model (preferred region or default) */
-  getEffectiveRegion: (modelId: string, defaultRegion?: string) => string;
+  getEffectiveRegion: (uuid: string, defaultRegion?: string) => string;
+  
+  /** Get the effective region for a model by modelId (convenience method for API clients) */
+  getEffectiveRegionByModelId: (modelId: string, defaultRegion?: string) => string;
 }
 
 export type ModelConfigStoreState = ModelConfigStore & ModelConfigActions;

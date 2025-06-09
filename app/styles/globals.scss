@@ -361,3 +361,40 @@ pre {
 .copyable {
   user-select: text;
 }
+
+/* Electron Window Drag Regions */
+/* Make elements with data-tauri-drag-region draggable for window movement */
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+/* Ensure interactive elements within drag regions are not draggable */
+[data-tauri-drag-region] button,
+[data-tauri-drag-region] input,
+[data-tauri-drag-region] select,
+[data-tauri-drag-region] textarea,
+[data-tauri-drag-region] a,
+[data-tauri-drag-region] .clickable,
+[data-tauri-drag-region] [role="button"],
+[data-tauri-drag-region] .window-action-button,
+[data-tauri-drag-region] .sidebar-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Make sure all interactive elements in drag regions don't interfere with dragging */
+[data-tauri-drag-region] * {
+  pointer-events: auto;
+}
+
+[data-tauri-drag-region] button *,
+[data-tauri-drag-region] input *,
+[data-tauri-drag-region] select *,
+[data-tauri-drag-region] textarea *,
+[data-tauri-drag-region] a *,
+[data-tauri-drag-region] .clickable *,
+[data-tauri-drag-region] [role="button"] *,
+[data-tauri-drag-region] .window-action-button *,
+[data-tauri-drag-region] .sidebar-drag * {
+  -webkit-app-region: no-drag;
+}

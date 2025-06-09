@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, clipboard, shell, session, nativeTheme } = require('electron');
+const { app, BrowserWindow, dialog, clipboard, shell, session, nativeTheme, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const appRoot = app.getAppPath();
@@ -157,4 +157,8 @@ const handleRendererEvent = (event, args) => {
     shell.openExternal(args.url);
   }
 };
+
+// Register IPC event listeners
+ipcMain.on('renderer-event', handleRendererEvent);
+ipcMain.handle('renderer-event', handleRendererEvent);
 

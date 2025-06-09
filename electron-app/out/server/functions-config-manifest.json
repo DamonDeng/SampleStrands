@@ -1,0 +1,6 @@
+{
+  "/api/openai/[...path]": {},
+  "/api/config": {},
+  "/api/google/[...path]": {},
+  "/api/cors/[...path]": {}
+}

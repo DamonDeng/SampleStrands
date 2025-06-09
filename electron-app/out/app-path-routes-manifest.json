@@ -1,0 +1,9 @@
+{
+  "/api/config/route": "/api/config",
+  "/api/cors/[...path]/route": "/api/cors/[...path]",
+  "/api/google/[...path]/route": "/api/google/[...path]",
+  "/api/openai/[...path]/route": "/api/openai/[...path]",
+  "/page": "/",
+  "/python-test/page": "/python-test",
+  "/mcp-test/page": "/mcp-test"
+}

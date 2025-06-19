@@ -1,3 +1,5 @@
+import { pythonAPI, PythonAPIError } from './pythonAPI';
+
 export interface AIResponse {
   content: string;
   delay: number;
@@ -41,21 +43,34 @@ export class MockAIService {
 
   private conversationHistory: string[] = [];
 
-  generateResponse(userMessage: string): Promise<AIResponse> {
+  async generateResponse(userMessage: string): Promise<AIResponse> {
+    // Try to use Python backend first
+    try {
+      const isHealthy = await pythonAPI.isBackendHealthy();
+      if (isHealthy) {
+        // Use Python backend - this will be implemented when we integrate with sessions
+        console.log('🐍 Python backend is available, but session integration not yet implemented');
+        // Fall back to mock for now
+      }
+    } catch (error) {
+      console.warn('🐍 Python backend not available, using mock service');
+    }
+
+    // Fallback to original mock implementation
     return new Promise((resolve) => {
       // Add user message to history
       this.conversationHistory.push(userMessage.toLowerCase());
-      
+
       // Determine response type based on message content
       const responseType = this.determineResponseType(userMessage);
       const baseResponse = this.selectResponse(responseType);
-      
+
       // Generate contextual content
       const contextualContent = this.generateContextualContent(userMessage, baseResponse);
-      
+
       // Calculate realistic delay (1-4 seconds)
       const delay = 1000 + Math.random() * 3000;
-      
+
       setTimeout(() => {
         resolve({
           content: contextualContent,

@@ -1,0 +1,139 @@
+.messageContainer {
+  width: 100%;
+  padding: 4px 0;
+}
+
+.messageWrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 100%;
+}
+
+.user .messageWrapper {
+  flex-direction: row-reverse;
+}
+
+.avatar, .userAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.avatar {
+  background-color: #5865f2;
+}
+
+.userAvatar {
+  background-color: #43b581;
+}
+
+.avatarSpacer {
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.messageContent {
+  flex: 1;
+  min-width: 0;
+  max-width: 70%;
+}
+
+.user .messageContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.senderName {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b9bbbe;
+  margin-bottom: 4px;
+  padding-left: 16px;
+}
+
+.messageBubble {
+  border-radius: 18px;
+  padding: 12px 16px;
+  word-wrap: break-word;
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+
+.assistantBubble {
+  background-color: #36393f;
+  border: 1px solid #40444b;
+  color: #ffffff;
+}
+
+.userBubble {
+  background-color: #5865f2;
+  color: #ffffff;
+}
+
+.messageText {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.messageTime {
+  font-size: 11px;
+  color: #72767d;
+  margin-top: 4px;
+  padding-left: 16px;
+}
+
+.user .messageTime {
+  text-align: right;
+  padding-left: 0;
+  padding-right: 16px;
+}
+
+/* Hover effects */
+.messageContainer:hover .messageTime {
+  color: #b9bbbe;
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .messageContent {
+    max-width: 85%;
+  }
+  
+  .avatar, .userAvatar {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+  
+  .avatarSpacer {
+    width: 32px;
+  }
+  
+  .messageBubble {
+    padding: 10px 14px;
+  }
+  
+  .messageText {
+    font-size: 13px;
+  }
+}

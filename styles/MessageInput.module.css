@@ -1,0 +1,162 @@
+.messageForm {
+  width: 100%;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background-color: #40444b;
+  border-radius: 24px;
+  padding: 8px 12px;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.inputContainer:focus-within {
+  border-color: #5865f2;
+}
+
+.messageInput {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  min-height: 20px;
+  max-height: 120px;
+  padding: 8px 0;
+  line-height: 1.4;
+}
+
+.messageInput::placeholder {
+  color: #72767d;
+}
+
+.messageInput.disabled {
+  color: #72767d;
+  cursor: not-allowed;
+}
+
+.inputActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  color: #b9bbbe;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.actionButton:hover:not(:disabled) {
+  background-color: #36393f;
+  color: #ffffff;
+}
+
+.actionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sendButton {
+  background-color: #72767d;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  position: relative;
+}
+
+.sendButton.active {
+  background-color: #5865f2;
+  transform: scale(1.05);
+}
+
+.sendButton:hover:not(:disabled) {
+  background-color: #5865f2;
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.inputHint {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.hintText {
+  font-size: 11px;
+  color: #72767d;
+}
+
+.hintText kbd {
+  background-color: #36393f;
+  border: 1px solid #40444b;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 10px;
+  font-family: monospace;
+  color: #b9bbbe;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .inputContainer {
+    padding: 6px 10px;
+  }
+  
+  .messageInput {
+    font-size: 13px;
+  }
+  
+  .actionButton, .sendButton {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  
+  .hintText {
+    font-size: 10px;
+  }
+}

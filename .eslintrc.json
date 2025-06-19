@@ -1,0 +1,7 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "prefer-const": "error"
+  },
+  "ignorePatterns": ["dist/", "out/", ".next/", "node_modules/"]
+}

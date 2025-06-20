@@ -194,3 +194,6 @@ ehthumbs_vista.db
 .directory
 .Trash-*
 .nfs*
+
+# Code Reference
+code_reference/

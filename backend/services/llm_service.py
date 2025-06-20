@@ -1,14 +1,15 @@
 """
-Mock LLM service simulating AWS Bedrock with Strands Agent SDK.
-This will be replaced with real AWS Bedrock integration later.
+Strands Agent service using real AWS Bedrock with Strands Agent SDK.
+Integrates calculator tool and conversation management.
 """
 
-import asyncio
 import logging
-import random
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import AsyncGenerator, Dict, Any, List
 from uuid import uuid4
+
+from strands import Agent
+from strands_tools import calculator
 
 from models.schemas import Message, MessageRole, ChatRequest, StreamChunk
 
@@ -16,194 +17,251 @@ from models.schemas import Message, MessageRole, ChatRequest, StreamChunk
 logger = logging.getLogger(__name__)
 
 
-class MockBedrockService:
-    """Mock service simulating AWS Bedrock with Strands Agent SDK."""
-    
+class StrandsAgentError(Exception):
+    """Base exception for Strands Agent errors."""
+    pass
+
+
+class NetworkError(StrandsAgentError):
+    """Network-related errors (VPN, region restrictions, etc.)."""
+    pass
+
+
+class AuthenticationError(StrandsAgentError):
+    """AWS authentication/authorization errors."""
+    pass
+
+
+class ModelAccessError(StrandsAgentError):
+    """Model access or availability errors."""
+    pass
+
+
+class RateLimitError(StrandsAgentError):
+    """Rate limiting errors."""
+    pass
+
+
+class StrandsAgentService:
+    """Real Strands Agent service using AWS Bedrock with calculator tool."""
+
     def __init__(self):
-        """Initialize the mock Bedrock service."""
+        """Initialize the Strands Agent service."""
+        logger.info("🚀 Initializing Strands Agent Service with AWS Bedrock")
+
+        # Initialize Strands Agent with calculator tool
+        try:
+            self.agent = Agent(tools=[calculator])
+            logger.info("✅ Strands Agent initialized successfully with calculator tool")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Strands Agent: {e}")
+            raise
+
+        # Model configurations (Strands SDK will handle model selection)
         self.model_configs = {
             "claude-3-sonnet": {
                 "max_tokens": 4000,
                 "temperature_range": (0.0, 1.0),
-                "response_time_range": (1.0, 3.0)
+                "description": "Balanced performance and cost"
             },
             "claude-3-haiku": {
                 "max_tokens": 4000,
                 "temperature_range": (0.0, 1.0),
-                "response_time_range": (0.5, 2.0)
+                "description": "Fast and efficient"
             }
         }
-        
-        # Mock response templates for different types of queries
-        self.response_templates = {
-            "technical": [
-                "[Backend] From a technical perspective, this involves several key considerations:\n\n1. **Architecture**: {topic}\n2. **Implementation**: {details}\n3. **Best Practices**: {recommendations}\n\nWould you like me to elaborate on any specific aspect?",
-                "[Backend] Here's how I would approach this technically:\n\n**Step 1**: {step1}\n**Step 2**: {step2}\n**Step 3**: {step3}\n\nThis approach ensures scalability and maintainability.",
-                "[Backend] The technical solution involves:\n\n```python\n# Example implementation\n{code_example}\n```\n\nThis pattern is commonly used in enterprise applications."
-            ],
-            "general": [
-                "[Backend] That's an interesting question! Let me break this down for you:\n\n{explanation}\n\nWhat specific aspect would you like to explore further?",
-                "[Backend] I understand what you're asking about. Here's my perspective:\n\n{perspective}\n\nDoes this help clarify things for you?",
-                "[Backend] Great question! This touches on several important points:\n\n• {point1}\n• {point2}\n• {point3}\n\nLet me know if you'd like me to dive deeper into any of these areas."
-            ],
-            "aws": [
-                "[Backend] Regarding AWS services, here's what I recommend:\n\n**Bedrock Integration**: {bedrock_info}\n**Strands Agent SDK**: {strands_info}\n**Best Practices**: {aws_practices}\n\nThis setup provides robust AI capabilities with enterprise-grade security.",
-                "[Backend] For AWS Bedrock implementation:\n\n1. **Model Selection**: Choose the right foundation model\n2. **Agent Configuration**: Set up Strands agents properly\n3. **Security**: Implement proper IAM roles and policies\n\nWould you like specific code examples for any of these steps?"
-            ]
-        }
+
+        # Session-based conversation tracking
+        # Note: Strands Agent has built-in conversation management,
+        # but we'll track sessions for our API compatibility
+        self.session_agents = {}  # session_id -> Agent instance
     
     async def generate_response(self, request: ChatRequest, session_messages: List[Message]) -> Message:
-        """Generate a non-streaming response."""
+        """Generate a non-streaming response using Strands Agent."""
         logger.info(f"🤖 Generating response for message: {request.message[:50]}{'...' if len(request.message) > 50 else ''}")
         logger.debug(f"   🎛️ Model: {request.model}, Temperature: {request.temperature}, Max tokens: {request.max_tokens}")
         logger.debug(f"   📚 Context: {len(session_messages)} previous messages")
 
-        # Simulate processing time
-        processing_time = random.uniform(1.0, 3.0)
-        logger.debug(f"   ⏱️ Simulating processing time: {processing_time:.2f}s")
-        await asyncio.sleep(processing_time)
+        try:
+            # Get or create agent for this session (for conversation continuity)
+            agent = self._get_session_agent(session_messages)
 
-        # Generate response content
-        content = await self._generate_content(request.message, session_messages, request.model)
-        logger.info(f"✅ Response generated: {len(content)} characters")
-        logger.debug(f"   📝 Response preview: {content[:100]}{'...' if len(content) > 100 else ''}")
+            # Generate response using Strands Agent
+            logger.debug("   🔄 Calling Strands Agent...")
+            agent_result = agent(request.message)
 
-        # Create response message
-        response_message = Message(
-            id=str(uuid4()),
-            content=content,
-            role=MessageRole.ASSISTANT,
-            timestamp=datetime.utcnow()
-        )
+            # Extract content from agent result
+            content = str(agent_result)
+            logger.info(f"✅ Response generated: {len(content)} characters")
+            logger.debug(f"   📝 Response preview: {content[:100]}{'...' if len(content) > 100 else ''}")
 
-        return response_message
+            # Create response message
+            response_message = Message(
+                id=str(uuid4()),
+                content=content,
+                role=MessageRole.ASSISTANT,
+                timestamp=datetime.now(timezone.utc)
+            )
+
+            return response_message
+
+        except Exception as e:
+            logger.error(f"❌ Error generating response: {e}")
+            error_message = self._handle_error(e)
+            return Message(
+                id=str(uuid4()),
+                content=error_message,
+                role=MessageRole.ASSISTANT,
+                timestamp=datetime.now(timezone.utc)
+            )
     
     async def generate_streaming_response(
-        self, 
-        request: ChatRequest, 
+        self,
+        request: ChatRequest,
         session_messages: List[Message]
     ) -> AsyncGenerator[StreamChunk, None]:
-        """Generate a streaming response."""
-        # Generate full response first
-        full_content = await self._generate_content(request.message, session_messages, request.model)
+        """Generate a streaming response using Strands Agent."""
+        logger.info(f"🌊 Generating streaming response for message: {request.message[:50]}{'...' if len(request.message) > 50 else ''}")
         message_id = str(uuid4())
-        
-        # Split content into chunks for streaming
-        words = full_content.split()
-        chunk_size = random.randint(1, 3)  # 1-3 words per chunk
-        
-        for i in range(0, len(words), chunk_size):
-            chunk_words = words[i:i + chunk_size]
-            chunk_content = " ".join(chunk_words)
-            
-            # Add space if not the last chunk
-            if i + chunk_size < len(words):
-                chunk_content += " "
-            
-            # Simulate streaming delay
-            delay = random.uniform(0.05, 0.2)
-            await asyncio.sleep(delay)
-            
-            # Yield chunk
-            yield StreamChunk(
-                content=chunk_content,
-                finished=False,
-                message_id=message_id
-            )
-        
-        # Send final chunk
-        yield StreamChunk(
-            content="",
-            finished=True,
-            message_id=message_id
-        )
-    
-    async def _generate_content(self, user_message: str, session_messages: List[Message], model: str) -> str:
-        """Generate response content based on user message and context."""
-        user_message_lower = user_message.lower()
-
-        # Determine response type based on message content
-        if any(keyword in user_message_lower for keyword in ["aws", "bedrock", "strands", "agent"]):
-            response_type = "aws"
-        elif any(keyword in user_message_lower for keyword in [
-            "code", "programming", "function", "algorithm", "implementation",
-            "architecture", "technical", "api", "database", "python", "typescript"
-        ]):
-            response_type = "technical"
-        else:
-            response_type = "general"
-
-        logger.debug(f"   🎯 Detected response type: {response_type}")
-        logger.debug(f"   🔧 Using model: {model}")
-
-        # Select template
-        templates = self.response_templates[response_type]
-        template = random.choice(templates)
-        logger.debug(f"   📋 Selected template type: {response_type} (template {templates.index(template) + 1}/{len(templates)})")
-
-        # Generate contextual content
-        context = self._generate_context_variables(user_message, session_messages, response_type)
 
         try:
-            # Format template with context
-            content = template.format(**context)
-            logger.debug(f"   ✅ Template formatted successfully")
-        except KeyError as e:
-            # Fallback if template formatting fails
-            logger.warning(f"   ⚠️ Template formatting failed: {e}, using fallback")
-            content = self._generate_fallback_response(user_message, response_type)
+            # Get or create agent for this session
+            agent = self._get_session_agent(session_messages)
 
-        return content
-    
-    def _generate_context_variables(self, user_message: str, session_messages: List[Message], response_type: str) -> Dict[str, str]:
-        """Generate context variables for template formatting."""
-        context = {}
-        
-        if response_type == "technical":
-            context.update({
-                "topic": "the system design and component interactions",
-                "details": "using modern patterns like microservices and event-driven architecture",
-                "recommendations": "follow SOLID principles and implement proper error handling",
-                "step1": "Analyze requirements and define interfaces",
-                "step2": "Implement core functionality with proper abstractions",
-                "step3": "Add comprehensive testing and monitoring",
-                "code_example": "def process_request(data):\n    # Validate input\n    # Process data\n    # Return result\n    pass"
-            })
-        elif response_type == "aws":
-            context.update({
-                "bedrock_info": "Use Claude 3 Sonnet for balanced performance and cost",
-                "strands_info": "Configure agents with proper prompt engineering",
-                "aws_practices": "Implement least privilege access and monitor usage costs"
-            })
+            # Use Strands Agent's streaming capability
+            logger.debug("   🔄 Starting Strands Agent streaming...")
+
+            async for event in agent.stream_async(request.message):
+                # Process different types of events from Strands Agent
+                if isinstance(event, dict):
+                    # Handle different event types
+                    if "data" in event:
+                        # Text content chunk
+                        content = event["data"]
+                        if content:
+                            yield StreamChunk(
+                                content=content,
+                                finished=False,
+                                message_id=message_id
+                            )
+                    elif "finished" in event and event["finished"]:
+                        # Stream finished
+                        yield StreamChunk(
+                            content="",
+                            finished=True,
+                            message_id=message_id
+                        )
+                        break
+                else:
+                    # Handle string content directly
+                    content = str(event)
+                    if content:
+                        yield StreamChunk(
+                            content=content,
+                            finished=False,
+                            message_id=message_id
+                        )
+
+            # Ensure we send a final chunk if not already sent
+            yield StreamChunk(
+                content="",
+                finished=True,
+                message_id=message_id
+            )
+
+        except Exception as e:
+            logger.error(f"❌ Error in streaming response: {e}")
+            error_message = self._handle_error(e)
+            # Send error as final chunk
+            yield StreamChunk(
+                content=error_message,
+                finished=True,
+                message_id=message_id
+            )
+
+    def _get_session_agent(self, session_messages: List[Message]) -> Agent:
+        """Get or create an agent instance for conversation continuity."""
+        # For now, we'll use a single agent instance
+        # In the future, we could create per-session agents for better isolation
+        return self.agent
+
+    def _handle_error(self, error: Exception) -> str:
+        """Handle different types of errors and return appropriate user-friendly messages."""
+        error_str = str(error).lower()
+
+        # Network/VPN related errors
+        if any(keyword in error_str for keyword in [
+            'network', 'connection', 'timeout', 'unreachable', 'vpn', 'proxy'
+        ]):
+            logger.warning(f"🌐 Network error detected: {error}")
+            return ("🌐 **Network Connection Issue**\n\n"
+                   "I'm having trouble connecting to the AI service. This might be due to:\n"
+                   "• Network connectivity issues\n"
+                   "• VPN or proxy settings\n"
+                   "• Temporary service unavailability\n\n"
+                   "Please check your network connection and try again.")
+
+        # AWS Authentication/Authorization errors
+        elif any(keyword in error_str for keyword in [
+            'credentials', 'unauthorized', 'access denied', 'forbidden', 'authentication'
+        ]):
+            logger.warning(f"🔐 Authentication error detected: {error}")
+            return ("🔐 **AWS Authentication Issue**\n\n"
+                   "There's an issue with AWS credentials or permissions:\n"
+                   "• Please ensure AWS CLI is configured correctly\n"
+                   "• Check if your AWS credentials have Bedrock access\n"
+                   "• Verify your AWS account has the necessary permissions\n\n"
+                   "Run `aws configure` to set up your credentials.")
+
+        # Model access or region restrictions
+        elif any(keyword in error_str for keyword in [
+            'model', 'bedrock', 'region', 'restricted', 'unavailable', 'anthropic'
+        ]):
+            logger.warning(f"🤖 Model access error detected: {error}")
+            return ("🤖 **Model Access Issue**\n\n"
+                   "The AI model is currently unavailable. This could be due to:\n"
+                   "• Geographic restrictions on model access\n"
+                   "• Model not available in your AWS region\n"
+                   "• Temporary service limitations\n\n"
+                   "Please try again later or contact support if the issue persists.")
+
+        # Rate limiting
+        elif any(keyword in error_str for keyword in [
+            'rate', 'limit', 'throttle', 'quota', 'too many requests'
+        ]):
+            logger.warning(f"⏱️ Rate limit error detected: {error}")
+            return ("⏱️ **Rate Limit Exceeded**\n\n"
+                   "You've reached the request limit for the AI service.\n"
+                   "Please wait a moment before sending another message.\n\n"
+                   "This helps ensure fair usage for all users.")
+
+        # Generic error
         else:
-            context.update({
-                "explanation": "This is a multifaceted topic that requires careful consideration",
-                "perspective": "Based on current best practices and industry standards",
-                "point1": "Consider the user experience and accessibility",
-                "point2": "Ensure scalability and performance optimization",
-                "point3": "Implement proper security and data protection measures"
+            logger.error(f"❌ Unexpected error: {error}")
+            return ("❌ **Unexpected Error**\n\n"
+                   f"I encountered an unexpected issue: {str(error)[:200]}{'...' if len(str(error)) > 200 else ''}\n\n"
+                   "Please try again, and if the problem persists, contact support.")
+
+    def _convert_messages_to_strands_format(self, messages: List[Message]) -> List[Dict[str, str]]:
+        """Convert our Message format to Strands Agent format if needed."""
+        # Strands Agent handles conversation history automatically
+        # This method is for future use if we need custom message formatting
+        strands_messages = []
+        for msg in messages:
+            strands_messages.append({
+                "role": msg.role.value,
+                "content": msg.content
             })
-        
-        return context
-    
-    def _generate_fallback_response(self, user_message: str, response_type: str) -> str:
-        """Generate a fallback response if template formatting fails."""
-        fallback_responses = {
-            "technical": f"I understand you're asking about technical aspects related to: {user_message[:50]}... Let me provide a comprehensive technical analysis and recommendations.",
-            "aws": f"Regarding your AWS and Bedrock question about: {user_message[:50]}... Here's how I would approach this using AWS services and best practices.",
-            "general": f"That's a great question about: {user_message[:50]}... Let me share my thoughts and provide some helpful insights."
-        }
-        
-        return fallback_responses.get(response_type, "I understand your question and I'm here to help. Let me provide you with a detailed response.")
+        return strands_messages
     
     async def get_available_models(self) -> List[str]:
         """Get list of available models."""
         return list(self.model_configs.keys())
-    
+
     async def get_model_info(self, model: str) -> Dict[str, Any]:
         """Get information about a specific model."""
         return self.model_configs.get(model, {})
 
 
 # Global LLM service instance
-llm_service = MockBedrockService()
+llm_service = StrandsAgentService()

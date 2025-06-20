@@ -11,9 +11,13 @@ aiofiles>=23.0.0
 python-multipart>=0.0.6
 python-json-logger>=2.0.0
 
-# AWS SDK (for future Bedrock integration)
+# AWS SDK (for Bedrock integration)
 boto3>=1.30.0
 botocore>=1.30.0
+
+# Strands Agents SDK
+strands-agents>=0.1.0
+strands-agents-tools>=0.1.0
 
 # Development and testing
 pytest>=7.0.0

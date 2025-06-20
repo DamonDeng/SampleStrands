@@ -11,12 +11,13 @@ import styles from '../styles/ChatArea.module.css';
 interface ChatAreaProps {
   session: Session | undefined;
   onSendMessage: (content: string) => void;
+  onAIResponse: (content: string) => void;
   isElectron: boolean;
   backendAvailable: boolean;
   sessionId: string | null;
 }
 
-export default function ChatArea({ session, onSendMessage, isElectron, backendAvailable, sessionId }: ChatAreaProps) {
+export default function ChatArea({ session, onSendMessage, onAIResponse, isElectron, backendAvailable, sessionId }: ChatAreaProps) {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -44,12 +45,12 @@ export default function ChatArea({ session, onSendMessage, isElectron, backendAv
         });
 
         // Add AI response to UI
-        onSendMessage(response.message.content);
+        onAIResponse(response.message.content);
       } else {
         // Fallback to mock AI service when backend unavailable
         console.log('🤖 Using mock AI service (backend unavailable)');
         const aiResponse = await mockAI.generateResponse(content);
-        onSendMessage(aiResponse.content);
+        onAIResponse(aiResponse.content);
       }
     } catch (error) {
       console.error('Error generating AI response:', error);
@@ -58,10 +59,10 @@ export default function ChatArea({ session, onSendMessage, isElectron, backendAv
       try {
         console.log('🤖 Backend failed, trying mock AI service');
         const aiResponse = await mockAI.generateResponse(content);
-        onSendMessage(aiResponse.content);
+        onAIResponse(aiResponse.content);
       } catch (mockError) {
         console.error('Mock AI also failed:', mockError);
-        onSendMessage('Sorry, I encountered an error while processing your message. Please try again.');
+        onAIResponse('Sorry, I encountered an error while processing your message. Please try again.');
       }
     } finally {
       setIsLoading(false);

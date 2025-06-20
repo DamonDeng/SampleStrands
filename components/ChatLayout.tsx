@@ -217,6 +217,28 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     // when AI responses are generated, not here for user messages
   };
 
+  const addAIMessage = (sessionId: string, content: string) => {
+    const newMessage: Message = {
+      content,
+      sender: 'assistant',
+      timestamp: new Date(),
+      id: Date.now().toString(),
+    };
+
+    // Add AI response to local state
+    setSessions(prev =>
+      prev.map(session =>
+        session.id === sessionId
+          ? {
+              ...session,
+              messages: [...session.messages, newMessage],
+              updatedAt: new Date()
+            }
+          : session
+      )
+    );
+  };
+
   // Resize handlers for session list
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -332,6 +354,11 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
                 sender: 'user',
                 timestamp: new Date(),
               });
+            }
+          }}
+          onAIResponse={(content) => {
+            if (activeSessionId) {
+              addAIMessage(activeSessionId, content);
             }
           }}
           isElectron={isElectron}

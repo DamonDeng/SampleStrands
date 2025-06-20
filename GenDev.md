@@ -7,7 +7,7 @@
 **Target Platforms**: macOS (Intel & Apple Silicon), Windows  
 **UI Design**: Slack-like three-column layout  
 **Developer**: DamonDeng (dengmingxuan@hotmail.com)  
-**Status**: ✅ Core functionality complete, Python backend integration complete, Frontend-Backend integration complete with optimistic updates, Enhanced logging system implemented, **AWS Strands Agents SDK integration complete with real AI capabilities**
+**Status**: ✅ Core functionality complete, Python backend integration complete, Frontend-Backend integration complete with optimistic updates, Enhanced logging system implemented, **AWS Strands Agents SDK integration complete with real AI capabilities**, **UI/UX improvements complete with modern design system**
 
 ## Key Challenge Solved
 
@@ -96,27 +96,108 @@ npm run dist:win         # Windows installer
 
 ## UI/UX Design
 
-### Three-Column Slack-like Layout
-1. **Sidebar** (60px collapsed, 240px expanded)
-   - Feature navigation icons
-   - User profile section
-   - Collapsible design
+### Three-Column Slack-like Layout (UPDATED ✅)
+1. **Sidebar** (60px fixed width, icon-only)
+   - Fixed-width icon navigation (no toggle functionality)
+   - React Icons for professional appearance
+   - User avatar at bottom
 
-2. **Session List** (280px)
-   - Conversation management
-   - Search and organization
+2. **Session List** (280px default, resizable 200px-500px)
+   - Conversation management with React Icons
+   - Drag-to-resize functionality with visual handle
    - Real-time message previews
 
-3. **Chat Area** (flexible)
-   - Message history with bubbles
+3. **Chat Area** (flexible, remaining space)
+   - Message history with proper alignment
    - Multi-line input with keyboard shortcuts
    - Typing indicators and loading states
 
-### Design System
+### Design System (MODERNIZED ✅)
 - **Dark Theme**: Primary background #1a1d21
-- **CSS Modules**: Component-scoped styling
+- **React Icons**: Professional icon system (react-icons package)
+- **CSS Grid Layout**: 4-column grid (sidebar + session list + resize handle + chat area)
+- **CSS Modules**: Component-scoped styling with proper class naming
 - **Responsive**: Adapts to different screen sizes
 - **Accessibility**: Keyboard navigation and ARIA labels
+
+## UI/UX Improvements (COMPLETED ✅)
+
+### Key Design Decisions & Architecture Changes
+
+#### 1. Icon System Modernization
+**Decision**: Replace all emoji icons with React Icons package
+**Rationale**: Professional appearance, consistency, scalability
+**Implementation**:
+- Package: `react-icons` (IoIcons, RiIcons)
+- Applied to: Sidebar, MessageBubbles, SessionList, ChatArea
+- Icons: Chat, Add, Settings, Help, Person, Robot, Edit, Delete
+
+#### 2. Fixed-Width Sidebar Design
+**Decision**: Remove toggle functionality, make sidebar always 60px icon-only
+**Rationale**: Consistent layout, simplified UX, more space for content
+**Technical Impact**:
+- Removed `collapsed` state management from ChatLayout
+- Simplified Sidebar component interface
+- Updated CSS grid to fixed 60px first column
+- Eliminated conditional rendering logic
+
+#### 3. Resizable Session List Column
+**Decision**: Add drag-to-resize functionality with constraints
+**Implementation**:
+- Min width: 200px, Max width: 500px, Default: 280px
+- CSS Grid: Dynamic column sizing with `gridTemplateColumns`
+- Mouse event handling: Global listeners for smooth dragging
+- Visual feedback: Resize handle with hover effects
+- State management: `sessionListWidth` in ChatLayout
+
+#### 4. Message Alignment Architecture Fix
+**Problem**: All messages displaying as user messages (right-aligned)
+**Root Cause**: Single `onSendMessage` callback used for both user and AI messages
+**Solution**: Separated message handling with dedicated callbacks
+- `onSendMessage`: User messages → `sender: 'user'` → right-aligned
+- `onAIResponse`: AI messages → `sender: 'assistant'` → left-aligned
+- Updated ChatArea to use correct callback for each message type
+
+#### 5. CSS Grid Layout System
+**Architecture**: 4-column CSS Grid for stable layout
+```css
+grid-template-columns: 60px ${sessionListWidth}px 4px 1fr
+```
+- Column 1: Sidebar (60px fixed)
+- Column 2: Session List (variable width)
+- Column 3: Resize Handle (4px fixed)
+- Column 4: Chat Content (remaining space)
+
+**Critical Learning**: CSS grid column count must match actual DOM elements to prevent layout shifts
+
+### Frontend-Backend Message Schema Mapping
+**Challenge**: Different message schemas between frontend and backend
+- **Frontend**: `sender: 'user' | 'assistant'` (types/chat.ts)
+- **Backend**: `role: 'user' | 'assistant' | 'system'` (schemas.py)
+- **Solution**: Type converters in `utils/typeConverters.ts` handle seamless mapping
+- **Key Function**: `convertBackendMessage()` maps `role` to `sender`
+
+### CSS Modules Best Practices Learned
+**Issue**: CSS descendant selectors don't work as expected with CSS Modules
+**Example Problem**: `.user .messageWrapper` selector failed
+**Solution**: Apply CSS classes directly to elements, not as descendant selectors
+**Pattern**: Use conditional class application: `${isUser ? styles.userMessageWrapper : ''}`
+
+### Component Interface Design Patterns
+**Pattern**: Separate concerns for different message types
+```typescript
+interface ChatAreaProps {
+  onSendMessage: (content: string) => void;    // User messages
+  onAIResponse: (content: string) => void;     // AI responses
+}
+```
+**Benefit**: Clear separation of responsibilities, easier debugging, proper type safety
+
+### Performance Optimizations
+1. **Event Listener Management**: Proper cleanup of global mouse events for resize
+2. **State Updates**: Batch state updates for better performance
+3. **CSS Transitions**: Smooth animations for resize handle interactions
+4. **Memory Management**: Remove event listeners on component unmount
 
 ## Mock AI Service
 
@@ -165,11 +246,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
 - **Proper TypeScript setup**: Separate configs for Next.js and Electron
 - **CSS Modules**: Better than global CSS for component isolation
 
-### 3. Common Pitfalls Avoided
+### 3. UI/UX Development Best Practices
+- **React Icons**: Use professional icon libraries instead of emojis for scalable, consistent design
+- **CSS Grid Layout**: Match grid column definitions with actual DOM structure to prevent layout shifts
+- **Message Schema Mapping**: Implement type converters when frontend/backend use different field names
+- **Component Separation**: Use separate callbacks for different message types (user vs AI responses)
+- **CSS Modules**: Apply classes directly to elements, avoid descendant selectors for better scoping
+- **Resizable Components**: Use global event listeners with proper cleanup for smooth drag interactions
+- **State Management**: Separate UI state (like sidebar width) from business logic for better maintainability
+
+### 4. Common Pitfalls Avoided
 - ❌ Using NODE_ENV for packaged app detection
 - ❌ Incorrect static file paths in production
 - ❌ Including unnecessary files in electron-builder
 - ❌ Missing trailing slashes for file:// protocol
+- ❌ Using single callback for different message types (causes alignment issues)
+- ❌ CSS grid column count mismatch with DOM elements
+- ❌ Emoji icons in production applications (unprofessional appearance)
+- ❌ CSS descendant selectors with CSS Modules (scoping issues)
 
 ## Python Backend Integration (COMPLETED ✅)
 
@@ -650,6 +744,16 @@ node test_integration.js                             # Run integration test suit
 4. **Content Safety**: Safe logging with content truncation
 5. **Error Context**: Detailed error information for troubleshooting
 6. **Integration Testing**: Automated test suite for complete workflow validation
+
+### UI/UX Development & Design System
+1. **Professional Icons**: Use React Icons package for consistent, scalable icon system
+2. **Layout Stability**: CSS Grid with exact column count matching DOM structure
+3. **Message Architecture**: Separate handling for user messages vs AI responses to ensure proper alignment
+4. **Component Interfaces**: Design clear, purpose-specific props (onSendMessage vs onAIResponse)
+5. **Resizable UI**: Implement drag functionality with constraints and proper event cleanup
+6. **CSS Modules**: Apply classes directly to elements, avoid complex descendant selectors
+7. **Type Safety**: Use type converters for schema differences between frontend and backend
+8. **Fixed-Width Sidebar**: Simplify UX by removing unnecessary toggle functionality
 
 ## Contact & Maintenance
 

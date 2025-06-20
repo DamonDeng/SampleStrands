@@ -1,6 +1,6 @@
 .sidebar {
   background-color: #2c2f33;
-  border-right: 1px solid #40444b;
+  border-right: 1px solid #2c2f33;
   display: flex;
   flex-direction: column;
   width: 60px;
@@ -12,6 +12,7 @@
 .nav {
   flex: 1;
   padding: 16px 0;
+  margin-top: 36px;
 }
 
 .navItem {
@@ -39,8 +40,8 @@
 }
 
 .icon {
-  font-size: 20px;
-  min-width: 20px;
+  font-size: 24px;
+  min-width: 24px;
   text-align: center;
 }
 

@@ -9,6 +9,7 @@
 
 .header {
   padding: 16px;
+  background-color: #2c2f33;
   border-bottom: 1px solid #40444b;
   display: flex;
   align-items: center;

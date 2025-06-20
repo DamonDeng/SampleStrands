@@ -11,7 +11,7 @@
 }
 
 .user .messageWrapper {
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 .userMessageWrapper {

@@ -10,17 +10,18 @@ export default function Sidebar({ onNewChat }: SidebarProps) {
   const [activeItem, setActiveItem] = useState('chat');
 
   const sidebarItems = [
-    {
-      id: 'chat',
-      label: 'Chat',
-      icon: <IoChatbubbleEllipsesOutline />,
-      onClick: () => setActiveItem('chat'),
-    },
+    
     {
       id: 'new-chat',
       label: 'New Chat',
       icon: <IoAddOutline />,
       onClick: onNewChat,
+    },
+    {
+      id: 'chat',
+      label: 'Chat',
+      icon: <IoChatbubbleEllipsesOutline />,
+      onClick: () => setActiveItem('chat'),
     },
     {
       id: 'settings',

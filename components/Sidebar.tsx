@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IoChatbubbleEllipsesOutline, IoAddOutline, IoSettingsOutline, IoHelpCircleOutline } from 'react-icons/io5';
+import { IoChatbubbleEllipsesOutline, IoAddOutline, IoSettingsOutline, IoHelpCircleOutline, IoPersonOutline } from 'react-icons/io5';
 import styles from '../styles/Sidebar.module.css';
 
 interface SidebarProps {
@@ -54,13 +54,7 @@ export default function Sidebar({ onNewChat }: SidebarProps) {
 
       <div className={styles.footer}>
         <div className={styles.userInfo}>
-          <div className={styles.avatar}>👤</div>
-          {!collapsed && (
-            <div className={styles.userDetails}>
-              <div className={styles.userName}>DamonDeng</div>
-              <div className={styles.userStatus}>Online</div>
-            </div>
-          )}
+          <div className={styles.avatar}><IoPersonOutline /></div>
         </div>
       </div>
     </div>

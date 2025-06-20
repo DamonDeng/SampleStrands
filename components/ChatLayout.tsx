@@ -281,7 +281,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     <div
       className={styles.chatLayout}
       style={{
-        gridTemplateColumns: `60px ${sessionListWidth}px 1fr`
+        gridTemplateColumns: `60px ${sessionListWidth}px 4px 1fr`
       }}
     >
       {syncError && (

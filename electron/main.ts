@@ -59,8 +59,8 @@ async function startPythonBackend(): Promise<boolean> {
       resolve(false);
     });
 
-    pythonBackend.on('exit', (code) => {
-      console.log(`🐍 Backend process exited with code ${code}`);
+    pythonBackend.on('exit', (code, signal) => {
+      console.log(`🐍 Backend process exited with code ${code}, signal: ${signal}`);
       pythonBackend = null;
 
       // Auto-restart if not intentional shutdown
@@ -70,6 +70,8 @@ async function startPythonBackend(): Promise<boolean> {
         setTimeout(() => startPythonBackend(), 2000);
       } else if (backendStartupAttempts >= MAX_STARTUP_ATTEMPTS) {
         showBackendErrorDialog();
+      } else if (code === 0) {
+        console.log('✅ Backend exited cleanly (code 0)');
       }
     });
 

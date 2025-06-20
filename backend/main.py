@@ -5,6 +5,7 @@ Main entry point for the Python backend service.
 
 import os
 import sys
+import signal
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -192,26 +193,45 @@ async def health():
     }
 
 
+def signal_handler(signum, frame):
+    """Handle shutdown signals gracefully."""
+    logger.info(f"🛑 Received signal {signum}, shutting down gracefully...")
+    sys.exit(0)
+
+
 def main():
     """Main function to run the server."""
+    # Set up signal handlers
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     # Configuration
     host = os.getenv("HOST", "127.0.0.1")
     port = int(os.getenv("PORT", 3867))
     debug = os.getenv("DEBUG", "false").lower() == "true"
-    
+
     logger.info(f"🌐 Starting server on {host}:{port}")
     logger.info(f"🔧 Debug mode: {debug}")
     logger.info(f"📚 API documentation available at: http://{host}:{port}/docs")
+    logger.info("🔧 Signal handlers registered for graceful shutdown")
     
     # Run the server
-    uvicorn.run(
-        "main:app",
-        host=host,
-        port=port,
-        reload=debug,
-        log_level="info" if not debug else "debug",
-        access_log=True
-    )
+    # Note: Disable reload to prevent issues with Electron process management
+    logger.info("🚀 About to start uvicorn server...")
+    try:
+        uvicorn.run(
+            "main:app",
+            host=host,
+            port=port,
+            reload=False,  # Always disable reload for stability
+            log_level="info" if not debug else "debug",
+            access_log=True
+        )
+    except Exception as e:
+        logger.error(f"❌ Server failed to start: {e}")
+        raise
+    finally:
+        logger.info("🛑 Server has stopped")
 
 
 if __name__ == "__main__":

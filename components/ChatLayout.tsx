@@ -68,49 +68,22 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         if (backendSessions.length > 0) {
           setActiveSessionId(backendSessions[0].id);
         } else {
-          // Create a welcome session if no sessions exist
-          await createNewSession('Welcome to AI Chat Desktop!');
+          // No sessions exist, user can create a new one
+          setSessions([]);
+          setActiveSessionId(null);
         }
       } else {
-        // Fallback to mock session when backend is unavailable
-        console.warn('🐍 Backend unavailable, using fallback session');
-        const fallbackSession: Session = {
-          id: 'fallback-1',
-          title: 'Welcome Chat (Offline)',
-          messages: [
-            {
-              id: 'fallback-msg-1',
-              content: 'Welcome to AI Chat Desktop! Backend is currently unavailable, using mock responses.',
-              sender: 'assistant',
-              timestamp: new Date(),
-            }
-          ],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        setSessions([fallbackSession]);
-        setActiveSessionId(fallbackSession.id);
+        // Backend unavailable - show empty state
+        console.warn('🐍 Backend unavailable, showing empty state');
+        setSessions([]);
+        setActiveSessionId(null);
       }
     } catch (error) {
       console.error('Failed to load sessions:', error);
       setBackendAvailable(false);
-      // Use fallback session on error
-      const errorSession: Session = {
-        id: 'error-1',
-        title: 'Welcome Chat (Error)',
-        messages: [
-          {
-            id: 'error-msg-1',
-            content: 'Welcome to AI Chat Desktop! There was an error connecting to the backend.',
-            sender: 'assistant',
-            timestamp: new Date(),
-          }
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setSessions([errorSession]);
-      setActiveSessionId(errorSession.id);
+      // Show empty state on error
+      setSessions([]);
+      setActiveSessionId(null);
     } finally {
       setIsLoading(false);
     }
@@ -133,41 +106,15 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
 
         return newSession;
       } else {
-        // Fallback to local session creation
-        const newSession: Session = {
-          id: Date.now().toString(),
-          title: `Chat ${sessions.length + 1}`,
-          messages: initialMessage ? [{
-            id: Date.now().toString() + '-msg',
-            content: initialMessage,
-            sender: 'assistant',
-            timestamp: new Date(),
-          }] : [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        setSessions(prev => [newSession, ...prev]);
-        setActiveSessionId(newSession.id);
-
-        return newSession;
+        // Backend unavailable - cannot create session
+        console.warn('🐍 Cannot create session: Backend unavailable');
+        throw new Error('Backend unavailable - cannot create new session');
       }
     } catch (error) {
       console.error('Failed to create session:', error);
 
-      // Fallback to local session on error
-      const fallbackSession: Session = {
-        id: Date.now().toString(),
-        title: `Chat ${sessions.length + 1} (Local)`,
-        messages: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      setSessions(prev => [fallbackSession, ...prev]);
-      setActiveSessionId(fallbackSession.id);
-
-      return fallbackSession;
+      // Re-throw the error to let the caller handle it
+      throw error;
     }
   }, [sessions.length, backendAvailable]);
 
@@ -199,7 +146,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
       }
 
-      if (backendAvailable && sessionToDelete && !sessionToDelete.id.startsWith('fallback-') && !sessionToDelete.id.startsWith('error-')) {
+      if (backendAvailable && sessionToDelete) {
         // Delete from backend (fire and forget, optimistic update already done)
         pythonAPI.deleteSession(sessionId).catch(error => {
           console.error('Failed to delete session from backend:', error);
@@ -226,7 +173,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
       );
 
       const sessionToUpdate = sessions.find(s => s.id === sessionId);
-      if (backendAvailable && sessionToUpdate && !sessionToUpdate.id.startsWith('fallback-') && !sessionToUpdate.id.startsWith('error-')) {
+      if (backendAvailable && sessionToUpdate) {
         // Update backend (fire and forget, optimistic update already done)
         pythonAPI.updateSession(sessionId, { title }).catch(error => {
           console.error('Failed to update session title in backend:', error);
@@ -318,21 +265,51 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         collapsed={sidebarCollapsed}
       />
 
-      <ChatArea
-        session={activeSession}
-        onSendMessage={(content) => {
-          if (activeSessionId) {
-            addMessage(activeSessionId, {
-              content,
-              sender: 'user',
-              timestamp: new Date(),
-            });
-          }
-        }}
-        isElectron={isElectron}
-        backendAvailable={backendAvailable}
-        sessionId={activeSessionId}
-      />
+{activeSession ? (
+        <ChatArea
+          session={activeSession}
+          onSendMessage={(content) => {
+            if (activeSessionId) {
+              addMessage(activeSessionId, {
+                content,
+                sender: 'user',
+                timestamp: new Date(),
+              });
+            }
+          }}
+          isElectron={isElectron}
+          backendAvailable={backendAvailable}
+          sessionId={activeSessionId}
+        />
+      ) : (
+        <div className={styles.emptyState}>
+          <div className={styles.emptyStateContent}>
+            <h2>Welcome to AI Chat Desktop</h2>
+            {backendAvailable ? (
+              <>
+                <p>You don't have any chat sessions yet.</p>
+                <button
+                  className={styles.createSessionButton}
+                  onClick={() => createNewSession().catch(console.error)}
+                >
+                  Start New Chat
+                </button>
+              </>
+            ) : (
+              <>
+                <p>Backend service is currently unavailable.</p>
+                <p>Please check that the Python backend is running.</p>
+                <button
+                  className={styles.retryButton}
+                  onClick={() => loadSessionsFromBackend()}
+                >
+                  Retry Connection
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

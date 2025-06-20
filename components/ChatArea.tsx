@@ -34,7 +34,7 @@ export default function ChatArea({ session, onSendMessage, isElectron, backendAv
     setIsLoading(true);
 
     try {
-      if (backendAvailable && !sessionId.startsWith('fallback-') && !sessionId.startsWith('error-')) {
+      if (backendAvailable) {
         // Use backend API for AI response
         const response = await pythonAPI.sendMessage(sessionId, {
           message: content,
@@ -44,8 +44,8 @@ export default function ChatArea({ session, onSendMessage, isElectron, backendAv
         // Add AI response to UI
         onSendMessage(response.message.content);
       } else {
-        // Fallback to mock AI service
-        console.log('🤖 Using mock AI service (backend unavailable or fallback session)');
+        // Fallback to mock AI service when backend unavailable
+        console.log('🤖 Using mock AI service (backend unavailable)');
         const aiResponse = await mockAI.generateResponse(content);
         onSendMessage(aiResponse.content);
       }

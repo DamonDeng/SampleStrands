@@ -81,7 +81,7 @@ class AgentService:
         logger.info(f"🆕 Creating new agent: '{request.config.name}'")
         
         # Validate model configuration
-        await self._validate_model_config(request.config.model_config)
+        await self._validate_model_config(request.config.llm_config)
         
         # Validate tool configurations
         await self._validate_tool_configs(request.config.tools)
@@ -92,7 +92,7 @@ class AgentService:
         
         logger.info(f"✅ Agent created successfully: {agent.id}")
         logger.debug(f"   📝 Name: {agent.config.name}")
-        logger.debug(f"   🤖 Model: {agent.config.model_config.model_name}")
+        logger.debug(f"   🤖 Model: {agent.config.llm_config.model_name}")
         logger.debug(f"   🔧 Tools: {len(agent.config.tools)}")
         
         return agent
@@ -109,7 +109,7 @@ class AgentService:
         # Update configuration if provided
         if request.config:
             logger.debug(f"   🔄 Updating configuration")
-            await self._validate_model_config(request.config.model_config)
+            await self._validate_model_config(request.config.llm_config)
             await self._validate_tool_configs(request.config.tools)
             agent.update_config(request.config)
         
@@ -171,7 +171,7 @@ class AgentService:
         # Count agents by model
         model_counts = {}
         for agent in self._agents.values():
-            model_name = agent.config.model_config.model_name
+            model_name = agent.config.llm_config.model_name
             model_counts[model_name] = model_counts.get(model_name, 0) + 1
         
         # Count agents by tool usage

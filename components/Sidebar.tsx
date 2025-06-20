@@ -1,16 +1,22 @@
 import { useState } from 'react';
-import { IoChatbubbleEllipsesOutline, IoAddOutline, IoSettingsOutline, IoHelpCircleOutline, IoPersonOutline } from 'react-icons/io5';
+import { IoChatbubbleEllipsesOutline, IoAddOutline, IoSettingsOutline, IoHelpCircleOutline, IoPersonOutline, IoPeopleOutline } from 'react-icons/io5';
 import styles from '../styles/Sidebar.module.css';
 
 interface SidebarProps {
   onNewChat: () => void;
+  onNavigate?: (view: 'chat' | 'agents' | 'settings' | 'help') => void;
+  activeView?: string;
 }
 
-export default function Sidebar({ onNewChat }: SidebarProps) {
-  const [activeItem, setActiveItem] = useState('chat');
+export default function Sidebar({ onNewChat, onNavigate, activeView = 'chat' }: SidebarProps) {
+  const [activeItem, setActiveItem] = useState(activeView);
+
+  const handleNavigation = (view: 'chat' | 'agents' | 'settings' | 'help') => {
+    setActiveItem(view);
+    onNavigate?.(view);
+  };
 
   const sidebarItems = [
-    
     {
       id: 'new-chat',
       label: 'New Chat',
@@ -21,19 +27,25 @@ export default function Sidebar({ onNewChat }: SidebarProps) {
       id: 'chat',
       label: 'Chat',
       icon: <IoChatbubbleEllipsesOutline />,
-      onClick: () => setActiveItem('chat'),
+      onClick: () => handleNavigation('chat'),
+    },
+    {
+      id: 'agents',
+      label: 'Agents',
+      icon: <IoPeopleOutline />,
+      onClick: () => handleNavigation('agents'),
     },
     {
       id: 'settings',
       label: 'Settings',
       icon: <IoSettingsOutline />,
-      onClick: () => setActiveItem('settings'),
+      onClick: () => handleNavigation('settings'),
     },
     {
       id: 'help',
       label: 'Help',
       icon: <IoHelpCircleOutline />,
-      onClick: () => setActiveItem('help'),
+      onClick: () => handleNavigation('help'),
     },
   ];
 

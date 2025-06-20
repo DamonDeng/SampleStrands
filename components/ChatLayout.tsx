@@ -2,8 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import Sidebar from './Sidebar';
 import SessionList from './SessionList';
 import ChatArea from './ChatArea';
+import AgentList from './AgentList';
+import AgentDetail from './AgentDetail';
+import AgentCreateModal from './AgentCreateModal';
 import { Session, Message } from '../types/chat';
+import { Agent, SupportedModel, SupportedTool, AgentCreateRequest } from '../types/agent';
 import { pythonAPI } from '../utils/pythonAPI';
+import { agentAPI } from '../utils/agentAPI';
 import { convertBackendSession } from '../utils/typeConverters';
 import { sessionSync } from '../utils/sessionSync';
 import styles from '../styles/ChatLayout.module.css';
@@ -13,23 +18,43 @@ interface ChatLayoutProps {
 }
 
 export default function ChatLayout({ isElectron }: ChatLayoutProps) {
+  // Chat state
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
+  // Agent state
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [supportedModels, setSupportedModels] = useState<SupportedModel[]>([]);
+  const [supportedTools, setSupportedTools] = useState<SupportedTool[]>([]);
+
+  // UI state
+  const [currentView, setCurrentView] = useState<'chat' | 'agents' | 'settings' | 'help'>('chat');
   const [isLoading, setIsLoading] = useState(true);
   const [backendAvailable, setBackendAvailable] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [sessionListWidth, setSessionListWidth] = useState(280); // Default width
   const [isResizing, setIsResizing] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Constants for resize constraints
   const MIN_SESSION_WIDTH = 200;
   const MAX_SESSION_WIDTH = 500;
 
-  // Load sessions from backend on component mount
+  // Load data from backend on component mount
   useEffect(() => {
     loadSessionsFromBackend();
+    if (currentView === 'agents') {
+      loadAgentsFromBackend();
+    }
   }, []);
+
+  // Load agents when switching to agent view
+  useEffect(() => {
+    if (currentView === 'agents' && backendAvailable) {
+      loadAgentsFromBackend();
+    }
+  }, [currentView, backendAvailable]);
 
   // Periodic sync with backend (every 30 seconds)
   useEffect(() => {
@@ -92,6 +117,32 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
       setActiveSessionId(null);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadAgentsFromBackend = async () => {
+    try {
+      if (!backendAvailable) return;
+
+      // Load agents
+      const agentsResponse = await agentAPI.getAgents();
+      setAgents(agentsResponse.agents);
+
+      // Load supported models and tools
+      const [modelsResponse, toolsResponse] = await Promise.all([
+        agentAPI.getSupportedModels(),
+        agentAPI.getSupportedTools()
+      ]);
+
+      setSupportedModels(modelsResponse.models);
+      setSupportedTools(toolsResponse.tools);
+
+      console.log(`🤖 Loaded ${agentsResponse.agents.length} agents`);
+    } catch (error) {
+      console.error('Failed to load agents:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setSyncError(`Failed to load agents: ${errorMessage}`);
+      setTimeout(() => setSyncError(null), 5000);
     }
   };
 
@@ -239,6 +290,115 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     );
   };
 
+  // Agent management functions
+  const handleSelectAgent = (agentId: string) => {
+    setSelectedAgentId(agentId);
+  };
+
+  const handleDeleteAgent = async (agentId: string) => {
+    try {
+      // Optimistic update: remove from local state immediately
+      setAgents(prev => prev.filter(a => a.id !== agentId));
+
+      if (selectedAgentId === agentId) {
+        setSelectedAgentId(null);
+      }
+
+      if (backendAvailable) {
+        // Delete from backend
+        await agentAPI.deleteAgent(agentId);
+        console.log(`🗑️ Deleted agent ${agentId}`);
+      }
+    } catch (error) {
+      console.error('Failed to delete agent:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setSyncError(`Failed to delete agent: ${errorMessage}`);
+      setTimeout(() => setSyncError(null), 5000);
+
+      // Reload agents to restore state
+      loadAgentsFromBackend();
+    }
+  };
+
+  const handleUpdateAgent = async (agentId: string, updates: any) => {
+    try {
+      if (backendAvailable) {
+        const updatedAgent = await agentAPI.updateAgent(agentId, updates);
+
+        // Update local state
+        setAgents(prev => prev.map(agent =>
+          agent.id === agentId ? updatedAgent : agent
+        ));
+
+        console.log(`✏️ Updated agent ${agentId}`);
+      }
+    } catch (error) {
+      console.error('Failed to update agent:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setSyncError(`Failed to update agent: ${errorMessage}`);
+      setTimeout(() => setSyncError(null), 5000);
+    }
+  };
+
+  const handleToggleAgent = async (agentId: string, isActive: boolean) => {
+    try {
+      if (backendAvailable) {
+        if (isActive) {
+          await agentAPI.activateAgent(agentId);
+        } else {
+          await agentAPI.deactivateAgent(agentId);
+        }
+
+        // Update local state
+        setAgents(prev => prev.map(agent =>
+          agent.id === agentId ? { ...agent, is_active: isActive } : agent
+        ));
+
+        console.log(`${isActive ? '▶️' : '⏸️'} ${isActive ? 'Activated' : 'Deactivated'} agent ${agentId}`);
+      }
+    } catch (error) {
+      console.error('Failed to toggle agent:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setSyncError(`Failed to toggle agent: ${errorMessage}`);
+      setTimeout(() => setSyncError(null), 5000);
+    }
+  };
+
+  const handleCreateAgent = () => {
+    setShowCreateModal(true);
+  };
+
+  const handleCreateAgentSubmit = async (request: AgentCreateRequest) => {
+    try {
+      if (backendAvailable) {
+        const newAgent = await agentAPI.createAgent(request);
+
+        // Add to local state
+        setAgents(prev => [newAgent, ...prev]);
+        setSelectedAgentId(newAgent.id);
+
+        console.log(`🆕 Created new agent: ${newAgent.config.name}`);
+      }
+    } catch (error) {
+      console.error('Failed to create agent:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setSyncError(`Failed to create agent: ${errorMessage}`);
+      setTimeout(() => setSyncError(null), 5000);
+      throw error; // Re-throw to let modal handle it
+    }
+  };
+
+  const handleNavigation = (view: 'chat' | 'agents' | 'settings' | 'help') => {
+    setCurrentView(view);
+
+    // Reset selections when switching views
+    if (view === 'chat') {
+      setSelectedAgentId(null);
+    } else if (view === 'agents') {
+      setActiveSessionId(null);
+    }
+  };
+
   // Resize handlers for session list
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -325,15 +485,41 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
 
       <Sidebar
         onNewChat={() => createNewSession()}
+        onNavigate={handleNavigation}
+        activeView={currentView}
       />
 
-      <SessionList
-        sessions={sessions}
-        activeSessionId={activeSessionId}
-        onSelectSession={setActiveSessionId}
-        onDeleteSession={deleteSession}
-        onUpdateTitle={updateSessionTitle}
-      />
+      {currentView === 'chat' ? (
+        <SessionList
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={setActiveSessionId}
+          onDeleteSession={deleteSession}
+          onUpdateTitle={updateSessionTitle}
+        />
+      ) : currentView === 'agents' ? (
+        <AgentList
+          agents={agents}
+          selectedAgentId={selectedAgentId}
+          onSelectAgent={handleSelectAgent}
+          onDeleteAgent={handleDeleteAgent}
+          onUpdateAgent={(agentId, name) => handleUpdateAgent(agentId, { config: { name } })}
+          onToggleAgent={handleToggleAgent}
+          onCreateAgent={handleCreateAgent}
+        />
+      ) : (
+        <div style={{
+          background: '#36393f',
+          borderRight: '1px solid #40444b',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#72767d',
+          fontSize: '14px'
+        }}>
+          {currentView === 'settings' ? 'Settings' : 'Help'}
+        </div>
+      )}
 
       {/* Resize handle */}
       <div
@@ -344,56 +530,112 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         }}
       />
 
-{activeSession ? (
-        <ChatArea
-          session={activeSession}
-          onSendMessage={(content) => {
-            if (activeSessionId) {
-              addMessage(activeSessionId, {
-                content,
-                sender: 'user',
-                timestamp: new Date(),
-              });
-            }
-          }}
-          onAIResponse={(content) => {
-            if (activeSessionId) {
-              addAIMessage(activeSessionId, content);
-            }
-          }}
-          isElectron={isElectron}
-          backendAvailable={backendAvailable}
-          sessionId={activeSessionId}
-        />
+      {currentView === 'chat' ? (
+        activeSession ? (
+          <ChatArea
+            session={activeSession}
+            onSendMessage={(content) => {
+              if (activeSessionId) {
+                addMessage(activeSessionId, {
+                  content,
+                  sender: 'user',
+                  timestamp: new Date(),
+                });
+              }
+            }}
+            onAIResponse={(content) => {
+              if (activeSessionId) {
+                addAIMessage(activeSessionId, content);
+              }
+            }}
+            isElectron={isElectron}
+            backendAvailable={backendAvailable}
+            sessionId={activeSessionId}
+          />
+        ) : (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyStateContent}>
+              <h2>Welcome to AI Chat Desktop</h2>
+              {backendAvailable ? (
+                <>
+                  <p>You don't have any chat sessions yet.</p>
+                  <button
+                    className={styles.createSessionButton}
+                    onClick={() => createNewSession().catch(console.error)}
+                  >
+                    Start New Chat
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>Backend service is currently unavailable.</p>
+                  <p>Please check that the Python backend is running.</p>
+                  <button
+                    className={styles.retryButton}
+                    onClick={() => loadSessionsFromBackend()}
+                  >
+                    Retry Connection
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )
+      ) : currentView === 'agents' ? (
+        selectedAgentId && agents.find(a => a.id === selectedAgentId) ? (
+          <AgentDetail
+            agent={agents.find(a => a.id === selectedAgentId)!}
+            supportedModels={supportedModels}
+            supportedTools={supportedTools}
+            onUpdateAgent={handleUpdateAgent}
+            onToggleAgent={handleToggleAgent}
+          />
+        ) : (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyStateContent}>
+              <h2>Agent Management</h2>
+              {backendAvailable ? (
+                <>
+                  <p>Select an agent to view its configuration.</p>
+                  <button
+                    className={styles.createSessionButton}
+                    onClick={handleCreateAgent}
+                  >
+                    Create New Agent
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p>Backend service is currently unavailable.</p>
+                  <p>Please check that the Python backend is running.</p>
+                  <button
+                    className={styles.retryButton}
+                    onClick={() => loadSessionsFromBackend()}
+                  >
+                    Retry Connection
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )
       ) : (
         <div className={styles.emptyState}>
           <div className={styles.emptyStateContent}>
-            <h2>Welcome to AI Chat Desktop</h2>
-            {backendAvailable ? (
-              <>
-                <p>You don't have any chat sessions yet.</p>
-                <button
-                  className={styles.createSessionButton}
-                  onClick={() => createNewSession().catch(console.error)}
-                >
-                  Start New Chat
-                </button>
-              </>
-            ) : (
-              <>
-                <p>Backend service is currently unavailable.</p>
-                <p>Please check that the Python backend is running.</p>
-                <button
-                  className={styles.retryButton}
-                  onClick={() => loadSessionsFromBackend()}
-                >
-                  Retry Connection
-                </button>
-              </>
-            )}
+            <h2>{currentView === 'settings' ? 'Settings' : 'Help'}</h2>
+            <p>This feature is coming soon.</p>
           </div>
         </div>
       )}
+
+      {/* Agent Creation Modal */}
+      <AgentCreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreateAgent={handleCreateAgentSubmit}
+        supportedModels={supportedModels}
+        supportedTools={supportedTools}
+      />
     </div>
   );
 }

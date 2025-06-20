@@ -191,7 +191,7 @@ class AgentConfig(BaseModel):
     name: str = Field(..., min_length=1, max_length=100, description="Agent name")
     description: Optional[str] = Field(default=None, max_length=500, description="Agent description")
     system_prompt: Optional[str] = Field(default=None, max_length=5000, description="System prompt for the agent")
-    model_config: ModelConfig = Field(..., description="Model configuration")
+    llm_config: ModelConfig = Field(..., description="Model configuration", alias="model_config")
     tools: List[ToolConfig] = Field(default_factory=list, description="List of enabled tools")
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
 

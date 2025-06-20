@@ -136,3 +136,155 @@ class ErrorResponse(BaseModel):
             datetime: lambda v: v.isoformat()
         }
     )
+
+
+# Agent Configuration Models
+
+class ModelConfig(BaseModel):
+    """Model configuration for an agent."""
+    model_id: str = Field(..., description="Bedrock model identifier")
+    model_name: str = Field(..., description="Human-readable model name")
+    provider: str = Field(default="bedrock", description="Model provider")
+    temperature: float = Field(default=0.7, ge=0.0, le=2.0, description="Model temperature")
+    max_tokens: int = Field(default=1000, ge=1, le=8000, description="Maximum tokens to generate")
+    top_p: float = Field(default=0.9, ge=0.0, le=1.0, description="Top-p sampling parameter")
+    stop_sequences: List[str] = Field(default_factory=list, description="Stop sequences")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "model_id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+                "model_name": "Claude 3.7 Sonnet",
+                "provider": "bedrock",
+                "temperature": 0.7,
+                "max_tokens": 1000,
+                "top_p": 0.9,
+                "stop_sequences": []
+            }
+        }
+    )
+
+
+class ToolConfig(BaseModel):
+    """Tool configuration for an agent."""
+    tool_id: str = Field(..., description="Tool identifier")
+    tool_name: str = Field(..., description="Human-readable tool name")
+    description: str = Field(..., description="Tool description")
+    enabled: bool = Field(default=True, description="Whether the tool is enabled")
+    parameters: Dict[str, Any] = Field(default_factory=dict, description="Tool-specific parameters")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "tool_id": "calculator",
+                "tool_name": "Calculator",
+                "description": "Perform mathematical calculations",
+                "enabled": True,
+                "parameters": {}
+            }
+        }
+    )
+
+
+class AgentConfig(BaseModel):
+    """Agent configuration model."""
+    name: str = Field(..., min_length=1, max_length=100, description="Agent name")
+    description: Optional[str] = Field(default=None, max_length=500, description="Agent description")
+    system_prompt: Optional[str] = Field(default=None, max_length=5000, description="System prompt for the agent")
+    model_config: ModelConfig = Field(..., description="Model configuration")
+    tools: List[ToolConfig] = Field(default_factory=list, description="List of enabled tools")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "name": "My Assistant",
+                "description": "A helpful AI assistant",
+                "system_prompt": "You are a helpful AI assistant.",
+                "model_config": {
+                    "model_id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+                    "model_name": "Claude 3.7 Sonnet",
+                    "provider": "bedrock",
+                    "temperature": 0.7,
+                    "max_tokens": 1000,
+                    "top_p": 0.9,
+                    "stop_sequences": []
+                },
+                "tools": [
+                    {
+                        "tool_id": "calculator",
+                        "tool_name": "Calculator",
+                        "description": "Perform mathematical calculations",
+                        "enabled": True,
+                        "parameters": {}
+                    }
+                ],
+                "metadata": {}
+            }
+        }
+    )
+
+
+class Agent(BaseModel):
+    """Agent model."""
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    config: AgentConfig = Field(..., description="Agent configuration")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    is_active: bool = Field(default=True, description="Whether the agent is active")
+    usage_stats: Dict[str, Any] = Field(default_factory=dict, description="Usage statistics")
+
+    model_config = ConfigDict(
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+    )
+
+    def update_config(self, new_config: AgentConfig) -> None:
+        """Update agent configuration."""
+        self.config = new_config
+        self.updated_at = datetime.utcnow()
+
+    def get_enabled_tools(self) -> List[ToolConfig]:
+        """Get list of enabled tools."""
+        return [tool for tool in self.config.tools if tool.enabled]
+
+
+# Agent Request/Response Models
+
+class AgentCreateRequest(BaseModel):
+    """Request model for creating a new agent."""
+    config: AgentConfig = Field(..., description="Agent configuration")
+
+
+class AgentUpdateRequest(BaseModel):
+    """Request model for updating an agent."""
+    config: Optional[AgentConfig] = Field(default=None, description="Updated agent configuration")
+    is_active: Optional[bool] = Field(default=None, description="Whether the agent is active")
+
+
+class AgentListResponse(BaseModel):
+    """Response model for listing agents."""
+    agents: List[Agent]
+    total: int
+
+
+class SupportedModel(BaseModel):
+    """Supported model information."""
+    model_id: str = Field(..., description="Model identifier")
+    model_name: str = Field(..., description="Human-readable model name")
+    provider: str = Field(..., description="Model provider")
+    description: str = Field(..., description="Model description")
+    max_tokens: int = Field(..., description="Maximum tokens supported")
+    supports_streaming: bool = Field(default=True, description="Whether streaming is supported")
+    supports_tools: bool = Field(default=True, description="Whether tools are supported")
+
+
+class SupportedTool(BaseModel):
+    """Supported tool information."""
+    tool_id: str = Field(..., description="Tool identifier")
+    tool_name: str = Field(..., description="Human-readable tool name")
+    description: str = Field(..., description="Tool description")
+    category: str = Field(..., description="Tool category")
+    parameters_schema: Dict[str, Any] = Field(default_factory=dict, description="Tool parameters schema")
+    examples: List[str] = Field(default_factory=list, description="Usage examples")

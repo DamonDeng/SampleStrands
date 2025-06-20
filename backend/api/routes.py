@@ -266,28 +266,114 @@ async def chat_stream(session_id: str, request: ChatRequest):
 @router.get("/models")
 async def get_available_models():
     """Get list of available AI models."""
-    models = await llm_service.get_available_models()
-    return {"models": models}
+    # Import here to avoid circular imports
+    from services.agent_service import agent_service
+
+    logger.info("🔍 Retrieving available models")
+    models = await agent_service.get_supported_models()
+    logger.info(f"📋 Found {len(models)} available models")
+
+    # Group models by category for better organization
+    models_by_category = {}
+    for model in models:
+        category = getattr(model, 'category', 'other')
+        if category not in models_by_category:
+            models_by_category[category] = []
+        models_by_category[category].append(model.dict())
+
+    return {
+        "models": [model.dict() for model in models],
+        "models_by_category": models_by_category,
+        "total": len(models)
+    }
 
 
-@router.get("/models/{model_name}")
-async def get_model_info(model_name: str):
+@router.get("/models/{model_id}")
+async def get_model_info(model_id: str):
     """Get information about a specific model."""
-    model_info = await llm_service.get_model_info(model_name)
-    if not model_info:
+    from services.agent_service import agent_service
+
+    logger.info(f"🔍 Retrieving model info: {model_id}")
+    model = await agent_service.get_model_by_id(model_id)
+
+    if not model:
+        logger.warning(f"❌ Model not found: {model_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Model {model_name} not found"
+            detail=f"Model {model_id} not found"
         )
-    return {"model": model_name, "info": model_info}
+
+    logger.info(f"✅ Model info retrieved: {model.model_name}")
+    return {"model": model.dict()}
+
+
+@router.get("/tools")
+async def get_available_tools():
+    """Get list of available tools."""
+    from services.agent_service import agent_service
+
+    logger.info("🔍 Retrieving available tools")
+    tools = await agent_service.get_supported_tools()
+    logger.info(f"🔧 Found {len(tools)} available tools")
+
+    # Group tools by category for better organization
+    tools_by_category = {}
+    for tool in tools:
+        category = getattr(tool, 'category', 'other')
+        if category not in tools_by_category:
+            tools_by_category[category] = []
+        tools_by_category[category].append(tool.dict())
+
+    return {
+        "tools": [tool.dict() for tool in tools],
+        "tools_by_category": tools_by_category,
+        "total": len(tools)
+    }
+
+
+@router.get("/tools/{tool_id}")
+async def get_tool_info(tool_id: str):
+    """Get information about a specific tool."""
+    from services.agent_service import agent_service
+
+    logger.info(f"🔍 Retrieving tool info: {tool_id}")
+    tool = await agent_service.get_tool_by_id(tool_id)
+
+    if not tool:
+        logger.warning(f"❌ Tool not found: {tool_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tool {tool_id} not found"
+        )
+
+    logger.info(f"✅ Tool info retrieved: {tool.tool_name}")
+    return {"tool": tool.dict()}
 
 
 @router.get("/stats")
 async def get_stats():
     """Get service statistics."""
-    summary = await session_service.get_sessions_summary()
-    return {
+    from services.agent_service import agent_service
+
+    logger.info("📊 Retrieving service statistics")
+
+    # Get session statistics
+    sessions_summary = await session_service.get_sessions_summary()
+
+    # Get agent statistics
+    agents_summary = await agent_service.get_agents_summary()
+
+    stats = {
         "service": "AI Chat Desktop Backend",
         "uptime": "active",
-        "sessions": summary
+        "sessions": sessions_summary,
+        "agents": agents_summary,
+        "supported_models": len(await agent_service.get_supported_models()),
+        "supported_tools": len(await agent_service.get_supported_tools())
     }
+
+    logger.info(f"✅ Service statistics retrieved")
+    logger.debug(f"   📝 Sessions: {sessions_summary}")
+    logger.debug(f"   🤖 Agents: {agents_summary}")
+
+    return stats

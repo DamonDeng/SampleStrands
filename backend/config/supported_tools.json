@@ -1,0 +1,278 @@
+{
+  "tools": [
+    {
+      "tool_id": "calculator",
+      "tool_name": "Calculator",
+      "description": "Perform mathematical calculations, solve equations, and handle complex mathematical operations",
+      "category": "mathematics",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "precision": {
+            "type": "integer",
+            "description": "Number of decimal places for results",
+            "default": 10,
+            "minimum": 1,
+            "maximum": 50
+          },
+          "mode": {
+            "type": "string",
+            "description": "Calculation mode",
+            "enum": ["standard", "scientific", "symbolic"],
+            "default": "standard"
+          }
+        }
+      },
+      "examples": [
+        "Calculate 15 + 27",
+        "What is the square root of 144?",
+        "Solve the equation x^2 + 5x + 6 = 0"
+      ]
+    },
+    {
+      "tool_id": "web_search",
+      "tool_name": "Web Search",
+      "description": "Search the web for current information and retrieve relevant results",
+      "category": "information",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "max_results": {
+            "type": "integer",
+            "description": "Maximum number of search results to return",
+            "default": 5,
+            "minimum": 1,
+            "maximum": 20
+          },
+          "search_type": {
+            "type": "string",
+            "description": "Type of search to perform",
+            "enum": ["general", "news", "academic", "images"],
+            "default": "general"
+          }
+        }
+      },
+      "examples": [
+        "Search for latest news about AI",
+        "Find information about Python programming",
+        "Look up weather forecast for New York"
+      ]
+    },
+    {
+      "tool_id": "file_system",
+      "tool_name": "File System",
+      "description": "Read, write, and manage files and directories on the local system",
+      "category": "system",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "allowed_extensions": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "File extensions that are allowed to be accessed",
+            "default": [".txt", ".md", ".json", ".csv", ".py"]
+          },
+          "max_file_size": {
+            "type": "integer",
+            "description": "Maximum file size in bytes",
+            "default": 10485760,
+            "minimum": 1024
+          }
+        }
+      },
+      "examples": [
+        "Read the contents of config.json",
+        "Create a new file called notes.txt",
+        "List files in the current directory"
+      ]
+    },
+    {
+      "tool_id": "email",
+      "tool_name": "Email",
+      "description": "Send and manage email communications",
+      "category": "communication",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "smtp_server": {
+            "type": "string",
+            "description": "SMTP server hostname",
+            "default": "smtp.gmail.com"
+          },
+          "smtp_port": {
+            "type": "integer",
+            "description": "SMTP server port",
+            "default": 587,
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "use_tls": {
+            "type": "boolean",
+            "description": "Use TLS encryption",
+            "default": true
+          }
+        }
+      },
+      "examples": [
+        "Send an email to john@example.com",
+        "Compose a meeting invitation",
+        "Send a follow-up email with attachments"
+      ]
+    },
+    {
+      "tool_id": "database",
+      "tool_name": "Database",
+      "description": "Query and manage database operations",
+      "category": "data",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "database_type": {
+            "type": "string",
+            "description": "Type of database",
+            "enum": ["sqlite", "postgresql", "mysql", "mongodb"],
+            "default": "sqlite"
+          },
+          "connection_timeout": {
+            "type": "integer",
+            "description": "Connection timeout in seconds",
+            "default": 30,
+            "minimum": 5,
+            "maximum": 300
+          }
+        }
+      },
+      "examples": [
+        "Query user data from the database",
+        "Insert a new record into the users table",
+        "Update customer information"
+      ]
+    },
+    {
+      "tool_id": "code_execution",
+      "tool_name": "Code Execution",
+      "description": "Execute code snippets in various programming languages",
+      "category": "development",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "allowed_languages": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Programming languages allowed for execution",
+            "default": ["python", "javascript", "bash"]
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Execution timeout in seconds",
+            "default": 30,
+            "minimum": 1,
+            "maximum": 300
+          }
+        }
+      },
+      "examples": [
+        "Run a Python script to analyze data",
+        "Execute a JavaScript function",
+        "Run a bash command to check system status"
+      ]
+    },
+    {
+      "tool_id": "image_generation",
+      "tool_name": "Image Generation",
+      "description": "Generate images from text descriptions",
+      "category": "creative",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "image_size": {
+            "type": "string",
+            "description": "Generated image size",
+            "enum": ["256x256", "512x512", "1024x1024"],
+            "default": "512x512"
+          },
+          "style": {
+            "type": "string",
+            "description": "Image style",
+            "enum": ["realistic", "artistic", "cartoon", "abstract"],
+            "default": "realistic"
+          }
+        }
+      },
+      "examples": [
+        "Generate an image of a sunset over mountains",
+        "Create a cartoon character illustration",
+        "Design a logo for a tech company"
+      ]
+    },
+    {
+      "tool_id": "current_time",
+      "tool_name": "Current Time",
+      "description": "Get current date and time information",
+      "category": "utility",
+      "parameters_schema": {
+        "type": "object",
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "description": "Timezone for the time query",
+            "default": "UTC"
+          },
+          "format": {
+            "type": "string",
+            "description": "Time format",
+            "enum": ["iso", "human", "timestamp"],
+            "default": "human"
+          }
+        }
+      },
+      "examples": [
+        "What time is it now?",
+        "Get current time in New York",
+        "Show today's date"
+      ]
+    }
+  ],
+  "categories": {
+    "mathematics": {
+      "name": "Mathematics",
+      "description": "Mathematical calculations and operations",
+      "icon": "calculator"
+    },
+    "information": {
+      "name": "Information",
+      "description": "Information retrieval and search",
+      "icon": "search"
+    },
+    "system": {
+      "name": "System",
+      "description": "System and file operations",
+      "icon": "folder"
+    },
+    "communication": {
+      "name": "Communication",
+      "description": "Communication and messaging tools",
+      "icon": "mail"
+    },
+    "data": {
+      "name": "Data",
+      "description": "Data management and database operations",
+      "icon": "database"
+    },
+    "development": {
+      "name": "Development",
+      "description": "Code execution and development tools",
+      "icon": "code"
+    },
+    "creative": {
+      "name": "Creative",
+      "description": "Creative and generative tools",
+      "icon": "image"
+    },
+    "utility": {
+      "name": "Utility",
+      "description": "General utility functions",
+      "icon": "clock"
+    }
+  }
+}

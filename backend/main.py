@@ -19,6 +19,7 @@ import uvicorn
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from api.routes import router
+from api.agent_routes import router as agent_router
 from models.schemas import ErrorResponse
 
 
@@ -165,6 +166,7 @@ async def log_requests(request: Request, call_next):
 
 # Include API routes
 app.include_router(router, prefix="/api/v1")
+app.include_router(agent_router, prefix="/api/v1")
 
 
 # Root endpoint

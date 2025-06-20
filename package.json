@@ -46,7 +46,8 @@
   "dependencies": {
     "next": "^14.0.4",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0"
   },
   "build": {
     "appId": "com.damondeng.ai-chat-desktop",
@@ -66,7 +67,12 @@
       {
         "from": "out",
         "to": "app",
-        "filter": ["**/*", "!mac*/**/*", "!*.dmg*", "!builder-*"]
+        "filter": [
+          "**/*",
+          "!mac*/**/*",
+          "!*.dmg*",
+          "!builder-*"
+        ]
       }
     ],
     "mac": {
@@ -74,7 +80,10 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ]
     },
@@ -82,7 +91,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },

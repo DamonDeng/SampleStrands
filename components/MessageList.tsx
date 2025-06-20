@@ -1,5 +1,6 @@
 import { Message } from '../types/chat';
 import MessageBubble from './MessageBubble';
+import { RiRobot2Line } from 'react-icons/ri';
 import styles from '../styles/MessageList.module.css';
 
 interface MessageListProps {
@@ -22,7 +23,7 @@ export default function MessageList({ messages, isLoading }: MessageListProps) {
       {isLoading && (
         <div className={styles.loadingMessage}>
           <div className={styles.avatar}>
-            <span className={styles.avatarIcon}>🤖</span>
+            <span className={styles.avatarIcon}><RiRobot2Line /></span>
           </div>
           <div className={styles.loadingBubble}>
             <div className={styles.typingIndicator}>

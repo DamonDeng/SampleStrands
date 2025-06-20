@@ -4,6 +4,8 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { mockAI } from '../utils/mockAI';
 import { pythonAPI } from '../utils/pythonAPI';
+import { RiRobot2Line } from 'react-icons/ri';
+import { IoChatbubbleEllipsesOutline, IoLockClosedOutline, IoFlashOutline, IoDesktopOutline } from 'react-icons/io5';
 import styles from '../styles/ChatArea.module.css';
 
 interface ChatAreaProps {
@@ -70,27 +72,27 @@ export default function ChatArea({ session, onSendMessage, isElectron, backendAv
     return (
       <div className={styles.chatArea}>
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>🤖</div>
+          <div className={styles.emptyIcon}><RiRobot2Line /></div>
           <h2 className={styles.emptyTitle}>Welcome to AI Chat Desktop</h2>
           <p className={styles.emptyDescription}>
             Select a conversation from the sidebar or create a new one to start chatting.
           </p>
           <div className={styles.features}>
             <div className={styles.feature}>
-              <span className={styles.featureIcon}>💬</span>
+              <span className={styles.featureIcon}><IoChatbubbleEllipsesOutline /></span>
               <span>Natural conversations with AI</span>
             </div>
             <div className={styles.feature}>
-              <span className={styles.featureIcon}>🔒</span>
+              <span className={styles.featureIcon}><IoLockClosedOutline /></span>
               <span>Secure desktop application</span>
             </div>
             <div className={styles.feature}>
-              <span className={styles.featureIcon}>⚡</span>
+              <span className={styles.featureIcon}><IoFlashOutline /></span>
               <span>Fast and responsive interface</span>
             </div>
             {isElectron && (
               <div className={styles.feature}>
-                <span className={styles.featureIcon}>🖥️</span>
+                <span className={styles.featureIcon}><IoDesktopOutline /></span>
                 <span>Native desktop experience</span>
               </div>
             )}

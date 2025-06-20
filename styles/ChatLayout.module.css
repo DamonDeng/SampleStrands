@@ -1,6 +1,6 @@
 .chatLayout {
   display: grid;
-  grid-template-columns: auto 280px 1fr;
+  grid-template-columns: 60px 280px auto 1fr;
   height: 100vh;
   background-color: #1a1d21;
   overflow: hidden;
@@ -16,23 +16,27 @@
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
   }
-  
+
   .chatLayout > *:nth-child(1) {
     grid-row: 1;
   }
-  
+
   .chatLayout > *:nth-child(2) {
     display: none;
   }
-  
+
   .chatLayout > *:nth-child(3) {
+    display: none;
+  }
+
+  .chatLayout > *:nth-child(4) {
     grid-row: 2;
   }
 }
 
 @media (max-width: 1024px) {
   .chatLayout {
-    grid-template-columns: auto 240px 1fr;
+    grid-template-columns: 60px 240px auto 1fr;
   }
 }
 
@@ -99,4 +103,21 @@
 
 .retryButton:active {
   background-color: #a12d30;
+}
+
+/* Resize handle styles */
+.resizeHandle {
+  width: 4px;
+  background-color: transparent;
+  cursor: col-resize;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.resizeHandle:hover {
+  background-color: #5865f2;
+}
+
+.resizeHandle:active {
+  background-color: #4752c4;
 }

@@ -1,4 +1,6 @@
 import { Message } from '../types/chat';
+import { IoPersonOutline } from 'react-icons/io5';
+import { RiRobot2Line } from 'react-icons/ri';
 import styles from '../styles/MessageBubble.module.css';
 
 interface MessageBubbleProps {
@@ -26,10 +28,10 @@ export default function MessageBubble({ message, isFirst, isLast }: MessageBubbl
 
   return (
     <div className={`${styles.messageContainer} ${isUser ? styles.user : styles.assistant}`}>
-      <div className={styles.messageWrapper}>
+      <div className={`${styles.messageWrapper} ${isUser ? styles.userMessageWrapper : ''}`}>
         {!isUser && isFirst && (
           <div className={styles.avatar}>
-            <span className={styles.avatarIcon}>🤖</span>
+            <span className={styles.avatarIcon}><RiRobot2Line /></span>
           </div>
         )}
         
@@ -37,7 +39,7 @@ export default function MessageBubble({ message, isFirst, isLast }: MessageBubbl
           <div className={styles.avatarSpacer} />
         )}
         
-        <div className={styles.messageContent}>
+        <div className={`${styles.messageContent} ${isUser ? styles.userMessageContent : ''}`}>
           {isFirst && !isUser && (
             <div className={styles.senderName}>AI Assistant</div>
           )}
@@ -49,7 +51,7 @@ export default function MessageBubble({ message, isFirst, isLast }: MessageBubbl
           </div>
           
           {isLast && (
-            <div className={styles.messageTime}>
+            <div className={`${styles.messageTime} ${isUser ? styles.userMessageTime : ''}`}>
               {formatTime(message.timestamp)}
             </div>
           )}
@@ -57,7 +59,7 @@ export default function MessageBubble({ message, isFirst, isLast }: MessageBubbl
         
         {isUser && (
           <div className={styles.userAvatar}>
-            <span className={styles.avatarIcon}>👤</span>
+            <span className={styles.avatarIcon}><IoPersonOutline /></span>
           </div>
         )}
       </div>

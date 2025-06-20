@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Session } from '../types/chat';
+import { IoChatbubbleEllipsesOutline, IoPencilOutline, IoTrashOutline } from 'react-icons/io5';
 import styles from '../styles/SessionList.module.css';
 
 interface SessionListProps {
@@ -8,7 +9,6 @@ interface SessionListProps {
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onUpdateTitle: (sessionId: string, title: string) => void;
-  collapsed: boolean;
 }
 
 export default function SessionList({
@@ -16,8 +16,7 @@ export default function SessionList({
   activeSessionId,
   onSelectSession,
   onDeleteSession,
-  onUpdateTitle,
-  collapsed
+  onUpdateTitle
 }: SessionListProps) {
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
@@ -64,9 +63,7 @@ export default function SessionList({
       : lastMessage.content;
   };
 
-  if (collapsed) {
-    return null;
-  }
+
 
   return (
     <div className={styles.sessionList}>
@@ -78,7 +75,7 @@ export default function SessionList({
       <div className={styles.sessions}>
         {sessions.length === 0 ? (
           <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>💬</div>
+            <div className={styles.emptyIcon}><IoChatbubbleEllipsesOutline /></div>
             <p className={styles.emptyText}>No conversations yet</p>
             <p className={styles.emptySubtext}>Start a new chat to begin</p>
           </div>
@@ -120,7 +117,7 @@ export default function SessionList({
                           }}
                           title="Edit title"
                         >
-                          ✏️
+                          <IoPencilOutline />
                         </button>
                         <button
                           className={styles.actionButton}
@@ -130,7 +127,7 @@ export default function SessionList({
                           }}
                           title="Delete conversation"
                         >
-                          🗑️
+                          <IoTrashOutline />
                         </button>
                       </div>
                     </div>

@@ -15,10 +15,16 @@ interface ChatLayoutProps {
 export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
   const [backendAvailable, setBackendAvailable] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [sessionListWidth, setSessionListWidth] = useState(280); // Default width
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Constants for resize constraints
+  const MIN_SESSION_WIDTH = 200;
+  const MAX_SESSION_WIDTH = 500;
 
   // Load sessions from backend on component mount
   useEffect(() => {
@@ -211,6 +217,46 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     // when AI responses are generated, not here for user messages
   };
 
+  // Resize handlers for session list
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  }, []);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing) return;
+
+    const newWidth = e.clientX - 60; // Subtract sidebar width
+    const constrainedWidth = Math.max(MIN_SESSION_WIDTH, Math.min(MAX_SESSION_WIDTH, newWidth));
+    setSessionListWidth(constrainedWidth);
+  }, [isResizing, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  // Add global mouse event listeners for resize
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, handleMouseMove, handleMouseUp]);
+
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
   // Show loading state while initializing
@@ -232,7 +278,12 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   }
 
   return (
-    <div className={styles.chatLayout}>
+    <div
+      className={styles.chatLayout}
+      style={{
+        gridTemplateColumns: `60px ${sessionListWidth}px 1fr`
+      }}
+    >
       {syncError && (
         <div style={{
           position: 'fixed',
@@ -251,8 +302,6 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
       )}
 
       <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         onNewChat={() => createNewSession()}
       />
 
@@ -262,7 +311,15 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         onSelectSession={setActiveSessionId}
         onDeleteSession={deleteSession}
         onUpdateTitle={updateSessionTitle}
-        collapsed={sidebarCollapsed}
+      />
+
+      {/* Resize handle */}
+      <div
+        className={styles.resizeHandle}
+        onMouseDown={handleMouseDown}
+        style={{
+          cursor: isResizing ? 'col-resize' : 'col-resize'
+        }}
       />
 
 {activeSession ? (

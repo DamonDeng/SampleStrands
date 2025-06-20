@@ -3,37 +3,11 @@
   border-right: 1px solid #40444b;
   display: flex;
   flex-direction: column;
-  width: 240px;
-  transition: width 0.3s ease;
+  width: 60px;
   position: relative;
 }
 
-.sidebar.collapsed {
-  width: 60px;
-}
 
-.header {
-  padding: 16px;
-  border-bottom: 1px solid #40444b;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.toggleButton {
-  background: none;
-  border: none;
-  color: #b9bbbe;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.toggleButton:hover {
-  background-color: #40444b;
-  color: #ffffff;
-}
 
 .nav {
   flex: 1;
@@ -71,14 +45,6 @@
 }
 
 .label {
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.collapsed .label {
   display: none;
 }
 
@@ -124,6 +90,6 @@
   color: #b9bbbe;
 }
 
-.collapsed .userDetails {
+.userDetails {
   display: none;
 }

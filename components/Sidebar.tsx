@@ -1,53 +1,43 @@
 import { useState } from 'react';
+import { IoChatbubbleEllipsesOutline, IoAddOutline, IoSettingsOutline, IoHelpCircleOutline } from 'react-icons/io5';
 import styles from '../styles/Sidebar.module.css';
 
 interface SidebarProps {
-  collapsed: boolean;
-  onToggleCollapse: () => void;
   onNewChat: () => void;
 }
 
-export default function Sidebar({ collapsed, onToggleCollapse, onNewChat }: SidebarProps) {
+export default function Sidebar({ onNewChat }: SidebarProps) {
   const [activeItem, setActiveItem] = useState('chat');
 
   const sidebarItems = [
     {
       id: 'chat',
       label: 'Chat',
-      icon: '💬',
+      icon: <IoChatbubbleEllipsesOutline />,
       onClick: () => setActiveItem('chat'),
     },
     {
       id: 'new-chat',
       label: 'New Chat',
-      icon: '➕',
+      icon: <IoAddOutline />,
       onClick: onNewChat,
     },
     {
       id: 'settings',
       label: 'Settings',
-      icon: '⚙️',
+      icon: <IoSettingsOutline />,
       onClick: () => setActiveItem('settings'),
     },
     {
       id: 'help',
       label: 'Help',
-      icon: '❓',
+      icon: <IoHelpCircleOutline />,
       onClick: () => setActiveItem('help'),
     },
   ];
 
   return (
-    <div className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
-      <div className={styles.header}>
-        <button 
-          className={styles.toggleButton}
-          onClick={onToggleCollapse}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? '→' : '←'}
-        </button>
-      </div>
+    <div className={styles.sidebar}>
 
       <nav className={styles.nav}>
         {sidebarItems.map((item) => (
@@ -58,7 +48,6 @@ export default function Sidebar({ collapsed, onToggleCollapse, onNewChat }: Side
             title={item.label}
           >
             <span className={styles.icon}>{item.icon}</span>
-            {!collapsed && <span className={styles.label}>{item.label}</span>}
           </button>
         ))}
       </nav>

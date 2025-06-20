@@ -2,11 +2,15 @@
 Session management service for handling chat sessions and messages.
 """
 
+import logging
 from datetime import datetime
 from typing import List, Optional, Dict
 from uuid import uuid4
 
 from models.schemas import Session, Message, MessageRole, SessionCreateRequest, SessionUpdateRequest
+
+# Create logger for this module
+logger = logging.getLogger(__name__)
 
 
 class SessionService:
@@ -20,7 +24,9 @@ class SessionService:
         """Create a new chat session."""
         session_id = str(uuid4())
         title = request.title or f"Chat {len(self._sessions) + 1}"
-        
+
+        logger.info(f"🆕 Creating session {session_id} with title '{title}'")
+
         session = Session(
             id=session_id,
             title=title,
@@ -28,17 +34,19 @@ class SessionService:
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow()
         )
-        
+
         # Add initial message if provided
         if request.initial_message:
+            logger.debug(f"   💬 Adding initial message: {request.initial_message[:50]}{'...' if len(request.initial_message) > 50 else ''}")
             initial_msg = Message(
                 content=request.initial_message,
                 role=MessageRole.USER,
                 timestamp=datetime.utcnow()
             )
             session.add_message(initial_msg)
-        
+
         self._sessions[session_id] = session
+        logger.info(f"✅ Session {session_id} created successfully (total sessions: {len(self._sessions)})")
         return session
     
     async def get_session(self, session_id: str) -> Optional[Session]:
@@ -73,9 +81,14 @@ class SessionService:
         """Add a message to a session."""
         session = self._sessions.get(session_id)
         if not session:
+            logger.warning(f"❌ Attempted to add message to non-existent session {session_id}")
             return None
-        
+
+        logger.debug(f"💬 Adding {message.role} message to session {session_id}")
+        logger.debug(f"   📝 Content: {message.content[:100]}{'...' if len(message.content) > 100 else ''}")
+
         session.add_message(message)
+        logger.debug(f"   📊 Session now has {len(session.messages)} messages")
         return session
     
     async def get_session_messages(self, session_id: str, limit: Optional[int] = None) -> Optional[List[Message]]:

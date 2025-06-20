@@ -5,7 +5,7 @@ Data models and schemas for the AI Chat Desktop backend.
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 from uuid import UUID, uuid4
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
 
 
@@ -32,10 +32,11 @@ class Message(BaseModel):
     status: MessageStatus = MessageStatus.COMPLETED
     metadata: Optional[Dict[str, Any]] = None
 
-    class Config:
+    model_config = ConfigDict(
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
+    )
 
 
 class Session(BaseModel):
@@ -47,10 +48,11 @@ class Session(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     metadata: Optional[Dict[str, Any]] = None
 
-    class Config:
+    model_config = ConfigDict(
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
+    )
 
     def add_message(self, message: Message) -> None:
         """Add a message to the session."""
@@ -115,10 +117,11 @@ class HealthResponse(BaseModel):
     version: str = "1.0.0"
     services: Dict[str, str] = Field(default_factory=dict)
 
-    class Config:
+    model_config = ConfigDict(
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
+    )
 
 
 class ErrorResponse(BaseModel):
@@ -128,7 +131,8 @@ class ErrorResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     request_id: Optional[str] = None
 
-    class Config:
+    model_config = ConfigDict(
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
+    )

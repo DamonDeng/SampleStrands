@@ -3,15 +3,18 @@ import { Session, Message } from '../types/chat';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { mockAI } from '../utils/mockAI';
+import { pythonAPI } from '../utils/pythonAPI';
 import styles from '../styles/ChatArea.module.css';
 
 interface ChatAreaProps {
   session: Session | undefined;
   onSendMessage: (content: string) => void;
   isElectron: boolean;
+  backendAvailable: boolean;
+  sessionId: string | null;
 }
 
-export default function ChatArea({ session, onSendMessage, isElectron }: ChatAreaProps) {
+export default function ChatArea({ session, onSendMessage, isElectron, backendAvailable, sessionId }: ChatAreaProps) {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -24,19 +27,40 @@ export default function ChatArea({ session, onSendMessage, isElectron }: ChatAre
   }, [session?.messages]);
 
   const handleSendMessage = async (content: string) => {
-    if (!session || isLoading) return;
+    if (!session || isLoading || !sessionId) return;
 
-    // Send user message
+    // Send user message (optimistic update)
     onSendMessage(content);
     setIsLoading(true);
 
     try {
-      // Get AI response using mock service
-      const aiResponse = await mockAI.generateResponse(content);
-      onSendMessage(aiResponse.content);
+      if (backendAvailable && !sessionId.startsWith('fallback-') && !sessionId.startsWith('error-')) {
+        // Use backend API for AI response
+        const response = await pythonAPI.sendMessage(sessionId, {
+          message: content,
+          stream: false
+        });
+
+        // Add AI response to UI
+        onSendMessage(response.message.content);
+      } else {
+        // Fallback to mock AI service
+        console.log('🤖 Using mock AI service (backend unavailable or fallback session)');
+        const aiResponse = await mockAI.generateResponse(content);
+        onSendMessage(aiResponse.content);
+      }
     } catch (error) {
       console.error('Error generating AI response:', error);
-      onSendMessage('Sorry, I encountered an error while processing your message. Please try again.');
+
+      // Try fallback to mock AI on backend error
+      try {
+        console.log('🤖 Backend failed, trying mock AI service');
+        const aiResponse = await mockAI.generateResponse(content);
+        onSendMessage(aiResponse.content);
+      } catch (mockError) {
+        console.error('Mock AI also failed:', mockError);
+        onSendMessage('Sorry, I encountered an error while processing your message. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

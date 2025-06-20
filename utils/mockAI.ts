@@ -44,19 +44,11 @@ export class MockAIService {
   private conversationHistory: string[] = [];
 
   async generateResponse(userMessage: string): Promise<AIResponse> {
-    // Try to use Python backend first
-    try {
-      const isHealthy = await pythonAPI.isBackendHealthy();
-      if (isHealthy) {
-        // Use Python backend - this will be implemented when we integrate with sessions
-        console.log('🐍 Python backend is available, but session integration not yet implemented');
-        // Fall back to mock for now
-      }
-    } catch (error) {
-      console.warn('🐍 Python backend not available, using mock service');
-    }
+    // This method is now primarily used as a fallback when backend is unavailable
+    // The main backend integration is handled in ChatArea component
+    console.log('🤖 Using mock AI service for response generation');
 
-    // Fallback to original mock implementation
+    // Original mock implementation
     return new Promise((resolve) => {
       // Add user message to history
       this.conversationHistory.push(userMessage.toLowerCase());

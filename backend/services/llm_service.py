@@ -4,12 +4,16 @@ This will be replaced with real AWS Bedrock integration later.
 """
 
 import asyncio
+import logging
 import random
 from datetime import datetime
 from typing import AsyncGenerator, Dict, Any, List
 from uuid import uuid4
 
 from models.schemas import Message, MessageRole, ChatRequest, StreamChunk
+
+# Create logger for this module
+logger = logging.getLogger(__name__)
 
 
 class MockBedrockService:
@@ -33,30 +37,37 @@ class MockBedrockService:
         # Mock response templates for different types of queries
         self.response_templates = {
             "technical": [
-                "From a technical perspective, this involves several key considerations:\n\n1. **Architecture**: {topic}\n2. **Implementation**: {details}\n3. **Best Practices**: {recommendations}\n\nWould you like me to elaborate on any specific aspect?",
-                "Here's how I would approach this technically:\n\n**Step 1**: {step1}\n**Step 2**: {step2}\n**Step 3**: {step3}\n\nThis approach ensures scalability and maintainability.",
-                "The technical solution involves:\n\n```python\n# Example implementation\n{code_example}\n```\n\nThis pattern is commonly used in enterprise applications."
+                "[Backend] From a technical perspective, this involves several key considerations:\n\n1. **Architecture**: {topic}\n2. **Implementation**: {details}\n3. **Best Practices**: {recommendations}\n\nWould you like me to elaborate on any specific aspect?",
+                "[Backend] Here's how I would approach this technically:\n\n**Step 1**: {step1}\n**Step 2**: {step2}\n**Step 3**: {step3}\n\nThis approach ensures scalability and maintainability.",
+                "[Backend] The technical solution involves:\n\n```python\n# Example implementation\n{code_example}\n```\n\nThis pattern is commonly used in enterprise applications."
             ],
             "general": [
-                "That's an interesting question! Let me break this down for you:\n\n{explanation}\n\nWhat specific aspect would you like to explore further?",
-                "I understand what you're asking about. Here's my perspective:\n\n{perspective}\n\nDoes this help clarify things for you?",
-                "Great question! This touches on several important points:\n\n• {point1}\n• {point2}\n• {point3}\n\nLet me know if you'd like me to dive deeper into any of these areas."
+                "[Backend] That's an interesting question! Let me break this down for you:\n\n{explanation}\n\nWhat specific aspect would you like to explore further?",
+                "[Backend] I understand what you're asking about. Here's my perspective:\n\n{perspective}\n\nDoes this help clarify things for you?",
+                "[Backend] Great question! This touches on several important points:\n\n• {point1}\n• {point2}\n• {point3}\n\nLet me know if you'd like me to dive deeper into any of these areas."
             ],
             "aws": [
-                "Regarding AWS services, here's what I recommend:\n\n**Bedrock Integration**: {bedrock_info}\n**Strands Agent SDK**: {strands_info}\n**Best Practices**: {aws_practices}\n\nThis setup provides robust AI capabilities with enterprise-grade security.",
-                "For AWS Bedrock implementation:\n\n1. **Model Selection**: Choose the right foundation model\n2. **Agent Configuration**: Set up Strands agents properly\n3. **Security**: Implement proper IAM roles and policies\n\nWould you like specific code examples for any of these steps?"
+                "[Backend] Regarding AWS services, here's what I recommend:\n\n**Bedrock Integration**: {bedrock_info}\n**Strands Agent SDK**: {strands_info}\n**Best Practices**: {aws_practices}\n\nThis setup provides robust AI capabilities with enterprise-grade security.",
+                "[Backend] For AWS Bedrock implementation:\n\n1. **Model Selection**: Choose the right foundation model\n2. **Agent Configuration**: Set up Strands agents properly\n3. **Security**: Implement proper IAM roles and policies\n\nWould you like specific code examples for any of these steps?"
             ]
         }
     
     async def generate_response(self, request: ChatRequest, session_messages: List[Message]) -> Message:
         """Generate a non-streaming response."""
+        logger.info(f"🤖 Generating response for message: {request.message[:50]}{'...' if len(request.message) > 50 else ''}")
+        logger.debug(f"   🎛️ Model: {request.model}, Temperature: {request.temperature}, Max tokens: {request.max_tokens}")
+        logger.debug(f"   📚 Context: {len(session_messages)} previous messages")
+
         # Simulate processing time
         processing_time = random.uniform(1.0, 3.0)
+        logger.debug(f"   ⏱️ Simulating processing time: {processing_time:.2f}s")
         await asyncio.sleep(processing_time)
-        
+
         # Generate response content
         content = await self._generate_content(request.message, session_messages, request.model)
-        
+        logger.info(f"✅ Response generated: {len(content)} characters")
+        logger.debug(f"   📝 Response preview: {content[:100]}{'...' if len(content) > 100 else ''}")
+
         # Create response message
         response_message = Message(
             id=str(uuid4()),
@@ -64,7 +75,7 @@ class MockBedrockService:
             role=MessageRole.ASSISTANT,
             timestamp=datetime.utcnow()
         )
-        
+
         return response_message
     
     async def generate_streaming_response(
@@ -110,32 +121,38 @@ class MockBedrockService:
     async def _generate_content(self, user_message: str, session_messages: List[Message], model: str) -> str:
         """Generate response content based on user message and context."""
         user_message_lower = user_message.lower()
-        
+
         # Determine response type based on message content
         if any(keyword in user_message_lower for keyword in ["aws", "bedrock", "strands", "agent"]):
             response_type = "aws"
         elif any(keyword in user_message_lower for keyword in [
-            "code", "programming", "function", "algorithm", "implementation", 
+            "code", "programming", "function", "algorithm", "implementation",
             "architecture", "technical", "api", "database", "python", "typescript"
         ]):
             response_type = "technical"
         else:
             response_type = "general"
-        
+
+        logger.debug(f"   🎯 Detected response type: {response_type}")
+        logger.debug(f"   🔧 Using model: {model}")
+
         # Select template
         templates = self.response_templates[response_type]
         template = random.choice(templates)
-        
+        logger.debug(f"   📋 Selected template type: {response_type} (template {templates.index(template) + 1}/{len(templates)})")
+
         # Generate contextual content
         context = self._generate_context_variables(user_message, session_messages, response_type)
-        
+
         try:
             # Format template with context
             content = template.format(**context)
-        except KeyError:
+            logger.debug(f"   ✅ Template formatted successfully")
+        except KeyError as e:
             # Fallback if template formatting fails
+            logger.warning(f"   ⚠️ Template formatting failed: {e}, using fallback")
             content = self._generate_fallback_response(user_message, response_type)
-        
+
         return content
     
     def _generate_context_variables(self, user_message: str, session_messages: List[Message], response_type: str) -> Dict[str, str]:

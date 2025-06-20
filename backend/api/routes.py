@@ -3,19 +3,22 @@ API routes for the AI Chat Desktop backend.
 """
 
 import json
+import logging
 from datetime import datetime
 from typing import List
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
 
 from models.schemas import (
-    Session, Message, MessageRole, ChatRequest, ChatResponse, 
+    Session, Message, MessageRole, ChatRequest, ChatResponse,
     SessionCreateRequest, SessionUpdateRequest, SessionListResponse,
     HealthResponse, ErrorResponse, StreamChunk
 )
 from services.session_service import session_service
 from services.llm_service import llm_service
 
+# Create logger for this module
+logger = logging.getLogger(__name__)
 
 # Create API router
 router = APIRouter()
@@ -39,7 +42,14 @@ async def health_check():
 @router.get("/sessions", response_model=SessionListResponse)
 async def list_sessions():
     """Get all chat sessions."""
+    logger.info("🔍 Listing all sessions")
     sessions = await session_service.get_all_sessions()
+    logger.info(f"📋 Found {len(sessions)} sessions")
+
+    # Log session details for debugging
+    for session in sessions:
+        logger.debug(f"   📝 Session {session.id}: '{session.title}' ({len(session.messages)} messages)")
+
     return SessionListResponse(
         sessions=sessions,
         total=len(sessions)
@@ -49,10 +59,18 @@ async def list_sessions():
 @router.post("/sessions", response_model=Session)
 async def create_session(request: SessionCreateRequest):
     """Create a new chat session."""
+    logger.info(f"🆕 Creating new session: '{request.title or 'Untitled'}'")
+    if request.initial_message:
+        logger.debug(f"   💬 Initial message: {request.initial_message[:100]}{'...' if len(request.initial_message) > 100 else ''}")
+
     try:
         session = await session_service.create_session(request)
+        logger.info(f"✅ Session created successfully: {session.id}")
+        logger.debug(f"   📝 Title: {session.title}")
+        logger.debug(f"   📊 Messages: {len(session.messages)}")
         return session
     except Exception as e:
+        logger.error(f"❌ Failed to create session: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create session: {str(e)}"
@@ -111,42 +129,61 @@ async def get_session_messages(session_id: str, limit: int = None):
 @router.post("/sessions/{session_id}/chat", response_model=ChatResponse)
 async def chat_completion(session_id: str, request: ChatRequest):
     """Send a message and get AI response (non-streaming)."""
+    logger.info(f"💬 Chat request for session {session_id}")
+    logger.debug(f"   📝 Message: {request.message[:100]}{'...' if len(request.message) > 100 else ''}")
+    logger.debug(f"   🎛️ Model: {request.model}, Temperature: {request.temperature}, Max tokens: {request.max_tokens}")
+
     # Verify session exists
     if not await session_service.session_exists(session_id):
+        logger.warning(f"❌ Session {session_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Session {session_id} not found"
         )
-    
+
     try:
         # Add user message to session
+        logger.debug(f"   📥 Adding user message to session")
         user_message = Message(
             content=request.message,
             role=MessageRole.USER,
             timestamp=datetime.utcnow()
         )
         await session_service.add_message_to_session(session_id, user_message)
-        
+
         # Get session messages for context
         session_messages = await session_service.get_session_messages(session_id)
-        
+        logger.debug(f"   📚 Retrieved {len(session_messages)} messages for context")
+
         # Generate AI response
+        logger.info(f"🤖 Generating AI response...")
         ai_response = await llm_service.generate_response(request, session_messages)
-        
+        logger.info(f"✅ AI response generated: {len(ai_response.content)} characters")
+        logger.debug(f"   🤖 Response preview: {ai_response.content[:100]}{'...' if len(ai_response.content) > 100 else ''}")
+
         # Add AI response to session
+        logger.debug(f"   📤 Adding AI response to session")
         await session_service.add_message_to_session(session_id, ai_response)
-        
+
+        # Calculate usage statistics
+        prompt_tokens = len(request.message.split())
+        completion_tokens = len(ai_response.content.split())
+        total_tokens = prompt_tokens + completion_tokens
+
+        logger.debug(f"   📊 Usage: {prompt_tokens} prompt + {completion_tokens} completion = {total_tokens} total tokens")
+
         return ChatResponse(
             message=ai_response,
             session_id=session_id,
             usage={
-                "prompt_tokens": len(request.message.split()),
-                "completion_tokens": len(ai_response.content.split()),
-                "total_tokens": len(request.message.split()) + len(ai_response.content.split())
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": total_tokens
             }
         )
-        
+
     except Exception as e:
+        logger.error(f"❌ Failed to process chat request: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process chat request: {str(e)}"

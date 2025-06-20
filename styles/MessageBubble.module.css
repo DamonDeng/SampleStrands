@@ -15,7 +15,7 @@
 }
 
 .userMessageWrapper {
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 .avatar, .userAvatar {

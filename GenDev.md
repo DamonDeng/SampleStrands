@@ -772,11 +772,14 @@ node test_integration.js                             # Run integration test suit
 - **SupportedModel/SupportedTool**: Available models and tools for selection
 
 #### 2. Configuration Files
-**Supported Models** (`backend/config/supported_models.json`):
-- **Claude Models**: Claude 4, Claude 3.5 Sonnet, Claude 3.7 Sonnet, Claude 3 Sonnet, Claude 3 Haiku
+**Supported Models** (`backend/config/supported_models.json`) - **ENHANCED ✅**:
+- **Claude Models**: Claude 3.7 Sonnet, Claude 3.5 Sonnet, Claude 3 Sonnet, Claude 3 Haiku
 - **Amazon Nova**: Nova Premier, Nova Pro, Nova Lite, Nova Micro
-- **DeepSeek**: DeepSeek R1 Distill Llama 70B, DeepSeek R1 Distill Qwen 32B
+- **DeepSeek**: **DeepSeek R1** (flagship), DeepSeek R1 Distill Llama 70B, DeepSeek R1 Distill Qwen 32B
 - **Categorization**: Models grouped by provider (claude, nova, deepseek)
+- **UUID Support**: Each model has unique UUID for identification
+- **Sequence Ordering**: `default_seq_number` field for UI sorting (Claude 1-4, Nova 5-8, DeepSeek R1 10, others 15+)
+- **App Control**: `activated_in_app` field to enable/disable models in UI
 
 **Supported Tools** (`backend/config/supported_tools.json`):
 - **8 Built-in Tools**: calculator, web_search, file_system, email, database, code_execution, image_generation, current_time
@@ -972,6 +975,80 @@ The Agent management system is now complete and ready for production use with:
 - **Robust Error Handling**: Graceful handling of all error scenarios
 - **Performance**: Optimized for smooth user experience
 - **Maintainability**: Clean, well-documented code structure
+
+## Supported Models Configuration Enhancement (COMPLETED ✅)
+
+### Implementation Overview
+**Date**: June 23, 2025
+**Status**: ✅ Enhanced Model Configuration Complete
+**Scope**: Added DeepSeek R1 flagship model, UUID support, sequence ordering, and app activation control
+
+### Key Enhancements Made
+
+#### 1. DeepSeek R1 Flagship Model Added
+- **Model ID**: `deepseek.r1-v1:0` (verified from AWS Bedrock documentation)
+- **Model Name**: "DeepSeek R1"
+- **Description**: "DeepSeek's flagship reasoning model with advanced problem-solving capabilities"
+- **Positioning**: Added as the primary DeepSeek model before existing distilled versions
+- **Capabilities**: Full streaming and tools support, 4096 max tokens
+
+#### 2. UUID Field Implementation
+- **Purpose**: Unique identification for each model configuration
+- **Format**: Standard UUID v4 format (e.g., `9f3f4387-3785-425e-afd7-cf4cc8e9370b`)
+- **Coverage**: All 11 models now have unique UUIDs
+- **Usage**: Enables reliable model referencing across frontend/backend systems
+
+#### 3. Sequence Ordering System
+- **Field**: `default_seq_number` for UI sorting control
+- **Ordering Strategy**:
+  - **Claude Models (1-4)**: Most recommended, highest priority
+  - **Nova Models (5-8)**: Second tier recommendation
+  - **DeepSeek R1 (10)**: Flagship reasoning model
+  - **Other DeepSeek (15+)**: Distilled versions with gaps for future additions
+- **Benefits**: Consistent model presentation, easy reordering, future-proof numbering
+
+#### 4. App Activation Control
+- **Field**: `activated_in_app` boolean flag
+- **Default**: All models set to `true` (activated)
+- **Purpose**: Runtime control of model availability in UI
+- **Use Cases**: Feature flags, A/B testing, gradual rollouts
+
+### Model Configuration Schema
+```json
+{
+  "uuid": "unique-identifier",
+  "model_id": "bedrock-model-id",
+  "model_name": "Display Name",
+  "provider": "bedrock",
+  "description": "Model description",
+  "max_tokens": 4096,
+  "supports_streaming": true,
+  "supports_tools": true,
+  "category": "provider-category",
+  "activated_in_app": true,
+  "default_seq_number": 1
+}
+```
+
+### Complete Model Inventory (11 Models)
+1. **Claude 3.7 Sonnet** (seq: 1) - Most advanced Anthropic model
+2. **Claude 3.5 Sonnet** (seq: 2) - High-performance balanced model
+3. **Claude 3 Sonnet** (seq: 3) - Balanced general-purpose model
+4. **Claude 3 Haiku** (seq: 4) - Fast and efficient model
+5. **Amazon Nova Premier** (seq: 5) - Most capable multimodal model
+6. **Amazon Nova Pro** (seq: 6) - Complex reasoning multimodal
+7. **Amazon Nova Lite** (seq: 7) - Cost-effective multimodal
+8. **Amazon Nova Micro** (seq: 8) - Ultra-fast text-only
+10. **DeepSeek R1** (seq: 10) - **NEW** Flagship reasoning model
+15. **DeepSeek R1 Distill Llama 70B** (seq: 15) - Distilled version
+20. **DeepSeek R1 Distill Qwen 32B** (seq: 20) - Compact distilled version
+
+### Technical Benefits
+- **Frontend Sorting**: Models automatically sorted by `default_seq_number` in UI dropdowns
+- **Unique Identification**: UUIDs prevent conflicts and enable reliable referencing
+- **Feature Control**: `activated_in_app` allows runtime model availability control
+- **Scalability**: Gap-based numbering system accommodates future model additions
+- **Consistency**: Standardized schema across all model configurations
 
 ## Contact & Maintenance
 

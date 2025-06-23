@@ -204,6 +204,13 @@ def test_utility_functions() -> None:
         result = safe_dict_get(test_dict, key, default, expected_type)
         print(f"   {key} ({expected_type.__name__}) -> {result}")
 
+def output_pure_uuid(num_iterations: int = 40) -> None:
+    uuids: List[str] = []
+    for i in range(num_iterations):
+        uuids.append(generate_uuid())
+        print(uuids[i])
+    # print(uuids)
+
 
 def main():
     """Main test function."""
@@ -219,6 +226,7 @@ def main():
         test_uuid_validation()
         test_timestamp_functions()
         test_utility_functions()
+        output_pure_uuid()
         
         print(f"\n🎉 All tests completed successfully!")
         print("=" * 60)

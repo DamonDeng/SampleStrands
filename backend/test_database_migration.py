@@ -122,7 +122,7 @@ async def test_agent_operations():
             name="Test Agent",
             description="A test agent for database migration testing",
             system_prompt="You are a helpful test assistant.",
-            llm_config=model_config,
+            model_config=model_config,  # Use model_config as the alias
             tools=[tool_config]
         )
         

@@ -28,14 +28,14 @@ class ModelConverter:
         tools_data = db_agent.tools or []
         tools = [ToolConfig(**tool_data) for tool_data in tools_data]
         
-        # Create AgentConfig
+        # Create AgentConfig using the alias
         agent_config = AgentConfig(
             name=db_agent.name,
             description=db_agent.description,
             system_prompt=db_agent.system_prompt,
-            llm_config=llm_config,
+            model_config=llm_config,  # Use the alias name
             tools=tools,
-            metadata=db_agent.metadata or {}
+            metadata=db_agent.extra_metadata or {}
         )
         
         return Agent(
@@ -61,7 +61,7 @@ class ModelConverter:
         db_agent.tools = [tool.dict() for tool in agent.config.tools]
         db_agent.is_active = agent.is_active
         db_agent.usage_stats = agent.usage_stats
-        db_agent.metadata = agent.config.metadata
+        db_agent.extra_metadata = agent.config.metadata
         db_agent.created_at = agent.created_at
         db_agent.updated_at = agent.updated_at
         
@@ -83,7 +83,7 @@ class ModelConverter:
             messages=messages,
             created_at=db_session.created_at,
             updated_at=db_session.updated_at,
-            metadata=db_session.metadata or {}
+            metadata=db_session.extra_metadata or {}
         )
     
     @staticmethod
@@ -94,7 +94,7 @@ class ModelConverter:
         
         db_session.id = session.id
         db_session.title = session.title
-        db_session.metadata = session.metadata
+        db_session.extra_metadata = session.metadata
         db_session.created_at = session.created_at
         db_session.updated_at = session.updated_at
         
@@ -109,7 +109,7 @@ class ModelConverter:
             role=MessageRole(db_message.role),
             timestamp=db_message.timestamp,
             status=MessageStatus(db_message.status),
-            metadata=db_message.metadata or {}
+            metadata=db_message.extra_metadata or {}
         )
     
     @staticmethod
@@ -123,7 +123,7 @@ class ModelConverter:
         db_message.role = message.role.value
         db_message.content = message.content
         db_message.status = message.status.value
-        db_message.metadata = message.metadata
+        db_message.extra_metadata = message.metadata
         db_message.timestamp = message.timestamp
         
         return db_message

@@ -7,7 +7,7 @@ import logging
 from contextlib import contextmanager
 from typing import Generator
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 
@@ -129,10 +129,10 @@ def get_database_info() -> dict:
         with get_db_session() as session:
             # Get table information
             if DATABASE_URL.startswith("sqlite"):
-                result = session.execute("SELECT name FROM sqlite_master WHERE type='table'")
+                result = session.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
                 tables = [row[0] for row in result.fetchall()]
             else:
-                result = session.execute("SELECT tablename FROM pg_tables WHERE schemaname='public'")
+                result = session.execute(text("SELECT tablename FROM pg_tables WHERE schemaname='public'"))
                 tables = [row[0] for row in result.fetchall()]
             
             return {
@@ -153,7 +153,7 @@ def test_database_connection() -> bool:
     """Test database connection."""
     try:
         with get_db_session() as session:
-            session.execute("SELECT 1")
+            session.execute(text("SELECT 1"))
             logger.info("✅ Database connection test successful")
             return True
     except Exception as e:

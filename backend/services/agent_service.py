@@ -123,7 +123,7 @@ class AgentService:
                     db_agent.system_prompt = request.config.system_prompt
                     db_agent.llm_config = request.config.llm_config.dict()
                     db_agent.tools = [tool.dict() for tool in request.config.tools]
-                    db_agent.metadata = request.config.metadata
+                    db_agent.extra_metadata = request.config.metadata
 
                 # Update active status if provided
                 if request.is_active is not None:

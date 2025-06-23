@@ -74,7 +74,7 @@ class AgentDB(Base):
     # Agent metadata
     is_active = Column(Boolean, default=True)
     usage_stats = Column(JSON, default=dict)
-    metadata = Column(JSON, default=dict)
+    extra_metadata = Column(JSON, default=dict)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -91,9 +91,9 @@ class SessionDB(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     title = Column(String, nullable=False)
     agent_id = Column(String, ForeignKey("agents.id"), nullable=True)
-    
+
     # Session metadata
-    metadata = Column(JSON, default=dict)
+    extra_metadata = Column(JSON, default=dict)
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -113,9 +113,9 @@ class MessageDB(Base):
     role = Column(String, nullable=False)  # 'user', 'assistant', 'system'
     content = Column(Text, nullable=False)
     status = Column(String, default="completed")  # 'pending', 'completed', 'failed'
-    
+
     # Message metadata for flexible development
-    metadata = Column(JSON, default=dict)
+    extra_metadata = Column(JSON, default=dict)
     
     # Timestamps
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)

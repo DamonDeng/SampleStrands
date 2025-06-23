@@ -28,10 +28,13 @@ async def list_agents():
 
     # Log agent details for debugging
     for agent in agents:
-        logger.debug(f"   🤖 Agent {agent.id}: '{agent.config.name}' "
-                    f"({agent.config.model_config.model_name}, "
-                    f"{len(agent.config.tools)} tools, "
-                    f"{'active' if agent.is_active else 'inactive'})")
+
+        model_config_string = str(agent.config.model_config)
+        logger.debug(model_config_string)
+        # logger.debug(f"   🤖 Agent {agent.id}: '{agent.config.name}' "
+        #             f"({agent.config.model_config.model_name}, "
+        #             f"{len(agent.config.tools)} tools, "
+        #             f"{'active' if agent.is_active else 'inactive'})")
 
     return AgentListResponse(
         agents=agents,

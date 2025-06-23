@@ -28,6 +28,21 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   const [supportedModels, setSupportedModels] = useState<SupportedModel[]>([]);
   const [supportedTools, setSupportedTools] = useState<SupportedTool[]>([]);
 
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('🔄 supportedModels state changed:', {
+      count: supportedModels.length,
+      models: supportedModels
+    });
+  }, [supportedModels]);
+
+  useEffect(() => {
+    console.log('🔄 supportedTools state changed:', {
+      count: supportedTools.length,
+      tools: supportedTools
+    });
+  }, [supportedTools]);
+
   // UI state
   const [currentView, setCurrentView] = useState<'chat' | 'agents' | 'settings' | 'help'>('chat');
   const [isLoading, setIsLoading] = useState(true);
@@ -122,24 +137,57 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
 
   const loadAgentsFromBackend = async () => {
     try {
-      if (!backendAvailable) return;
+      if (!backendAvailable) {
+        console.log('⚠️ Backend not available, skipping agent loading');
+        return;
+      }
 
-      // Load agents
-      const agentsResponse = await agentAPI.getAgents();
-      setAgents(agentsResponse.agents);
+      console.log('🔄 Loading agents, models, and tools from backend...');
 
-      // Load supported models and tools
-      const [modelsResponse, toolsResponse] = await Promise.all([
-        agentAPI.getSupportedModels(),
-        agentAPI.getSupportedTools()
-      ]);
+      // Test models and tools first (separately from agents)
+      console.log('🧪 Testing models and tools APIs independently...');
+      try {
+        const modelsResponse = await agentAPI.getSupportedModels();
+        console.log('✅ Models API works:', modelsResponse);
+        setSupportedModels(modelsResponse.models);
 
-      setSupportedModels(modelsResponse.models);
-      setSupportedTools(toolsResponse.tools);
+        const toolsResponse = await agentAPI.getSupportedTools();
+        console.log('✅ Tools API works:', toolsResponse);
 
-      console.log(`🤖 Loaded ${agentsResponse.agents.length} agents`);
+        console.log('📋 Models response:', modelsResponse);
+        console.log('🔧 Tools response:', toolsResponse);
+
+
+        // setSupportedTools(toolsResponse.tools);
+        setSupportedModels(modelsResponse.models);
+        setSupportedTools(toolsResponse.tools);
+
+      } catch (error) {
+        console.error('❌ Models/Tools API failed:', error);
+      }
+
+      // Now try agents (this might fail)
+      try {
+        const agentsResponse = await agentAPI.getAgents();
+        console.log('🤖 Agents response:', agentsResponse);
+        setAgents(agentsResponse.agents);
+      } catch (error) {
+        console.error('❌ Agents API failed (but continuing with models/tools):', error);
+        // Continue anyway - we have models and tools
+      }
+
+
+
+
+      // console.log(`✅ Successfully loaded:`, {
+      //   agents: agentsResponse.agents.length,
+      //   models: modelsResponse.models.length,
+      //   tools: toolsResponse.tools.length
+      // });
+
+      // console.log('📊 Supported models details:', modelsResponse.models);
     } catch (error) {
-      console.error('Failed to load agents:', error);
+      console.error('❌ Failed to load agents:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setSyncError(`Failed to load agents: ${errorMessage}`);
       setTimeout(() => setSyncError(null), 5000);

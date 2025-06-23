@@ -46,7 +46,16 @@ class AgentAPI {
 
   // Agent CRUD operations
   async getAgents(): Promise<AgentListResponse> {
-    return this.request<AgentListResponse>('/agents');
+    console.log('🌐 AgentAPI: Fetching agents from /agents');
+    console.log('🌐 Full URL will be:', `${API_BASE_URL}/agents`);
+    try {
+      const response = await this.request<AgentListResponse>('/agents');
+      console.log('✅ AgentAPI: Successfully fetched agents:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ AgentAPI: Failed to fetch agents:', error);
+      throw error;
+    }
   }
 
   async getAgent(agentId: string): Promise<Agent> {
@@ -96,7 +105,15 @@ class AgentAPI {
 
   // Configuration selection
   async getSupportedModels(): Promise<ModelsResponse> {
-    return this.request<ModelsResponse>('/models');
+    console.log('🌐 AgentAPI: Fetching supported models from /models');
+    try {
+      const response = await this.request<ModelsResponse>('/models');
+      console.log('✅ AgentAPI: Successfully fetched models:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ AgentAPI: Failed to fetch models:', error);
+      throw error;
+    }
   }
 
   async getModelInfo(modelId: string): Promise<{ model: SupportedModel }> {
@@ -104,7 +121,15 @@ class AgentAPI {
   }
 
   async getSupportedTools(): Promise<ToolsResponse> {
-    return this.request<ToolsResponse>('/tools');
+    console.log('🌐 AgentAPI: Fetching supported tools from /tools');
+    try {
+      const response = await this.request<ToolsResponse>('/tools');
+      console.log('✅ AgentAPI: Successfully fetched tools:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ AgentAPI: Failed to fetch tools:', error);
+      throw error;
+    }
   }
 
   async getToolInfo(toolId: string): Promise<{ tool: SupportedTool }> {

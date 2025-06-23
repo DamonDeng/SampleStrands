@@ -15,7 +15,7 @@ from models.schemas import (
     HealthResponse, ErrorResponse, StreamChunk
 )
 from services.session_service import session_service
-# from services.llm_service import llm_service  # Temporarily disabled for database testing
+from services.llm_service import llm_service
 
 # Create logger for this module
 logger = logging.getLogger(__name__)
@@ -33,8 +33,8 @@ async def health_check():
         version="1.0.0",
         services={
             "session_service": "active",
-            "database": "active",
-            "agent_service": "active"
+            "llm_service": "active",
+            "bedrock_mock": "active"
         }
     )
 

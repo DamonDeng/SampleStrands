@@ -22,6 +22,14 @@ export default function AgentCreateModal({
   supportedModels,
   supportedTools
 }: AgentCreateModalProps) {
+  console.log('🎭 AgentCreateModal rendered with props:', {
+    isOpen,
+    supportedModelsCount: supportedModels?.length || 0,
+    supportedToolsCount: supportedTools?.length || 0,
+    supportedModels,
+    supportedTools
+  });
+
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -36,12 +44,22 @@ export default function AgentCreateModal({
 
   // Reset form when modal opens
   useEffect(() => {
+    console.log('🔍 AgentCreateModal useEffect triggered:', {
+      isOpen,
+      supportedModelsLength: supportedModels.length,
+      supportedModels: supportedModels,
+      firstModel: supportedModels.length > 0 ? supportedModels[0] : null
+    });
+
     if (isOpen) {
+      const defaultModelId = supportedModels.length > 0 ? supportedModels[0].model_id : '';
+      console.log('📝 Setting form data with default model:', defaultModelId);
+
       setFormData({
         name: '',
         description: '',
         system_prompt: '',
-        model_id: supportedModels.length > 0 ? supportedModels[0].model_id : '',
+        model_id: defaultModelId,
         temperature: 0.7,
         max_tokens: 1000,
         top_p: 0.9,
@@ -174,16 +192,35 @@ export default function AgentCreateModal({
             <label className={styles.formLabel}>Model *</label>
             <select
               value={formData.model_id}
-              onChange={(e) => setFormData({ ...formData, model_id: e.target.value })}
+              onChange={(e) => {
+                console.log('🔄 Model selection changed:', e.target.value);
+                setFormData({ ...formData, model_id: e.target.value });
+              }}
               className={styles.formSelect}
               required
               disabled={isCreating}
             >
-              {supportedModels.map((model) => (
-                <option key={model.model_id} value={model.model_id}>
-                  {model.model_name} ({model.provider})
-                </option>
-              ))}
+              {(() => {
+                console.log('🎯 Rendering model options:', {
+                  supportedModelsCount: supportedModels.length,
+                  supportedModels: supportedModels,
+                  currentFormModelId: formData.model_id
+                });
+
+                if (supportedModels.length === 0) {
+                  console.log('⚠️ No supported models available for dropdown');
+                  return <option value="">No models available</option>;
+                }
+
+                return supportedModels.map((model, index) => {
+                  console.log(`📋 Rendering model option ${index}:`, model);
+                  return (
+                    <option key={model.model_id} value={model.model_id}>
+                      {model.model_name} ({model.provider})
+                    </option>
+                  );
+                });
+              })()}
             </select>
           </div>
 

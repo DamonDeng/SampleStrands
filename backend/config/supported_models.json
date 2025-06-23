@@ -11,7 +11,8 @@
       "supports_tools": true,
       "category": "claude",
       "activated_in_app": true,
-      "default_seq_number": 1
+      "default_seq_number": 1,
+      "config_version": 1
     },
     {
       "uuid": "5e1c6326-338d-441b-a2ac-e333c6554177",
@@ -24,7 +25,8 @@
       "supports_tools": true,
       "category": "claude",
       "activated_in_app": true,
-      "default_seq_number": 2
+      "default_seq_number": 2,
+      "config_version": 1
     },
     {
       "uuid": "3a134dca-6a69-4b25-938a-0835a9d17ac9",
@@ -37,7 +39,8 @@
       "supports_tools": true,
       "category": "claude",
       "activated_in_app": true,
-      "default_seq_number": 3
+      "default_seq_number": 3,
+      "config_version": 1
     },
     {
       "uuid": "d59cf83e-56ad-4b50-afcb-cdf9fd6600d7",
@@ -50,7 +53,8 @@
       "supports_tools": true,
       "category": "claude",
       "activated_in_app": true,
-      "default_seq_number": 4
+      "default_seq_number": 4,
+      "config_version": 1
     },
     {
       "uuid": "7ec831ad-03bc-4ff3-b68e-d1f1e0c17db7",
@@ -63,7 +67,8 @@
       "supports_tools": true,
       "category": "nova",
       "activated_in_app": true,
-      "default_seq_number": 5
+      "default_seq_number": 5,
+      "config_version": 1
     },
     {
       "uuid": "2cff59d8-d786-43af-95f5-f8d888d5c501",
@@ -76,7 +81,8 @@
       "supports_tools": true,
       "category": "nova",
       "activated_in_app": true,
-      "default_seq_number": 6
+      "default_seq_number": 6,
+      "config_version": 1
     },
     {
       "uuid": "7ac99097-bd4d-4fc2-a1bc-323e5f119286",
@@ -89,7 +95,8 @@
       "supports_tools": true,
       "category": "nova",
       "activated_in_app": true,
-      "default_seq_number": 7
+      "default_seq_number": 7,
+      "config_version": 1
     },
     {
       "uuid": "8d221cbc-ce94-4a1d-8fa8-13441feb4b80",
@@ -102,7 +109,8 @@
       "supports_tools": false,
       "category": "nova",
       "activated_in_app": true,
-      "default_seq_number": 8
+      "default_seq_number": 8,
+      "config_version": 1
     },
     {
       "uuid": "ff46f71a-ecce-4704-8421-a12edc542b4a",
@@ -115,7 +123,8 @@
       "supports_tools": true,
       "category": "deepseek",
       "activated_in_app": true,
-      "default_seq_number": 10
+      "default_seq_number": 10,
+      "config_version": 1
     },
     {
       "uuid": "5cac419a-402d-40e9-9f3a-a8ad8c871d1f",
@@ -128,7 +137,8 @@
       "supports_tools": true,
       "category": "deepseek",
       "activated_in_app": true,
-      "default_seq_number": 15
+      "default_seq_number": 15,
+      "config_version": 1
     },
     {
       "uuid": "3756e792-3441-4733-ada4-1873a558b9dc",
@@ -141,7 +151,8 @@
       "supports_tools": true,
       "category": "deepseek",
       "activated_in_app": true,
-      "default_seq_number": 20
+      "default_seq_number": 20,
+      "config_version": 1
     }
   ],
   "default_model": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",

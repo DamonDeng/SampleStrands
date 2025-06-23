@@ -21,6 +21,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from api.routes import router
 from api.agent_routes import router as agent_router
 from models.schemas import ErrorResponse
+from database.connection import init_database, test_database_connection, get_database_info
+from database.config_loader import config_loader
 
 
 # Configure logging
@@ -46,12 +48,38 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 AI Chat Desktop Backend starting up...")
     logger.info(f"📅 Startup time: {datetime.utcnow().isoformat()}")
     logger.info("🔧 Initializing services...")
-    
-    # Initialize services here if needed
+
+    # Initialize database
+    try:
+        logger.info("🗄️ Initializing database...")
+        init_database()
+
+        # Test database connection
+        if test_database_connection():
+            logger.info("✅ Database connection successful")
+
+            # Load configurations if needed
+            if not config_loader.is_database_initialized():
+                logger.info("📋 Loading initial configurations...")
+                config_loader.load_all_configurations()
+            else:
+                logger.info("📋 Database already initialized with configurations")
+
+            # Log database info
+            db_info = get_database_info()
+            logger.info(f"🗄️ Database info: {len(db_info.get('tables', []))} tables")
+
+        else:
+            logger.error("❌ Database connection failed")
+
+    except Exception as e:
+        logger.error(f"❌ Database initialization failed: {str(e)}")
+        # Don't fail startup, but log the error
+
     logger.info("✅ Services initialized successfully")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("🛑 AI Chat Desktop Backend shutting down...")
     logger.info("🧹 Cleaning up resources...")

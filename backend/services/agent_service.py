@@ -2,16 +2,16 @@
 Agent service for managing AI agents and their configurations.
 """
 
-import json
 import logging
-from datetime import datetime
 from typing import List, Optional, Dict, Any
-from pathlib import Path
-
+from database.connection import get_db_session
+from database.converters import converter
+from database.config_loader import config_loader
 from models.schemas import (
     Agent, AgentConfig, AgentCreateRequest, AgentUpdateRequest,
     SupportedModel, SupportedTool, ModelConfig, ToolConfig
 )
+from models.database import AgentDB, SupportedModelDB, SupportedToolDB
 
 # Create logger for this module
 logger = logging.getLogger(__name__)
@@ -19,174 +19,261 @@ logger = logging.getLogger(__name__)
 
 class AgentService:
     """Service for managing AI agents."""
-    
+
     def __init__(self):
         """Initialize the agent service."""
-        self._agents: Dict[str, Agent] = {}
-        self._supported_models: List[SupportedModel] = []
-        self._supported_tools: List[SupportedTool] = []
-        self._load_configurations()
-        logger.info("🤖 Agent service initialized")
-    
-    def _load_configurations(self) -> None:
-        """Load supported models and tools from configuration files."""
+        self._ensure_configurations_loaded()
+        logger.info("🤖 Agent service initialized with database storage")
+
+    def _ensure_configurations_loaded(self) -> None:
+        """Ensure configurations are loaded in database."""
         try:
-            # Load supported models
-            models_path = Path(__file__).parent.parent / "config" / "supported_models.json"
-            if models_path.exists():
-                with open(models_path, 'r') as f:
-                    models_data = json.load(f)
-                    self._supported_models = [
-                        SupportedModel(**model) for model in models_data["models"]
-                    ]
-                logger.info(f"📋 Loaded {len(self._supported_models)} supported models")
+            if not config_loader.is_database_initialized():
+                logger.info("🔄 Database not initialized, loading configurations...")
+                config_loader.load_all_configurations()
             else:
-                logger.warning(f"⚠️ Models configuration file not found: {models_path}")
-            
-            # Load supported tools
-            tools_path = Path(__file__).parent.parent / "config" / "supported_tools.json"
-            if tools_path.exists():
-                with open(tools_path, 'r') as f:
-                    tools_data = json.load(f)
-                    self._supported_tools = [
-                        SupportedTool(**tool) for tool in tools_data["tools"]
-                    ]
-                logger.info(f"🔧 Loaded {len(self._supported_tools)} supported tools")
-            else:
-                logger.warning(f"⚠️ Tools configuration file not found: {tools_path}")
-                
+                logger.debug("✅ Database already initialized with configurations")
         except Exception as e:
-            logger.error(f"❌ Failed to load configurations: {str(e)}")
-            # Initialize with empty lists if loading fails
-            self._supported_models = []
-            self._supported_tools = []
+            logger.error(f"❌ Failed to ensure configurations loaded: {str(e)}")
+            # This is not fatal, the service can still work with existing data
     
     async def get_all_agents(self) -> List[Agent]:
         """Get all agents."""
-        logger.debug(f"🔍 Retrieving all agents ({len(self._agents)} total)")
-        return list(self._agents.values())
-    
+        try:
+            with get_db_session() as session:
+                db_agents = session.query(AgentDB).all()
+                agents = [converter.agent_db_to_pydantic(db_agent) for db_agent in db_agents]
+                logger.debug(f"🔍 Retrieved {len(agents)} agents from database")
+                return agents
+        except Exception as e:
+            logger.error(f"❌ Failed to get all agents: {str(e)}")
+            return []
+
     async def get_agent(self, agent_id: str) -> Optional[Agent]:
         """Get an agent by ID."""
-        logger.debug(f"🔍 Retrieving agent: {agent_id}")
-        agent = self._agents.get(agent_id)
-        if agent:
-            logger.debug(f"✅ Found agent: {agent.config.name}")
-        else:
-            logger.debug(f"❌ Agent not found: {agent_id}")
-        return agent
+        try:
+            with get_db_session() as session:
+                db_agent = session.query(AgentDB).filter(AgentDB.id == agent_id).first()
+                if db_agent:
+                    agent = converter.agent_db_to_pydantic(db_agent)
+                    logger.debug(f"✅ Found agent: {agent.config.name}")
+                    return agent
+                else:
+                    logger.debug(f"❌ Agent not found: {agent_id}")
+                    return None
+        except Exception as e:
+            logger.error(f"❌ Failed to get agent {agent_id}: {str(e)}")
+            return None
     
     async def create_agent(self, request: AgentCreateRequest) -> Agent:
         """Create a new agent."""
         logger.info(f"🆕 Creating new agent: '{request.config.name}'")
-        
+
         # Validate model configuration
         await self._validate_model_config(request.config.llm_config)
-        
+
         # Validate tool configurations
         await self._validate_tool_configs(request.config.tools)
-        
-        # Create the agent
-        agent = Agent(config=request.config)
-        self._agents[agent.id] = agent
-        
-        logger.info(f"✅ Agent created successfully: {agent.id}")
-        logger.debug(f"   📝 Name: {agent.config.name}")
-        logger.debug(f"   🤖 Model: {agent.config.llm_config.model_name}")
-        logger.debug(f"   🔧 Tools: {len(agent.config.tools)}")
-        
-        return agent
+
+        try:
+            # Create the agent
+            agent = Agent(config=request.config)
+
+            # Save to database
+            with get_db_session() as session:
+                db_agent = converter.agent_pydantic_to_db(agent)
+                session.add(db_agent)
+                session.commit()
+                session.refresh(db_agent)
+
+                # Convert back to Pydantic for return
+                saved_agent = converter.agent_db_to_pydantic(db_agent)
+
+            logger.info(f"✅ Agent created successfully: {saved_agent.id}")
+            logger.debug(f"   📝 Name: {saved_agent.config.name}")
+            logger.debug(f"   🤖 Model: {saved_agent.config.llm_config.model_name}")
+            logger.debug(f"   🔧 Tools: {len(saved_agent.config.tools)}")
+
+            return saved_agent
+
+        except Exception as e:
+            logger.error(f"❌ Failed to create agent: {str(e)}")
+            raise
     
     async def update_agent(self, agent_id: str, request: AgentUpdateRequest) -> Optional[Agent]:
         """Update an existing agent."""
         logger.info(f"📝 Updating agent: {agent_id}")
-        
-        agent = self._agents.get(agent_id)
-        if not agent:
-            logger.warning(f"❌ Agent not found for update: {agent_id}")
+
+        try:
+            with get_db_session() as session:
+                db_agent = session.query(AgentDB).filter(AgentDB.id == agent_id).first()
+                if not db_agent:
+                    logger.warning(f"❌ Agent not found for update: {agent_id}")
+                    return None
+
+                # Update configuration if provided
+                if request.config:
+                    logger.debug(f"   🔄 Updating configuration")
+                    await self._validate_model_config(request.config.llm_config)
+                    await self._validate_tool_configs(request.config.tools)
+
+                    # Update database fields
+                    db_agent.name = request.config.name
+                    db_agent.description = request.config.description
+                    db_agent.system_prompt = request.config.system_prompt
+                    db_agent.llm_config = request.config.llm_config.dict()
+                    db_agent.tools = [tool.dict() for tool in request.config.tools]
+                    db_agent.metadata = request.config.metadata
+
+                # Update active status if provided
+                if request.is_active is not None:
+                    logger.debug(f"   🔄 Updating active status: {request.is_active}")
+                    db_agent.is_active = request.is_active
+
+                # Commit changes
+                session.commit()
+                session.refresh(db_agent)
+
+                # Convert back to Pydantic
+                updated_agent = converter.agent_db_to_pydantic(db_agent)
+                logger.info(f"✅ Agent updated successfully: {agent_id}")
+                return updated_agent
+
+        except Exception as e:
+            logger.error(f"❌ Failed to update agent {agent_id}: {str(e)}")
             return None
-        
-        # Update configuration if provided
-        if request.config:
-            logger.debug(f"   🔄 Updating configuration")
-            await self._validate_model_config(request.config.llm_config)
-            await self._validate_tool_configs(request.config.tools)
-            agent.update_config(request.config)
-        
-        # Update active status if provided
-        if request.is_active is not None:
-            logger.debug(f"   🔄 Updating active status: {request.is_active}")
-            agent.is_active = request.is_active
-            agent.updated_at = datetime.utcnow()
-        
-        logger.info(f"✅ Agent updated successfully: {agent_id}")
-        return agent
     
     async def delete_agent(self, agent_id: str) -> bool:
         """Delete an agent."""
         logger.info(f"🗑️ Deleting agent: {agent_id}")
-        
-        if agent_id in self._agents:
-            agent = self._agents[agent_id]
-            del self._agents[agent_id]
-            logger.info(f"✅ Agent deleted successfully: {agent.config.name}")
-            return True
-        else:
-            logger.warning(f"❌ Agent not found for deletion: {agent_id}")
+
+        try:
+            with get_db_session() as session:
+                db_agent = session.query(AgentDB).filter(AgentDB.id == agent_id).first()
+                if db_agent:
+                    agent_name = db_agent.name
+                    session.delete(db_agent)
+                    session.commit()
+                    logger.info(f"✅ Agent deleted successfully: {agent_name}")
+                    return True
+                else:
+                    logger.warning(f"❌ Agent not found for deletion: {agent_id}")
+                    return False
+        except Exception as e:
+            logger.error(f"❌ Failed to delete agent {agent_id}: {str(e)}")
             return False
-    
+
     async def agent_exists(self, agent_id: str) -> bool:
         """Check if an agent exists."""
-        return agent_id in self._agents
+        try:
+            with get_db_session() as session:
+                count = session.query(AgentDB).filter(AgentDB.id == agent_id).count()
+                return count > 0
+        except Exception as e:
+            logger.error(f"❌ Failed to check if agent exists {agent_id}: {str(e)}")
+            return False
     
     async def get_supported_models(self) -> List[SupportedModel]:
         """Get list of supported models."""
-        logger.debug(f"🔍 Retrieving supported models ({len(self._supported_models)} total)")
-        return self._supported_models
-    
+        try:
+            with get_db_session() as session:
+                db_models = session.query(SupportedModelDB).filter(
+                    SupportedModelDB.activated_in_app == True
+                ).order_by(SupportedModelDB.default_seq_number).all()
+
+                models = [converter.supported_model_db_to_pydantic(db_model) for db_model in db_models]
+                logger.debug(f"🔍 Retrieved {len(models)} supported models from database")
+                return models
+        except Exception as e:
+            logger.error(f"❌ Failed to get supported models: {str(e)}")
+            return []
+
     async def get_supported_tools(self) -> List[SupportedTool]:
         """Get list of supported tools."""
-        logger.debug(f"🔍 Retrieving supported tools ({len(self._supported_tools)} total)")
-        return self._supported_tools
-    
+        try:
+            with get_db_session() as session:
+                db_tools = session.query(SupportedToolDB).order_by(SupportedToolDB.tool_name).all()
+                tools = [converter.supported_tool_db_to_pydantic(db_tool) for db_tool in db_tools]
+                logger.debug(f"🔍 Retrieved {len(tools)} supported tools from database")
+                return tools
+        except Exception as e:
+            logger.error(f"❌ Failed to get supported tools: {str(e)}")
+            return []
+
     async def get_model_by_id(self, model_id: str) -> Optional[SupportedModel]:
         """Get a supported model by ID."""
-        for model in self._supported_models:
-            if model.model_id == model_id:
-                return model
-        return None
-    
+        try:
+            with get_db_session() as session:
+                db_model = session.query(SupportedModelDB).filter(
+                    SupportedModelDB.model_id == model_id
+                ).first()
+
+                if db_model:
+                    return converter.supported_model_db_to_pydantic(db_model)
+                return None
+        except Exception as e:
+            logger.error(f"❌ Failed to get model by ID {model_id}: {str(e)}")
+            return None
+
     async def get_tool_by_id(self, tool_id: str) -> Optional[SupportedTool]:
         """Get a supported tool by ID."""
-        for tool in self._supported_tools:
-            if tool.tool_id == tool_id:
-                return tool
-        return None
+        try:
+            with get_db_session() as session:
+                db_tool = session.query(SupportedToolDB).filter(
+                    SupportedToolDB.tool_id == tool_id
+                ).first()
+
+                if db_tool:
+                    return converter.supported_tool_db_to_pydantic(db_tool)
+                return None
+        except Exception as e:
+            logger.error(f"❌ Failed to get tool by ID {tool_id}: {str(e)}")
+            return None
     
     async def get_agents_summary(self) -> Dict[str, Any]:
         """Get summary statistics for agents."""
-        total_agents = len(self._agents)
-        active_agents = sum(1 for agent in self._agents.values() if agent.is_active)
-        
-        # Count agents by model
-        model_counts = {}
-        for agent in self._agents.values():
-            model_name = agent.config.llm_config.model_name
-            model_counts[model_name] = model_counts.get(model_name, 0) + 1
-        
-        # Count agents by tool usage
-        tool_counts = {}
-        for agent in self._agents.values():
-            for tool in agent.get_enabled_tools():
-                tool_counts[tool.tool_name] = tool_counts.get(tool.tool_name, 0) + 1
-        
-        return {
-            "total_agents": total_agents,
-            "active_agents": active_agents,
-            "inactive_agents": total_agents - active_agents,
-            "model_distribution": model_counts,
-            "tool_usage": tool_counts
-        }
+        try:
+            with get_db_session() as session:
+                # Get basic counts
+                total_agents = session.query(AgentDB).count()
+                active_agents = session.query(AgentDB).filter(AgentDB.is_active == True).count()
+
+                # Get all agents for detailed analysis
+                db_agents = session.query(AgentDB).all()
+
+                # Count agents by model
+                model_counts = {}
+                tool_counts = {}
+
+                for db_agent in db_agents:
+                    # Count by model
+                    llm_config = db_agent.llm_config or {}
+                    model_name = llm_config.get("model_name", "Unknown")
+                    model_counts[model_name] = model_counts.get(model_name, 0) + 1
+
+                    # Count by tools
+                    tools = db_agent.tools or []
+                    for tool_data in tools:
+                        if isinstance(tool_data, dict) and tool_data.get("enabled", True):
+                            tool_name = tool_data.get("tool_name", "Unknown")
+                            tool_counts[tool_name] = tool_counts.get(tool_name, 0) + 1
+
+                return {
+                    "total_agents": total_agents,
+                    "active_agents": active_agents,
+                    "inactive_agents": total_agents - active_agents,
+                    "model_distribution": model_counts,
+                    "tool_usage": tool_counts
+                }
+        except Exception as e:
+            logger.error(f"❌ Failed to get agents summary: {str(e)}")
+            return {
+                "total_agents": 0,
+                "active_agents": 0,
+                "inactive_agents": 0,
+                "model_distribution": {},
+                "tool_usage": {}
+            }
     
     async def _validate_model_config(self, model_config) -> None:
         """Validate model configuration."""

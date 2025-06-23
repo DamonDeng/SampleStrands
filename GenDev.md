@@ -7,7 +7,7 @@
 **Target Platforms**: macOS (Intel & Apple Silicon), Windows  
 **UI Design**: Slack-like three-column layout  
 **Developer**: DamonDeng (dengmingxuan@hotmail.com)  
-**Status**: ✅ Core functionality complete, Python backend integration complete, Frontend-Backend integration complete with optimistic updates, Enhanced logging system implemented, **AWS Strands Agents SDK integration complete with real AI capabilities**, **UI/UX improvements complete with modern design system**, **Agent Configuration Backend APIs complete**, **Agent Management Frontend complete with creation modal**
+**Status**: ✅ Core functionality complete, Python backend integration complete, Frontend-Backend integration complete with optimistic updates, Enhanced logging system implemented, **AWS Strands Agents SDK integration complete with real AI capabilities**, **UI/UX improvements complete with modern design system**, **Agent Configuration Backend APIs complete**, **Agent Management Frontend complete with creation modal**, **Database Migration to Persistent Storage complete with SQLite + SQLAlchemy**
 
 ## Key Challenge Solved
 
@@ -780,6 +780,7 @@ node test_integration.js                             # Run integration test suit
 - **UUID Support**: Each model has unique UUID for identification
 - **Sequence Ordering**: `default_seq_number` field for UI sorting (Claude 1-4, Nova 5-8, DeepSeek R1 10, others 15+)
 - **App Control**: `activated_in_app` field to enable/disable models in UI
+- **Version Tracking**: `config_version` field for database migration and configuration updates
 
 **Supported Tools** (`backend/config/supported_tools.json`):
 - **8 Built-in Tools**: calculator, web_search, file_system, email, database, code_execution, image_generation, current_time
@@ -1013,6 +1014,12 @@ The Agent management system is now complete and ready for production use with:
 - **Purpose**: Runtime control of model availability in UI
 - **Use Cases**: Feature flags, A/B testing, gradual rollouts
 
+#### 5. Configuration Version Tracking
+- **Field**: `config_version` integer field
+- **Default**: All models set to `1` (initial version)
+- **Purpose**: Track configuration changes for database migration and updates
+- **Use Cases**: Database synchronization, configuration rollback, version comparison
+
 ### Model Configuration Schema
 ```json
 {
@@ -1026,7 +1033,8 @@ The Agent management system is now complete and ready for production use with:
   "supports_tools": true,
   "category": "provider-category",
   "activated_in_app": true,
-  "default_seq_number": 1
+  "default_seq_number": 1,
+  "config_version": 1
 }
 ```
 
@@ -1047,15 +1055,237 @@ The Agent management system is now complete and ready for production use with:
 - **Frontend Sorting**: Models automatically sorted by `default_seq_number` in UI dropdowns
 - **Unique Identification**: UUIDs prevent conflicts and enable reliable referencing
 - **Feature Control**: `activated_in_app` allows runtime model availability control
+- **Version Tracking**: `config_version` enables database migration and configuration management
 - **Scalability**: Gap-based numbering system accommodates future model additions
 - **Consistency**: Standardized schema across all model configurations
+
+## Database Migration to Persistent Storage (COMPLETED ✅)
+
+### Implementation Overview
+**Date**: June 23, 2025
+**Status**: ✅ Complete Migration from In-Memory to SQLite Database
+**Architecture**: SQLAlchemy ORM with SQLite backend, UUID primary keys for all entities
+
+### Key Migration Achievements
+
+#### 1. Database Infrastructure Built
+- **SQLite Database**: Lightweight file-based storage (`backend/chat_app.db`)
+- **SQLAlchemy ORM**: Modern database operations with automatic relationship management
+- **UUID Primary Keys**: All entities (agents, sessions, messages, models) use globally unique identifiers
+- **Connection Management**: Proper session handling with context managers and automatic cleanup
+- **Development Tools**: Comprehensive CLI for database management and testing
+
+#### 2. Database Schema Design
+**Core Tables with UUID Primary Keys**:
+```sql
+-- Agents: AI agent configurations
+agents (id UUID, name, description, system_prompt, llm_config JSON, tools JSON, is_active, usage_stats JSON, metadata JSON, created_at, updated_at)
+
+-- Sessions: Chat sessions with agent relationships
+sessions (id UUID, title, agent_id FK, metadata JSON, created_at, updated_at)
+
+-- Messages: Individual chat messages
+messages (id UUID, session_id FK, role, content, status, metadata JSON, timestamp)
+
+-- Supported Models: Available AI models from configuration
+supported_models (uuid UUID, model_id, model_name, provider, description, max_tokens, supports_streaming, supports_tools, category, activated_in_app, default_seq_number, config_version)
+
+-- Supported Tools: Available tools from configuration
+supported_tools (uuid UUID, tool_id, tool_name, description, category, parameters_schema JSON, examples JSON)
+```
+
+#### 3. Services Converted to Database Storage
+**Agent Service** (`backend/services/agent_service.py`):
+- Replaced in-memory dictionary storage with SQLAlchemy database operations
+- Maintained all existing API contracts for seamless frontend compatibility
+- Added database validation and error handling
+- Automatic configuration loading from database on startup
+
+**Session Service** (`backend/services/session_service.py`):
+- Converted session and message storage to database persistence
+- Proper foreign key relationships between sessions and messages
+- Optimized queries for message retrieval with pagination support
+- Automatic timestamp management with SQLAlchemy events
+
+#### 4. Configuration Migration System
+**JSON to Database Migration** (`backend/database/config_loader.py`):
+- Automatic loading of `supported_models.json` and `supported_tools.json` into database
+- Version tracking with `config_version` field for future updates
+- UUID assignment for all configuration entries
+- Sequence ordering preservation for UI display
+
+#### 5. Development Tools & CLI
+**Database Management CLI** (`backend/cli.py`):
+```bash
+python cli.py init                    # Initialize database with tables
+python cli.py reset                   # Reset database (development)
+python cli.py backup                  # Create timestamped backup
+python cli.py restore <backup_file>   # Restore from backup
+python cli.py load-config            # Load JSON configs to database
+python cli.py status                  # Show database status
+python cli.py test                    # Test database connection
+```
+
+**Migration Testing Suite** (`backend/test_database_migration.py`):
+- Comprehensive test coverage for all database operations
+- Agent CRUD operation testing
+- Session and message persistence testing
+- Data persistence verification across service restarts
+- Configuration loading validation
+
+#### 6. Data Conversion & Type Safety
+**Pydantic ↔ SQLAlchemy Conversion** (`backend/database/converters.py`):
+- Seamless conversion between Pydantic models (API) and SQLAlchemy models (database)
+- JSON field handling for complex configurations
+- Type-safe conversions with proper error handling
+- Maintains existing API response formats
+
+### Technical Architecture Decisions
+
+#### 1. Schema Flexibility for Development
+**Problem**: Frequent data structure changes during development stage
+**Solution**: Hybrid approach with core fields + JSON flexibility
+- **Core Fields**: Stable, indexed fields (id, name, timestamps)
+- **JSON Fields**: Flexible storage for experimental features (`metadata`, `llm_config`, `tools`)
+- **Development Reset**: Easy `python cli.py reset` for schema changes
+- **Future Migration Path**: Alembic integration ready for production migrations
+
+#### 2. UUID Primary Key Strategy
+**Decision**: Use UUIDs for all entity primary keys instead of auto-incrementing integers
+**Benefits**:
+- Globally unique identifiers across distributed systems
+- No ID conflicts during development or data migration
+- Frontend-backend compatibility with existing UUID usage
+- Future-proof for microservices architecture
+
+#### 3. Database Connection Management
+**Pattern**: Context manager approach with proper cleanup
+```python
+with get_db_session() as session:
+    # Database operations
+    session.commit()  # Automatic on success
+    # session.rollback() on exception
+    # session.close() in finally block
+```
+
+#### 4. Configuration Storage Strategy
+**Migration**: JSON files → Database storage with version tracking
+- **Backward Compatibility**: JSON files still exist for reference
+- **Version Control**: `config_version` field for tracking updates
+- **Runtime Control**: `activated_in_app` field for feature flags
+- **Ordering**: `default_seq_number` for consistent UI presentation
+
+### Migration Benefits Achieved
+
+#### 1. Data Persistence
+- ✅ All data survives application restarts
+- ✅ No data loss during backend crashes or updates
+- ✅ ACID transaction guarantees for data integrity
+- ✅ Automatic backup capabilities for safety
+
+#### 2. Development Experience
+- ✅ CLI tools for database management and testing
+- ✅ Comprehensive test suite for validation
+- ✅ Easy reset during development iterations
+- ✅ Detailed logging and error handling
+
+#### 3. Production Readiness
+- ✅ Scalable database architecture
+- ✅ Proper indexing for performance
+- ✅ Foreign key constraints for data integrity
+- ✅ Migration path for future schema evolution
+
+#### 4. API Compatibility
+- ✅ All existing frontend code works unchanged
+- ✅ Same response formats and data structures
+- ✅ Maintained service interfaces and contracts
+- ✅ Seamless transition from in-memory to persistent storage
+
+### Files Created/Modified
+
+#### New Database Infrastructure
+```
+backend/models/database.py           # SQLAlchemy database models
+backend/database/connection.py      # Database connection management
+backend/database/converters.py      # Pydantic ↔ SQLAlchemy conversion
+backend/database/config_loader.py   # JSON to database migration
+backend/database/manager.py         # Database management utilities
+backend/cli.py                      # Command-line interface
+backend/test_database_migration.py  # Migration test suite
+backend/DATABASE_MIGRATION_GUIDE.md # Complete documentation
+backend/install_dependencies.py     # Dependency installation script
+```
+
+#### Modified Core Services
+```
+backend/requirements.txt            # Added SQLAlchemy, Alembic
+backend/services/agent_service.py   # Converted to database storage
+backend/services/session_service.py # Converted to database storage
+backend/main.py                     # Added database initialization
+```
+
+### Development Workflow Changes
+
+#### Database Management During Development
+```bash
+# Start fresh during development
+python cli.py reset
+python cli.py load-config
+
+# Test changes
+python test_database_migration.py
+
+# Backup before major changes
+python cli.py backup
+
+# Check status
+python cli.py status
+```
+
+#### Schema Evolution Strategy
+1. **Development Phase**: Use `python cli.py reset` for rapid iteration
+2. **Pre-Production**: Implement Alembic migrations for structured changes
+3. **Production**: Use versioned migrations with rollback capabilities
+
+### Critical Success Factors
+
+#### Database Integration Best Practices
+1. **Context Managers**: Proper session management with automatic cleanup
+2. **Type Conversion**: Seamless Pydantic ↔ SQLAlchemy model conversion
+3. **Error Handling**: Comprehensive exception handling with rollback
+4. **Testing**: Automated test suite for all database operations
+5. **CLI Tools**: Developer-friendly command-line interface
+6. **Documentation**: Complete migration guide and troubleshooting
+
+#### Performance Considerations
+1. **SQLite Optimizations**: WAL mode, foreign keys, proper indexing
+2. **Query Optimization**: Efficient relationship loading and pagination
+3. **Connection Pooling**: Proper connection management for FastAPI
+4. **JSON Field Usage**: Strategic use of JSON for flexible schema evolution
+
+### Future Enhancements Ready
+
+#### 1. Advanced Migrations
+- **Alembic Integration**: Ready for structured schema migrations
+- **Version Tracking**: Configuration versioning system in place
+- **Rollback Support**: Backup and restore capabilities implemented
+
+#### 2. Performance Scaling
+- **Database Indexing**: Ready for performance optimization
+- **Query Optimization**: Relationship loading strategies prepared
+- **Connection Pooling**: Scalable connection management
+
+#### 3. Multi-Environment Support
+- **Environment Variables**: Database URL configuration
+- **Multiple Databases**: Architecture supports PostgreSQL migration
+- **Backup Strategies**: Automated backup and retention policies
 
 ## Contact & Maintenance
 
 **Developer**: DamonDeng
 **Email**: dengmingxuan@hotmail.com
 **Expertise**: Senior Programmer & Solution Architect
-**Note**: Not familiar with frontend development initially, but successfully completed this complex Electron + Next.js integration
+**Note**: Not familiar with frontend development initially, but successfully completed this complex Electron + Next.js integration and database migration
 
 ---
 

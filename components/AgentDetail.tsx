@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Agent, SupportedModel, SupportedTool } from '../types/agent';
 import {
   IoPersonOutline,
@@ -8,7 +8,8 @@ import {
   IoSettingsOutline,
   IoPlayOutline,
   IoPauseOutline,
-  IoInformationCircleOutline
+  IoInformationCircleOutline,
+  IoCheckmarkCircleOutline
 } from 'react-icons/io5';
 import styles from '../styles/AgentDetail.module.css';
 
@@ -18,6 +19,7 @@ interface AgentDetailProps {
   supportedTools: SupportedTool[];
   onUpdateAgent: (agentId: string, updates: any) => void;
   onToggleAgent: (agentId: string, isActive: boolean) => void;
+  onAgentChange?: () => void; // Called when navigating away from this agent
 }
 
 export default function AgentDetail({
@@ -25,9 +27,11 @@ export default function AgentDetail({
   supportedModels,
   supportedTools,
   onUpdateAgent,
-  onToggleAgent
+  onToggleAgent,
+  onAgentChange
 }: AgentDetailProps) {
-  const [isEditing, setIsEditing] = useState(false);
+  // Always start in editing mode for seamless UX
+  const [isEditing, setIsEditing] = useState(true);
   const [editForm, setEditForm] = useState({
     name: agent.config.name,
     description: agent.config.description || '',
@@ -39,8 +43,18 @@ export default function AgentDetail({
     enabled_tools: agent.config.tools.filter(tool => tool.enabled).map(tool => tool.tool_id)
   });
 
+  // Track if there are unsaved changes
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  // Refs for cleanup
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initialFormRef = useRef(editForm);
+
+  // Update form when agent changes and reset editing state
   useEffect(() => {
-    setEditForm({
+    const newForm = {
       name: agent.config.name,
       description: agent.config.description || '',
       system_prompt: agent.config.system_prompt || '',
@@ -49,10 +63,92 @@ export default function AgentDetail({
       max_tokens: agent.config.model_config.max_tokens,
       top_p: agent.config.model_config.top_p,
       enabled_tools: agent.config.tools.filter(tool => tool.enabled).map(tool => tool.tool_id)
-    });
+    };
+
+    setEditForm(newForm);
+    initialFormRef.current = newForm;
+    setIsEditing(true); // Always enter editing mode
+    setHasChanges(false);
+    setLastSaved(null);
   }, [agent]);
 
-  const handleSave = () => {
+  // Check if form has changes compared to initial state
+  const checkForChanges = useCallback(() => {
+    const current = editForm;
+    const initial = initialFormRef.current;
+
+    const hasFormChanges = (
+      current.name !== initial.name ||
+      current.description !== initial.description ||
+      current.system_prompt !== initial.system_prompt ||
+      current.model_id !== initial.model_id ||
+      current.temperature !== initial.temperature ||
+      current.max_tokens !== initial.max_tokens ||
+      current.top_p !== initial.top_p ||
+      JSON.stringify(current.enabled_tools.sort()) !== JSON.stringify(initial.enabled_tools.sort())
+    );
+
+    setHasChanges(hasFormChanges);
+    return hasFormChanges;
+  }, [editForm]);
+
+  // Check for changes whenever form updates
+  useEffect(() => {
+    checkForChanges();
+  }, [editForm, checkForChanges]);
+
+  // Auto-save function
+  const performAutoSave = useCallback(async () => {
+    if (!hasChanges || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await handleSave();
+      setLastSaved(new Date());
+
+      // Update initial form reference after successful save
+      initialFormRef.current = { ...editForm };
+      setHasChanges(false);
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [hasChanges, isSaving, editForm]);
+
+  // Debounced auto-save (save 2 seconds after user stops typing)
+  useEffect(() => {
+    if (hasChanges && !isSaving) {
+      // Clear existing timeout
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
+      // Set new timeout for auto-save
+      saveTimeoutRef.current = setTimeout(() => {
+        performAutoSave();
+      }, 2000);
+    }
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [hasChanges, isSaving, performAutoSave]);
+
+  // Auto-save when component unmounts (navigation away)
+  useEffect(() => {
+    return () => {
+      if (hasChanges && !isSaving) {
+        // Perform immediate save on unmount
+        performAutoSave();
+      }
+      onAgentChange?.();
+    };
+  }, [hasChanges, isSaving, performAutoSave, onAgentChange]);
+
+  const handleSave = async () => {
     const selectedModel = supportedModels.find(m => m.model_id === editForm.model_id);
     if (!selectedModel) return;
 
@@ -79,12 +175,11 @@ export default function AgentDetail({
       metadata: agent.config.metadata || {}
     };
 
-    onUpdateAgent(agent.id, { config: updatedConfig });
-    setIsEditing(false);
+    await onUpdateAgent(agent.id, { config: updatedConfig });
   };
 
   const handleCancel = () => {
-    setEditForm({
+    const originalForm = {
       name: agent.config.name,
       description: agent.config.description || '',
       system_prompt: agent.config.system_prompt || '',
@@ -93,12 +188,48 @@ export default function AgentDetail({
       max_tokens: agent.config.model_config.max_tokens,
       top_p: agent.config.model_config.top_p,
       enabled_tools: agent.config.tools.filter(tool => tool.enabled).map(tool => tool.tool_id)
-    });
+    };
+
+    setEditForm(originalForm);
+    initialFormRef.current = originalForm;
+    setHasChanges(false);
     setIsEditing(false);
+  };
+
+  // Form change handlers that update state
+  const handleFormChange = (field: string, value: any) => {
+    setEditForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleToolToggle = (toolId: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      enabled_tools: prev.enabled_tools.includes(toolId)
+        ? prev.enabled_tools.filter(id => id !== toolId)
+        : [...prev.enabled_tools, toolId]
+    }));
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
   };
 
   const getEnabledTools = () => {
@@ -127,6 +258,32 @@ export default function AgentDetail({
         </div>
         
         <div className={styles.headerActions}>
+
+          {/* Auto-save status indicator */}
+          <div className={styles.saveStatus}>
+            {isSaving ? (
+              <span className={styles.savingIndicator}>
+                <IoSaveOutline className={styles.spinIcon} />
+                Saving...
+              </span>
+            ) : hasChanges ? (
+              <span className={styles.unsavedIndicator}>
+                <IoPencilOutline />
+                Unsaved changes
+              </span>
+            ) : lastSaved ? (
+              <span className={styles.savedIndicator}>
+                <IoCheckmarkCircleOutline />
+                Saved {formatTimeAgo(lastSaved)}
+              </span>
+            ) : (
+              <span className={styles.editingIndicator}>
+                <IoPencilOutline />
+                Editing
+              </span>
+            )}
+          </div>
+
           <button
             className={`${styles.actionButton} ${agent.is_active ? styles.pauseButton : styles.playButton}`}
             onClick={() => onToggleAgent(agent.id, !agent.is_active)}
@@ -135,36 +292,20 @@ export default function AgentDetail({
             {agent.is_active ? <IoPauseOutline /> : <IoPlayOutline />}
             {agent.is_active ? 'Deactivate' : 'Activate'}
           </button>
+
           
-          {!isEditing ? (
+
+          {/* Manual save button (optional, for immediate save)
+          {hasChanges && !isSaving && (
             <button
-              className={styles.actionButton}
-              onClick={() => setIsEditing(true)}
-              title="Edit agent"
+              className={`${styles.actionButton} ${styles.saveButton}`}
+              onClick={performAutoSave}
+              title="Save changes now"
             >
-              <IoPencilOutline />
-              Edit
+              <IoSaveOutline />
+              Save Now
             </button>
-          ) : (
-            <>
-              <button
-                className={`${styles.actionButton} ${styles.saveButton}`}
-                onClick={handleSave}
-                title="Save changes"
-              >
-                <IoSaveOutline />
-                Save
-              </button>
-              <button
-                className={`${styles.actionButton} ${styles.cancelButton}`}
-                onClick={handleCancel}
-                title="Cancel editing"
-              >
-                <IoCloseOutline />
-                Cancel
-              </button>
-            </>
-          )}
+          )} */}
         </div>
       </div>
 
@@ -176,7 +317,7 @@ export default function AgentDetail({
               <input
                 type="text"
                 value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                onChange={(e) => handleFormChange('name', e.target.value)}
                 className={styles.formInput}
                 placeholder="Enter agent name"
               />
@@ -186,7 +327,7 @@ export default function AgentDetail({
               <label className={styles.formLabel}>Description</label>
               <textarea
                 value={editForm.description}
-                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                onChange={(e) => handleFormChange('description', e.target.value)}
                 className={styles.formTextarea}
                 placeholder="Enter agent description"
                 rows={3}
@@ -197,7 +338,7 @@ export default function AgentDetail({
               <label className={styles.formLabel}>System Prompt</label>
               <textarea
                 value={editForm.system_prompt}
-                onChange={(e) => setEditForm({ ...editForm, system_prompt: e.target.value })}
+                onChange={(e) => handleFormChange('system_prompt', e.target.value)}
                 className={styles.formTextarea}
                 placeholder="Enter system prompt for the agent"
                 rows={4}
@@ -208,7 +349,7 @@ export default function AgentDetail({
               <label className={styles.formLabel}>Model</label>
               <select
                 value={editForm.model_id}
-                onChange={(e) => setEditForm({ ...editForm, model_id: e.target.value })}
+                onChange={(e) => handleFormChange('model_id', e.target.value)}
                 className={styles.formSelect}
               >
                 {supportedModels.map((model) => (
@@ -228,7 +369,7 @@ export default function AgentDetail({
                   max="2"
                   step="0.1"
                   value={editForm.temperature}
-                  onChange={(e) => setEditForm({ ...editForm, temperature: parseFloat(e.target.value) })}
+                  onChange={(e) => handleFormChange('temperature', parseFloat(e.target.value))}
                   className={styles.formInput}
                 />
               </div>
@@ -239,7 +380,7 @@ export default function AgentDetail({
                   min="1"
                   max="8000"
                   value={editForm.max_tokens}
-                  onChange={(e) => setEditForm({ ...editForm, max_tokens: parseInt(e.target.value) })}
+                  onChange={(e) => handleFormChange('max_tokens', parseInt(e.target.value))}
                   className={styles.formInput}
                 />
               </div>
@@ -253,19 +394,7 @@ export default function AgentDetail({
                     <input
                       type="checkbox"
                       checked={editForm.enabled_tools.includes(tool.tool_id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setEditForm({
-                            ...editForm,
-                            enabled_tools: [...editForm.enabled_tools, tool.tool_id]
-                          });
-                        } else {
-                          setEditForm({
-                            ...editForm,
-                            enabled_tools: editForm.enabled_tools.filter(id => id !== tool.tool_id)
-                          });
-                        }
-                      }}
+                      onChange={() => handleToolToggle(tool.tool_id)}
                     />
                     <span className={styles.toolName}>{tool.tool_name}</span>
                     <span className={styles.toolDescription}>{tool.description}</span>

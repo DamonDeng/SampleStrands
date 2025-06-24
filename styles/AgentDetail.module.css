@@ -66,7 +66,62 @@
 
 .headerActions {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Auto-save status styles */
+.saveStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.savingIndicator {
+  color: #faa61a;
+  background-color: rgba(250, 166, 26, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.unsavedIndicator {
+  color: #ed4245;
+  background-color: rgba(237, 66, 69, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.savedIndicator {
+  color: #3ba55c;
+  background-color: rgba(59, 165, 92, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editingIndicator {
+  color: #5865f2;
+  background-color: rgba(88, 101, 242, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .actionButton {

@@ -340,7 +340,17 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
 
   // Agent management functions
   const handleSelectAgent = (agentId: string) => {
+    // If switching to a different agent, trigger auto-save for current agent
+    if (selectedAgentId && selectedAgentId !== agentId) {
+      // The AgentDetail component will handle auto-save on unmount
+    }
     setSelectedAgentId(agentId);
+  };
+
+  const handleAgentChange = () => {
+    // Called when navigating away from an agent
+    // This can be used for additional cleanup if needed
+    console.log('🔄 Agent navigation detected');
   };
 
   const handleDeleteAgent = async (agentId: string) => {
@@ -456,6 +466,11 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   };
 
   const handleNavigation = (view: 'chat' | 'agents' | 'settings' | 'help') => {
+    // If leaving agents view with a selected agent, trigger auto-save
+    if (currentView === 'agents' && selectedAgentId && view !== 'agents') {
+      console.log('🔄 Leaving agents view, auto-save will be triggered by AgentDetail unmount');
+    }
+
     setCurrentView(view);
 
     // Reset selections when switching views
@@ -656,6 +671,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
             supportedTools={supportedTools}
             onUpdateAgent={handleUpdateAgent}
             onToggleAgent={handleToggleAgent}
+            onAgentChange={handleAgentChange}
           />
         ) : (
           <div className={styles.emptyState}>

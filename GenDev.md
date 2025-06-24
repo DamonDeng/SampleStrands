@@ -918,24 +918,34 @@ GET    /api/v1/tools/{id}                # Get specific tool info
 
 ### User Experience Workflow
 
-#### Agent Management Flow
-1. **Navigate to Agents**: Click Agents icon in sidebar
-2. **View Agent List**: See all agents with status and info
-3. **Create New Agent**: Click + or "Create Agent" button
-4. **Fill Creation Form**: Configure agent with model and tools
-5. **Submit Agent**: Agent appears immediately in list
-6. **Select Agent**: Click agent to view full configuration
-7. **Edit Agent**: Click Edit to modify configuration
-8. **Manage Status**: Activate/deactivate agents as needed
+### Agent Creation & Editing UX Design (UPDATED ✅)
+**Core Principle**: Eliminate friction and provide seamless editing experience
 
-#### Agent Creation Flow
-1. **Open Modal**: Click create button opens modal form
-2. **Enter Details**: Fill required name and select model
-3. **Configure Options**: Set description, system prompt, parameters
-4. **Select Tools**: Choose from available tool checkboxes
-5. **Submit Form**: Backend creates agent via API
-6. **Immediate Feedback**: Agent appears in list, modal closes
-7. **Auto-Selection**: New agent is automatically selected
+#### Agent Creation Flow (Streamlined)
+**Design Philosophy**: "Create first, configure later" - eliminates modal friction
+1. **One-Click Creation**: Click "Create Agent" → Backend creates agent with smart defaults
+2. **Smart Defaults**: Uses smallest seq_number model (Claude 3.7 Sonnet), enables calculator tool only
+3. **Immediate Editing**: New agent appears in list and automatically opens in edit mode
+4. **Sequential Naming**: Auto-generates "New Agent 1", "New Agent 2", etc.
+
+#### Agent Editing Flow (Auto-Save)
+**Design Philosophy**: Modern apps (Notion, Figma) expect seamless editing without save anxiety
+1. **Auto-Enter Editing Mode**: Agent detail page automatically enters editing mode when selected
+2. **Comprehensive Auto-Save System**:
+   - **Debounced Save**: 2 seconds after user stops typing
+   - **Navigation Save**: Auto-save when switching to different agents
+   - **View Change Save**: Auto-save when switching tabs (Chat ↔ Agents ↔ Settings)
+   - **Component Unmount Save**: Auto-save when navigating away
+3. **Real-Time Status Indicators**: Visual feedback (🔵 Editing → 🔴 Unsaved → 🟡 Saving → 🟢 Saved)
+4. **Zero Data Loss**: No manual save required, changes preserved automatically
+5. **No Manual Save Button**: Eliminated to prevent jarring appear/disappear UX
+
+#### Key UX Improvements Made
+- **Eliminated Modal Popups**: No more "blank page" anxiety from complex forms
+- **Removed Edit/Save Buttons**: Always in editing mode with auto-save
+- **Smart Default Selection**: Reduces configuration burden for new agents
+- **Immediate Visual Feedback**: Status indicators show save state in real-time
+- **Seamless Navigation**: Switch between agents without losing changes
 
 ### Technical Implementation
 

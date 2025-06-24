@@ -132,13 +132,18 @@ class ModelConverter:
     def supported_model_db_to_pydantic(db_model: SupportedModelDB) -> SupportedModel:
         """Convert SQLAlchemy SupportedModel to Pydantic SupportedModel."""
         return SupportedModel(
+            uuid=db_model.uuid,
             model_id=db_model.model_id,
             model_name=db_model.model_name,
             provider=db_model.provider,
             description=db_model.description,
             max_tokens=db_model.max_tokens,
             supports_streaming=db_model.supports_streaming,
-            supports_tools=db_model.supports_tools
+            supports_tools=db_model.supports_tools,
+            category=db_model.category,
+            activated_in_app=db_model.activated_in_app,
+            default_seq_number=db_model.default_seq_number,
+            config_version=db_model.config_version
         )
     
     @staticmethod
@@ -161,6 +166,7 @@ class ModelConverter:
     def supported_tool_db_to_pydantic(db_tool: SupportedToolDB) -> SupportedTool:
         """Convert SQLAlchemy SupportedTool to Pydantic SupportedTool."""
         return SupportedTool(
+            uuid=db_tool.uuid,
             tool_id=db_tool.tool_id,
             tool_name=db_tool.tool_name,
             description=db_tool.description,

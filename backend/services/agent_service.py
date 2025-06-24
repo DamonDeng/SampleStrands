@@ -65,6 +65,58 @@ class AgentService:
             logger.error(f"❌ Failed to get agent {agent_id}: {str(e)}")
             return None
     
+    async def quick_create_agent(self) -> Agent:
+        """Create a new agent with default settings."""
+        logger.info("🚀 Quick creating agent with default settings")
+
+        # Get the model with the smallest seq_number (most recommended)
+        supported_models = await self.get_supported_models()
+        if not supported_models:
+            raise ValueError("No supported models available")
+
+        # Sort by seq_number and get the first (most recommended)
+        default_model = min(supported_models, key=lambda m: m.default_seq_number)
+        logger.debug(f"   🤖 Using default model: {default_model.model_name} (seq: {default_model.default_seq_number})")
+
+        # Get supported tools and enable only calculator by default
+        supported_tools = await self.get_supported_tools()
+        default_tools = []
+        for tool in supported_tools:
+            default_tools.append(ToolConfig(
+                tool_id=tool.tool_id,
+                tool_name=tool.tool_name,
+                description=tool.description,
+                enabled=(tool.tool_id == "calculator"),  # Only enable calculator by default
+                parameters={}
+            ))
+
+        # Generate a default name
+        agent_count = len(await self.get_all_agents())
+        default_name = f"New Agent {agent_count + 1}"
+
+        # Create agent config using the alias approach
+        config_data = {
+            "name": default_name,
+            "description": "A new AI agent ready to be configured",
+            "system_prompt": None,
+            "model_config": {  # Use the alias name for JSON serialization
+                "model_id": default_model.model_id,
+                "model_name": default_model.model_name,
+                "provider": default_model.provider,
+                "temperature": 0.7,
+                "max_tokens": 1000,
+                "top_p": 0.9,
+                "stop_sequences": []
+            },
+            "tools": [tool.dict() for tool in default_tools],
+            "metadata": {}
+        }
+
+        # Create AgentCreateRequest using model_validate to handle aliases properly
+        request_data = {"config": config_data}
+        request = AgentCreateRequest.model_validate(request_data)
+        return await self.create_agent(request)
+
     async def create_agent(self, request: AgentCreateRequest) -> Agent:
         """Create a new agent."""
         logger.info(f"🆕 Creating new agent: '{request.config.name}'")

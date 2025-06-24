@@ -42,6 +42,25 @@ async def list_agents():
     )
 
 
+@router.post("/quick", response_model=Agent)
+async def quick_create_agent():
+    """Create a new agent with default settings."""
+    logger.info("🚀 Quick creating new agent with defaults")
+
+    try:
+        agent = await agent_service.quick_create_agent()
+        logger.info(f"✅ Quick agent created successfully: {agent.id}")
+        logger.debug(f"   📝 Name: {agent.config.name}")
+        logger.debug(f"   🤖 Model: {agent.config.llm_config.model_name}")
+        return agent
+    except Exception as e:
+        logger.error(f"❌ Failed to quick create agent: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create agent: {str(e)}"
+        )
+
+
 @router.post("", response_model=Agent)
 async def create_agent(request: AgentCreateRequest):
     """Create a new agent."""

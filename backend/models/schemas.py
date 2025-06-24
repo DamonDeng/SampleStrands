@@ -196,6 +196,7 @@ class AgentConfig(BaseModel):
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional metadata")
 
     model_config = ConfigDict(
+        populate_by_name=True,  # Allow using both field names and aliases
         json_schema_extra={
             "example": {
                 "name": "My Assistant",
@@ -271,6 +272,7 @@ class AgentListResponse(BaseModel):
 
 class SupportedModel(BaseModel):
     """Supported model information."""
+    uuid: str = Field(..., description="Unique identifier")
     model_id: str = Field(..., description="Model identifier")
     model_name: str = Field(..., description="Human-readable model name")
     provider: str = Field(..., description="Model provider")
@@ -278,10 +280,15 @@ class SupportedModel(BaseModel):
     max_tokens: int = Field(..., description="Maximum tokens supported")
     supports_streaming: bool = Field(default=True, description="Whether streaming is supported")
     supports_tools: bool = Field(default=True, description="Whether tools are supported")
+    category: str = Field(..., description="Model category")
+    activated_in_app: bool = Field(default=True, description="Whether model is activated in app")
+    default_seq_number: int = Field(..., description="Default sequence number for ordering")
+    config_version: int = Field(default=1, description="Configuration version")
 
 
 class SupportedTool(BaseModel):
     """Supported tool information."""
+    uuid: str = Field(..., description="Unique identifier")
     tool_id: str = Field(..., description="Tool identifier")
     tool_name: str = Field(..., description="Human-readable tool name")
     description: str = Field(..., description="Tool description")

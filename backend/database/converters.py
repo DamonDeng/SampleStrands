@@ -185,27 +185,32 @@ class ModelConverter:
         return db_tool
     
     @staticmethod
+    def convert_json_model_to_db(model_data: Dict[str, Any]) -> SupportedModelDB:
+        """Convert a single JSON model configuration to database model."""
+        return SupportedModelDB(
+            uuid=model_data.get("uuid"),
+            model_id=model_data["model_id"],
+            model_name=model_data["model_name"],
+            provider=model_data.get("provider", "bedrock"),
+            description=model_data.get("description", ""),
+            max_tokens=model_data.get("max_tokens", 4096),
+            supports_streaming=model_data.get("supports_streaming", True),
+            supports_tools=model_data.get("supports_tools", True),
+            category=model_data.get("category", "general"),
+            activated_in_app=model_data.get("activated_in_app", True),
+            default_seq_number=model_data.get("default_seq_number", 100),
+            config_version=model_data.get("config_version", 1)
+        )
+
+    @staticmethod
     def load_supported_models_from_json(models_data: Dict[str, Any]) -> List[SupportedModelDB]:
         """Load supported models from JSON configuration into database models."""
         db_models = []
-        
+
         for model_data in models_data.get("models", []):
-            db_model = SupportedModelDB(
-                uuid=model_data.get("uuid"),
-                model_id=model_data["model_id"],
-                model_name=model_data["model_name"],
-                provider=model_data.get("provider", "bedrock"),
-                description=model_data.get("description", ""),
-                max_tokens=model_data.get("max_tokens", 4096),
-                supports_streaming=model_data.get("supports_streaming", True),
-                supports_tools=model_data.get("supports_tools", True),
-                category=model_data.get("category", "general"),
-                activated_in_app=model_data.get("activated_in_app", True),
-                default_seq_number=model_data.get("default_seq_number", 100),
-                config_version=model_data.get("config_version", 1)
-            )
+            db_model = ModelConverter.convert_json_model_to_db(model_data)
             db_models.append(db_model)
-        
+
         return db_models
     
     @staticmethod

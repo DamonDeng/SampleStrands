@@ -58,12 +58,13 @@ async def lifespan(app: FastAPI):
         if test_database_connection():
             logger.info("✅ Database connection successful")
 
-            # Load configurations if needed
+            # Load configurations with version checking
             if not config_loader.is_database_initialized():
                 logger.info("📋 Loading initial configurations...")
-                config_loader.load_all_configurations()
+                config_loader.load_all_configurations(force_update=True)
             else:
-                logger.info("📋 Database already initialized with configurations")
+                logger.info("📋 Checking for configuration updates...")
+                config_loader.load_all_configurations(force_update=False)
 
             # Log database info
             db_info = get_database_info()

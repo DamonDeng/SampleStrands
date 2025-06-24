@@ -62,6 +62,20 @@ class AgentAPI {
     return this.request<Agent>(`/agents/${agentId}`);
   }
 
+  async quickCreateAgent(): Promise<Agent> {
+    console.log('🚀 AgentAPI: Quick creating agent with defaults');
+    try {
+      const response = await this.request<Agent>('/agents/quick', {
+        method: 'POST',
+      });
+      console.log('✅ AgentAPI: Successfully quick created agent:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ AgentAPI: Failed to quick create agent:', error);
+      throw error;
+    }
+  }
+
   async createAgent(request: AgentCreateRequest): Promise<Agent> {
     return this.request<Agent>('/agents', {
       method: 'POST',
@@ -159,6 +173,7 @@ export const agentAPI = new AgentAPI();
 export const {
   getAgents,
   getAgent,
+  quickCreateAgent,
   createAgent,
   updateAgent,
   deleteAgent,

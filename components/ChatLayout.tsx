@@ -416,6 +416,25 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     setShowCreateModal(true);
   };
 
+  const handleQuickCreateAgent = async () => {
+    try {
+      if (backendAvailable) {
+        const newAgent = await agentAPI.quickCreateAgent();
+
+        // Add to local state
+        setAgents(prev => [newAgent, ...prev]);
+        setSelectedAgentId(newAgent.id);
+
+        console.log(`🚀 Quick created new agent: ${newAgent.config.name}`);
+      }
+    } catch (error) {
+      console.error('Failed to quick create agent:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setSyncError(`Failed to create agent: ${errorMessage}`);
+      setTimeout(() => setSyncError(null), 5000);
+    }
+  };
+
   const handleCreateAgentSubmit = async (request: AgentCreateRequest) => {
     try {
       if (backendAvailable) {
@@ -553,7 +572,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
           onDeleteAgent={handleDeleteAgent}
           onUpdateAgent={(agentId, name) => handleUpdateAgent(agentId, { config: { name } })}
           onToggleAgent={handleToggleAgent}
-          onCreateAgent={handleCreateAgent}
+          onCreateAgent={handleQuickCreateAgent}
         />
       ) : (
         <div style={{
@@ -647,7 +666,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
                   <p>Select an agent to view its configuration.</p>
                   <button
                     className={styles.createSessionButton}
-                    onClick={handleCreateAgent}
+                    onClick={handleQuickCreateAgent}
                   >
                     Create New Agent
                   </button>

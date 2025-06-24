@@ -84,6 +84,7 @@ class ModelConverter:
         return Session(
             id=db_session.id,
             title=db_session.title,
+            agent_id=db_session.agent_id,
             messages=messages,
             created_at=db_session.created_at,
             updated_at=db_session.updated_at,
@@ -98,6 +99,7 @@ class ModelConverter:
         
         db_session.id = session.id
         db_session.title = session.title
+        db_session.agent_id = session.agent_id
         db_session.extra_metadata = session.metadata
         db_session.created_at = session.created_at
         db_session.updated_at = session.updated_at

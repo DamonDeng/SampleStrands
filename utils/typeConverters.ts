@@ -38,6 +38,7 @@ export function convertBackendSession(backendSession: BackendSession): FrontendS
   return {
     id: backendSession.id,
     title: backendSession.title,
+    agentId: backendSession.agent_id,
     messages: backendSession.messages.map(convertBackendMessage),
     createdAt: new Date(backendSession.created_at),
     updatedAt: new Date(backendSession.updated_at)
@@ -51,6 +52,7 @@ export function convertFrontendSession(frontendSession: FrontendSession): Backen
   return {
     id: frontendSession.id,
     title: frontendSession.title,
+    agent_id: frontendSession.agentId,
     messages: frontendSession.messages.map(convertFrontendMessage),
     created_at: frontendSession.createdAt.toISOString(),
     updated_at: frontendSession.updatedAt.toISOString()

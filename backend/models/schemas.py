@@ -43,6 +43,7 @@ class Session(BaseModel):
     """Chat session model."""
     id: str = Field(default_factory=lambda: str(uuid4()))
     title: str
+    agent_id: Optional[str] = Field(default=None, description="ID of the associated agent")
     messages: List[Message] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
@@ -97,6 +98,7 @@ class SessionCreateRequest(BaseModel):
     """Request model for creating a new session."""
     title: Optional[str] = None
     initial_message: Optional[str] = None
+    agent_id: Optional[str] = Field(default=None, description="ID of the agent to associate with this session")
 
 
 class SessionUpdateRequest(BaseModel):

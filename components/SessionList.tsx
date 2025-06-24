@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Session } from '../types/chat';
+import { Agent } from '../types/agent';
 import { IoChatbubbleEllipsesOutline, IoPencilOutline, IoTrashOutline } from 'react-icons/io5';
+import NewChatButton from './NewChatButton';
 import styles from '../styles/SessionList.module.css';
 
 interface SessionListProps {
@@ -9,6 +11,12 @@ interface SessionListProps {
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onUpdateTitle: (sessionId: string, title: string) => void;
+  // New Chat Button props
+  defaultAgent: Agent | null;
+  agents: Agent[];
+  onCreateSession: (agentId?: string) => void;
+  onSetDefaultAgent: (agentId: string) => void;
+  backendAvailable: boolean;
 }
 
 export default function SessionList({
@@ -16,7 +24,12 @@ export default function SessionList({
   activeSessionId,
   onSelectSession,
   onDeleteSession,
-  onUpdateTitle
+  onUpdateTitle,
+  defaultAgent,
+  agents,
+  onCreateSession,
+  onSetDefaultAgent,
+  backendAvailable
 }: SessionListProps) {
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
@@ -146,6 +159,17 @@ export default function SessionList({
             </div>
           ))
         )}
+      </div>
+
+      {/* New Chat Button - Fixed at bottom */}
+      <div className={styles.newChatButtonWrapper}>
+        <NewChatButton
+          defaultAgent={defaultAgent}
+          agents={agents}
+          onCreateSession={onCreateSession}
+          onSetDefaultAgent={onSetDefaultAgent}
+          disabled={!backendAvailable}
+        />
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import AgentCreateModal from './AgentCreateModal';
 import SettingList from './SettingList';
 import SettingGeneralDetail from './SettingGeneralDetail';
 import SettingAdvancedDetail from './SettingAdvancedDetail';
+import AppLoadingScreen from './AppLoadingScreen';
 import { Session, Message } from '../types/chat';
 import { Agent, SupportedModel, SupportedTool, AgentCreateRequest } from '../types/agent';
 import { AppSetting, appSettingAPI } from '../utils/appSettingAPI';
@@ -56,6 +57,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   // UI state
   const [currentView, setCurrentView] = useState<'chat' | 'agents' | 'settings' | 'help'>('chat');
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true); // New state for app initialization
   const [backendAvailable, setBackendAvailable] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [sessionListWidth, setSessionListWidth] = useState(280); // Default width
@@ -66,13 +68,34 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   const MIN_SESSION_WIDTH = 200;
   const MAX_SESSION_WIDTH = 500;
 
-  // Load data from backend on component mount
+  // Initialize app - check backend availability first
   useEffect(() => {
+    console.log('🚀 Initializing app...');
+    setIsInitializing(true);
+    // Start by loading sessions, which will check backend availability
     loadSessionsFromBackend();
-    if (currentView === 'agents') {
-      loadAgentsFromBackend();
-    }
   }, []);
+
+  // Load agents and settings when backend becomes available
+  useEffect(() => {
+    if (backendAvailable && isInitializing) {
+      console.log('✅ Backend available, loading agents and settings...');
+      Promise.all([
+        loadAgentsFromBackend(),
+        loadSettingsFromBackend()
+      ]).then(() => {
+        setIsInitializing(false);
+        console.log('🎉 App initialization complete');
+      }).catch(error => {
+        console.error('Failed to load initial data:', error);
+        setIsInitializing(false);
+      });
+    } else if (!backendAvailable && !isLoading) {
+      // Backend not available and we're done checking
+      setIsInitializing(false);
+      console.log('⚠️ App initialized without backend');
+    }
+  }, [backendAvailable, isInitializing, isLoading]);
 
   // Load agents when switching to agent view
   useEffect(() => {
@@ -215,13 +238,14 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     }
   };
 
-  const createNewSession = useCallback(async (initialMessage?: string) => {
+  const createNewSession = useCallback(async (initialMessage?: string, agentId?: string) => {
     try {
       if (backendAvailable) {
         // Create session via backend API
         const backendSession = await pythonAPI.createSession({
           title: `Chat ${sessions.length + 1}`,
-          initial_message: initialMessage
+          initial_message: initialMessage,
+          agent_id: agentId
         });
 
         const newSession = convertBackendSession(backendSession);
@@ -548,6 +572,58 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     console.log('🔄 Setting navigation detected');
   };
 
+  // Get default agent from settings
+  const getDefaultAgent = useCallback(() => {
+    const generalSetting = settings.find(s => s.setting_title === 'general');
+    console.log('🔍 Getting default agent:', {
+      settingsCount: settings.length,
+      generalSetting: generalSetting?.json_data,
+      agentsCount: agents.length,
+      activeAgentsCount: agents.filter(a => a.is_active).length
+    });
+
+    if (!generalSetting?.json_data?.default_agent) {
+      console.log('⚠️ No default agent set in settings');
+      return null;
+    }
+
+    const defaultAgentId = generalSetting.json_data.default_agent;
+    const defaultAgent = agents.find(agent => agent.id === defaultAgentId && agent.is_active);
+    console.log('🎯 Default agent result:', defaultAgent?.config.name || 'Not found');
+    return defaultAgent || null;
+  }, [settings, agents]);
+
+  // Set default agent in settings
+  const handleSetDefaultAgent = useCallback(async (agentId: string) => {
+    try {
+      const generalSetting = settings.find(s => s.setting_title === 'general');
+      if (!generalSetting) {
+        console.error('General setting not found');
+        return;
+      }
+
+      const updatedJsonData = {
+        ...generalSetting.json_data,
+        default_agent: agentId
+      };
+
+      await appSettingAPI.updateSetting('general', {
+        json_data: updatedJsonData
+      });
+
+      // Update local settings state
+      setSettings(prev => prev.map(setting =>
+        setting.setting_title === 'general'
+          ? { ...setting, json_data: updatedJsonData }
+          : setting
+      ));
+
+      console.log(`✅ Set default agent to: ${agentId}`);
+    } catch (error) {
+      console.error('Failed to set default agent:', error);
+    }
+  }, [settings]);
+
   const handleNavigation = (view: 'chat' | 'agents' | 'settings' | 'help') => {
     // If leaving agents view with a selected agent, trigger auto-save
     if (currentView === 'agents' && selectedAgentId && view !== 'agents') {
@@ -606,21 +682,13 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
 
-  // Show loading state while initializing
-  if (isLoading) {
+  // Show loading screen while app is initializing
+  if (isInitializing) {
     return (
-      <div className={styles.chatLayout}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100%',
-          color: '#888',
-          fontSize: '16px'
-        }}>
-          Loading sessions...
-        </div>
-      </div>
+      <AppLoadingScreen
+        backendAvailable={backendAvailable}
+        isLoading={isLoading}
+      />
     );
   }
 
@@ -661,6 +729,11 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
           onSelectSession={setActiveSessionId}
           onDeleteSession={deleteSession}
           onUpdateTitle={updateSessionTitle}
+          defaultAgent={getDefaultAgent()}
+          agents={agents}
+          onCreateSession={(agentId) => createNewSession(undefined, agentId)}
+          onSetDefaultAgent={handleSetDefaultAgent}
+          backendAvailable={backendAvailable}
         />
       ) : currentView === 'agents' ? (
         <AgentList

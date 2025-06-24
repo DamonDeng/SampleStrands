@@ -179,3 +179,11 @@
   outline: none;
   border-color: #7289da;
 }
+
+/* New Chat Button Wrapper */
+.newChatButtonWrapper {
+  padding: 16px;
+  background-color: #36393f;
+  border-top: 1px solid #40444b;
+  margin-top: auto;
+}

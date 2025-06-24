@@ -34,11 +34,14 @@ class SessionService:
                 title = request.title or f"Chat {session_count + 1}"
 
                 logger.info(f"🆕 Creating session {session_id} with title '{title}'")
+                if request.agent_id:
+                    logger.debug(f"   🤖 Associating with agent: {request.agent_id}")
 
                 # Create database session
                 db_session = SessionDB(
                     id=session_id,
-                    title=title
+                    title=title,
+                    agent_id=request.agent_id
                 )
                 session_db.add(db_session)
                 session_db.flush()  # Get the ID without committing

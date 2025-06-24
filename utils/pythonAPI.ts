@@ -15,6 +15,7 @@ export interface Message {
 export interface Session {
   id: string;
   title: string;
+  agent_id?: string;
   messages: Message[];
   created_at: string;
   updated_at: string;
@@ -48,6 +49,7 @@ export interface StreamChunk {
 export interface SessionCreateRequest {
   title?: string;
   initial_message?: string;
+  agent_id?: string;
 }
 
 export interface SessionUpdateRequest {

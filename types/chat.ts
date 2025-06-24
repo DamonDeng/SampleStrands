@@ -9,6 +9,7 @@ export interface Message {
 export interface Session {
   id: string;
   title: string;
+  agentId?: string;
   messages: Message[];
   createdAt: Date;
   updatedAt: Date;

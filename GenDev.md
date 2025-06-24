@@ -7,7 +7,7 @@
 **Target Platforms**: macOS (Intel & Apple Silicon), Windows  
 **UI Design**: Slack-like three-column layout  
 **Developer**: DamonDeng (dengmingxuan@hotmail.com)  
-**Status**: ✅ Core functionality complete, Python backend integration complete, Frontend-Backend integration complete with optimistic updates, Enhanced logging system implemented, **AWS Strands Agents SDK integration complete with real AI capabilities**, **UI/UX improvements complete with modern design system**, **Agent Configuration Backend APIs complete**, **Agent Management Frontend complete with creation modal**, **Database Migration to Persistent Storage complete with SQLite + SQLAlchemy**, **Application Settings System complete with auto-save functionality**
+**Status**: ✅ Core functionality complete, Python backend integration complete, Frontend-Backend integration complete with optimistic updates, Enhanced logging system implemented, **AWS Strands Agents SDK integration complete with real AI capabilities**, **UI/UX improvements complete with modern design system**, **Agent Configuration Backend APIs complete**, **Agent Management Frontend complete with creation modal**, **Database Migration to Persistent Storage complete with SQLite + SQLAlchemy**, **Application Settings System complete with auto-save functionality**, **Complex New Chat Button with Agent Selection complete**
 
 ## Key Challenge Solved
 
@@ -872,12 +872,152 @@ The Application Settings system is now complete and ready for production use wit
 - **Professional Design**: Consistent with existing app design system
 - **Error Resilience**: Graceful handling of all error scenarios
 
+## Complex New Chat Button with Agent Selection (COMPLETED ✅)
+
+### Implementation Overview
+**Date**: June 24, 2025
+**Status**: ✅ Complete Multi-Feature Button with Agent Integration
+**Architecture**: Complex button component with dropdown menu, default agent management, and session creation
+
+### Key Features Implemented
+
+#### 1. Multi-Function Button Design
+**Button Layout**: Full-width button at bottom of session list with three distinct areas:
+- **Main Area**: + icon + default agent name (or "New Chat" if no default)
+- **Arrow Area**: Clickable chevron icon that toggles drop-up menu
+- **Visual Feedback**: Hover states, active states, and smooth transitions
+
+#### 2. Smart Default Agent Display
+**Default Agent Logic**:
+- Shows default agent name when configured in app settings
+- Falls back to "New Chat" text when no default agent is set
+- Automatically retrieves from `general.default_agent` setting
+- Only considers active agents for default selection
+
+#### 3. Drop-up Menu with Agent Selection
+**Menu Features**:
+- **Positioning**: Appears above button (drop-up style) to avoid screen edge issues
+- **Agent Filtering**: Shows only active agents in the list
+- **Agent Information**: Displays agent name and associated model name
+- **Empty State**: Professional message when no active agents available
+
+#### 4. Session Creation with Agent Association
+**Creation Modes**:
+- **Simple Click**: Creates session with default agent (if set) or without agent
+- **Agent Selection**: Click any agent in dropdown → creates session with that specific agent
+- **Agent Settings**: New sessions use selected agent's model configuration and tools
+
+#### 5. Default Agent Management
+**Checkbox Functionality**:
+- **Single Selection**: Radio-button style checkboxes (only one default at a time)
+- **Visual Indicators**: Checked/unchecked states with appropriate icons
+- **Persistent Setting**: Updates app settings and saves to backend
+- **No Session Creation**: Setting default agent doesn't create a session (better UX)
+
+#### 6. Smart UX Behaviors
+**Menu Interaction**:
+- **Close on Outside Click**: Menu closes when clicking elsewhere
+- **Close on Agent Selection**: Menu closes after selecting agent for session creation
+- **Stay Open for Settings**: Menu remains open when using checkboxes to set default
+- **Keyboard Support**: Proper focus management and accessibility
+
+### Technical Implementation Details
+
+#### 1. Backend Session Enhancement
+**Database Schema Updates**:
+- Added `agent_id` field to sessions table for agent association
+- Updated `SessionCreateRequest` to accept optional `agent_id` parameter
+- Modified session creation service to handle agent associations
+
+**API Changes**:
+```python
+# Enhanced session creation
+POST /api/v1/sessions
+{
+  "title": "Chat 1",
+  "initial_message": "Hello",
+  "agent_id": "agent-uuid-here"  # New optional field
+}
+```
+
+#### 2. Frontend Component Architecture
+**NewChatButton Component** (`components/NewChatButton.tsx`):
+- **Props Interface**: Receives default agent, agents list, and callback functions
+- **State Management**: Dropdown visibility, click outside detection
+- **Event Handling**: Separate handlers for main click, arrow click, agent selection
+- **Accessibility**: Proper ARIA labels, keyboard navigation, focus management
+
+**Integration Points**:
+- **SessionList**: NewChatButton positioned at bottom with proper styling
+- **ChatLayout**: Provides agent data, default agent logic, and session creation
+- **App Settings**: Integrates with settings system for default agent persistence
+
+#### 3. Styling and Visual Design
+**CSS Architecture** (`styles/NewChatButton.module.css`):
+- **Button Layout**: Flexbox design with main area and arrow area
+- **Drop-up Menu**: Absolute positioning with proper z-index and shadows
+- **Interactive States**: Hover, active, disabled states for all elements
+- **Responsive Design**: Adapts to different session list widths
+
+**Design Consistency**:
+- **Color Scheme**: Matches app's dark theme (#5865f2 primary, #36393f backgrounds)
+- **Typography**: Consistent with existing components
+- **Icons**: React Icons for professional appearance
+- **Animations**: Smooth transitions and hover effects
+
+#### 4. App Loading State Enhancement
+**Loading Screen Implementation**:
+- **Professional Design**: Gradient background with app branding
+- **Progress Indicators**: Visual stages for backend connection and data loading
+- **Time Tracking**: Shows elapsed time with helpful messages for long waits
+- **Status Communication**: Clear messages about backend connection status
+
+**Loading Logic**:
+- **Sequential Loading**: Backend availability check → agents → settings → UI ready
+- **Race Condition Prevention**: No data loading until backend is confirmed ready
+- **Graceful Degradation**: Handles backend unavailable scenarios properly
+
+### User Experience Workflow
+
+#### Session Creation Flow
+1. **Default Agent Display**: Button shows current default agent name or "New Chat"
+2. **Simple Creation**: Click main button area → creates session with default agent
+3. **Agent Selection**: Click arrow → dropdown opens → select agent → session created
+4. **Default Setting**: Click checkbox → sets new default agent (no session created)
+
+#### Visual Feedback System
+- **Button States**: Normal, hover, active, disabled states
+- **Menu Animation**: Smooth slide-up animation with proper timing
+- **Loading States**: Spinner and progress indicators during operations
+- **Error Handling**: User-friendly messages for edge cases
+
+### Current Status & Production Readiness
+
+#### ✅ Fully Working Features
+- **Multi-Function Button**: All click areas working correctly
+- **Agent Integration**: Complete integration with agent management system
+- **Default Agent Logic**: Persistent default agent setting and retrieval
+- **Session Creation**: Sessions properly associated with selected agents
+- **Drop-up Menu**: Professional dropdown with all interactive features
+- **Loading State**: Smooth app initialization with backend waiting
+- **Error Handling**: Graceful handling of edge cases and backend unavailability
+
+#### 🎯 Key Architectural Decisions
+1. **Drop-up vs Dropdown**: Chose drop-up to avoid screen edge issues at bottom of list
+2. **Checkbox vs Radio**: Used checkbox UI but radio behavior for better visual clarity
+3. **Separate Click Areas**: Split button into main and arrow areas for clear interaction model
+4. **Agent Filtering**: Only show active agents to prevent user confusion
+5. **No Auto-Session**: Setting default agent doesn't create session (prevents accidental creation)
+
 ### Future Enhancement Opportunities
 1. **Settings Import/Export**: Backup and restore user preferences
 2. **Advanced Settings Population**: Add performance, debug, and developer options
 3. **Theme Customization**: Custom color schemes and UI preferences
 4. **Keyboard Shortcuts**: Settings for custom keyboard shortcuts
 5. **Notification Preferences**: Configure app notifications and alerts
+6. **Agent Grouping**: Organize agents by categories in dropdown menu
+7. **Recent Agents**: Show recently used agents at top of dropdown
+8. **Agent Search**: Add search/filter functionality for large agent lists
 
 ## Critical Success Factors
 
@@ -922,6 +1062,16 @@ The Application Settings system is now complete and ready for production use wit
 6. **CSS Modules**: Apply classes directly to elements, avoid complex descendant selectors
 7. **Type Safety**: Use type converters for schema differences between frontend and backend
 8. **Fixed-Width Sidebar**: Simplify UX by removing unnecessary toggle functionality
+
+### Complex UI Component Development
+1. **Multi-Function Buttons**: Split complex buttons into distinct click areas with separate event handlers
+2. **Drop-up Menus**: Use drop-up instead of dropdown for bottom-positioned elements to avoid screen edge issues
+3. **Loading State Management**: Implement proper app initialization sequence to prevent race conditions
+4. **Agent Data Loading**: Load agents and settings only after backend availability is confirmed
+5. **Property Path Consistency**: Ensure frontend types match backend API response structure (model_config vs llm_config)
+6. **Click Outside Detection**: Use refs and event listeners for proper dropdown menu behavior
+7. **State Persistence**: Integrate complex UI components with app settings for persistent user preferences
+8. **Visual Feedback Systems**: Provide clear status indicators and smooth transitions for better UX
 
 ## Agent Configuration Backend APIs (COMPLETED ✅)
 

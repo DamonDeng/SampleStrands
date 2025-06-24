@@ -99,6 +99,8 @@ class AgentService:
             "name": default_name,
             "description": "A new AI agent ready to be configured",
             "system_prompt": None,
+            "preferred_region": None,  # No preferred region by default
+            "enable_advanced_settings": False,  # Advanced settings hidden by default
             "model_config": {  # Use the alias name for JSON serialization
                 "model_id": default_model.model_id,
                 "model_name": default_model.model_name,
@@ -173,6 +175,8 @@ class AgentService:
                     db_agent.name = request.config.name
                     db_agent.description = request.config.description
                     db_agent.system_prompt = request.config.system_prompt
+                    db_agent.preferred_region = request.config.preferred_region
+                    db_agent.enable_advanced_settings = request.config.enable_advanced_settings
                     db_agent.llm_config = request.config.llm_config.dict()
                     db_agent.tools = [tool.dict() for tool in request.config.tools]
                     db_agent.extra_metadata = request.config.metadata

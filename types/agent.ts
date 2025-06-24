@@ -22,6 +22,8 @@ export interface AgentConfig {
   name: string;
   description?: string;
   system_prompt?: string;
+  preferred_region?: string;  // AWS region preference
+  enable_advanced_settings?: boolean;  // Show/hide advanced model settings
   model_config: ModelConfig;  // Keep as model_config for frontend consistency
   tools: ToolConfig[];
   metadata?: Record<string, any>;

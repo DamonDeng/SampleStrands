@@ -64,7 +64,11 @@ class AgentDB(Base):
     name = Column(String, nullable=False)
     description = Column(Text)
     system_prompt = Column(Text)
-    
+
+    # New agent configuration fields
+    preferred_region = Column(String, nullable=True)  # AWS region preference
+    enable_advanced_settings = Column(Boolean, default=False)  # Show/hide advanced model settings
+
     # Model configuration stored as JSON
     llm_config = Column(JSON, nullable=False)
     

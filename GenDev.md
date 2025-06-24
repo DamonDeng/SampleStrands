@@ -940,12 +940,34 @@ GET    /api/v1/tools/{id}                # Get specific tool info
 4. **Zero Data Loss**: No manual save required, changes preserved automatically
 5. **No Manual Save Button**: Eliminated to prevent jarring appear/disappear UX
 
+#### Agent Configuration Field Design (UPDATED ✅)
+**Field Priority & Layout**: Optimized for importance and logical flow
+1. **Agent Name**: Primary identifier
+2. **Model**: Moved up from position 4 - most critical configuration choice
+3. **Preferred Region**: AWS region preference (optional, plain text input)
+4. **Enable Advanced Settings**: Checkbox to show/hide advanced model parameters
+5. **Advanced Model Settings**: Conditional display immediately below checkbox when enabled
+   - Temperature, Max Tokens, Top P, Stop Sequences
+   - Grouped in styled container for visual clarity
+6. **Description**: Secondary information
+7. **System Prompt**: Detailed configuration
+8. **Tools**: Feature selection
+
+**Advanced Settings UX Pattern**:
+- **Conditional Display**: Advanced settings only appear when checkbox is enabled
+- **Immediate Positioning**: Advanced fields appear directly below the enable checkbox
+- **Visual Grouping**: Styled container with subtle background distinguishes advanced section
+- **Default State**: Advanced settings disabled by default to reduce cognitive load
+- **No Validation**: Preferred region accepts any text input (AWS region format expected but not enforced)
+
 #### Key UX Improvements Made
 - **Eliminated Modal Popups**: No more "blank page" anxiety from complex forms
 - **Removed Edit/Save Buttons**: Always in editing mode with auto-save
 - **Smart Default Selection**: Reduces configuration burden for new agents
 - **Immediate Visual Feedback**: Status indicators show save state in real-time
 - **Seamless Navigation**: Switch between agents without losing changes
+- **Progressive Disclosure**: Advanced settings hidden by default, revealed on demand
+- **Logical Field Ordering**: Most important settings (Model) positioned prominently
 
 ### Technical Implementation
 

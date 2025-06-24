@@ -36,6 +36,8 @@ export default function AgentDetail({
     name: agent.config.name,
     description: agent.config.description || '',
     system_prompt: agent.config.system_prompt || '',
+    preferred_region: agent.config.preferred_region || '',
+    enable_advanced_settings: agent.config.enable_advanced_settings || false,
     model_id: agent.config.model_config.model_id,
     temperature: agent.config.model_config.temperature,
     max_tokens: agent.config.model_config.max_tokens,
@@ -58,6 +60,8 @@ export default function AgentDetail({
       name: agent.config.name,
       description: agent.config.description || '',
       system_prompt: agent.config.system_prompt || '',
+      preferred_region: agent.config.preferred_region || '',
+      enable_advanced_settings: agent.config.enable_advanced_settings || false,
       model_id: agent.config.model_config.model_id,
       temperature: agent.config.model_config.temperature,
       max_tokens: agent.config.model_config.max_tokens,
@@ -81,6 +85,8 @@ export default function AgentDetail({
       current.name !== initial.name ||
       current.description !== initial.description ||
       current.system_prompt !== initial.system_prompt ||
+      current.preferred_region !== initial.preferred_region ||
+      current.enable_advanced_settings !== initial.enable_advanced_settings ||
       current.model_id !== initial.model_id ||
       current.temperature !== initial.temperature ||
       current.max_tokens !== initial.max_tokens ||
@@ -156,6 +162,8 @@ export default function AgentDetail({
       name: editForm.name,
       description: editForm.description,
       system_prompt: editForm.system_prompt,
+      preferred_region: editForm.preferred_region,
+      enable_advanced_settings: editForm.enable_advanced_settings,
       model_config: {
         model_id: editForm.model_id,
         model_name: selectedModel.model_name,
@@ -183,6 +191,8 @@ export default function AgentDetail({
       name: agent.config.name,
       description: agent.config.description || '',
       system_prompt: agent.config.system_prompt || '',
+      preferred_region: agent.config.preferred_region || '',
+      enable_advanced_settings: agent.config.enable_advanced_settings || false,
       model_id: agent.config.model_config.model_id,
       temperature: agent.config.model_config.temperature,
       max_tokens: agent.config.model_config.max_tokens,
@@ -312,6 +322,7 @@ export default function AgentDetail({
       <div className={styles.content}>
         {isEditing ? (
           <div className={styles.editForm}>
+            {/* 1. Agent Name */}
             <div className={styles.formSection}>
               <label className={styles.formLabel}>Agent Name</label>
               <input
@@ -323,28 +334,7 @@ export default function AgentDetail({
               />
             </div>
 
-            <div className={styles.formSection}>
-              <label className={styles.formLabel}>Description</label>
-              <textarea
-                value={editForm.description}
-                onChange={(e) => handleFormChange('description', e.target.value)}
-                className={styles.formTextarea}
-                placeholder="Enter agent description"
-                rows={3}
-              />
-            </div>
-
-            <div className={styles.formSection}>
-              <label className={styles.formLabel}>System Prompt</label>
-              <textarea
-                value={editForm.system_prompt}
-                onChange={(e) => handleFormChange('system_prompt', e.target.value)}
-                className={styles.formTextarea}
-                placeholder="Enter system prompt for the agent"
-                rows={4}
-              />
-            </div>
-
+            {/* 2. Model (moved up) */}
             <div className={styles.formSection}>
               <label className={styles.formLabel}>Model</label>
               <select
@@ -360,32 +350,102 @@ export default function AgentDetail({
               </select>
             </div>
 
-            <div className={styles.formRow}>
-              <div className={styles.formSection}>
-                <label className={styles.formLabel}>Temperature</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="2"
-                  step="0.1"
-                  value={editForm.temperature}
-                  onChange={(e) => handleFormChange('temperature', parseFloat(e.target.value))}
-                  className={styles.formInput}
-                />
-              </div>
-              <div className={styles.formSection}>
-                <label className={styles.formLabel}>Max Tokens</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="8000"
-                  value={editForm.max_tokens}
-                  onChange={(e) => handleFormChange('max_tokens', parseInt(e.target.value))}
-                  className={styles.formInput}
-                />
-              </div>
+            {/* 3. Preferred Region (new) */}
+            <div className={styles.formSection}>
+              <label className={styles.formLabel}>Preferred Region</label>
+              <input
+                type="text"
+                value={editForm.preferred_region}
+                onChange={(e) => handleFormChange('preferred_region', e.target.value)}
+                className={styles.formInput}
+                placeholder="e.g., us-east-1 (leave blank for default)"
+              />
             </div>
 
+            {/* 4. Enable Advanced Settings (new) */}
+            <div className={styles.formSection}>
+              <label className={styles.formCheckboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={editForm.enable_advanced_settings}
+                  onChange={(e) => handleFormChange('enable_advanced_settings', e.target.checked)}
+                  className={styles.formCheckbox}
+                />
+                Enable Advanced Settings
+              </label>
+            </div>
+
+            {/* 4.1 Advanced Model Settings (conditional) */}
+            {editForm.enable_advanced_settings && (
+              <div className={styles.advancedSettings}>
+                <h4 className={styles.advancedTitle}>Advanced Model Settings</h4>
+                <div className={styles.formRow}>
+                  <div className={styles.formSection}>
+                    <label className={styles.formLabel}>Temperature</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="2"
+                      step="0.1"
+                      value={editForm.temperature}
+                      onChange={(e) => handleFormChange('temperature', parseFloat(e.target.value))}
+                      className={styles.formInput}
+                    />
+                  </div>
+                  <div className={styles.formSection}>
+                    <label className={styles.formLabel}>Max Tokens</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="8000"
+                      value={editForm.max_tokens}
+                      onChange={(e) => handleFormChange('max_tokens', parseInt(e.target.value))}
+                      className={styles.formInput}
+                    />
+                  </div>
+                </div>
+                <div className={styles.formSection}>
+                  <label className={styles.formLabel}>Top P</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={editForm.top_p}
+                    onChange={(e) => handleFormChange('top_p', parseFloat(e.target.value))}
+                    className={styles.formInput}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 5. Description */}
+            <div className={styles.formSection}>
+              <label className={styles.formLabel}>Description</label>
+              <textarea
+                value={editForm.description}
+                onChange={(e) => handleFormChange('description', e.target.value)}
+                className={styles.formTextarea}
+                placeholder="Enter agent description"
+                rows={3}
+              />
+            </div>
+
+            {/* 6. System Prompt */}
+            <div className={styles.formSection}>
+              <label className={styles.formLabel}>System Prompt</label>
+              <textarea
+                value={editForm.system_prompt}
+                onChange={(e) => handleFormChange('system_prompt', e.target.value)}
+                className={styles.formTextarea}
+                placeholder="Enter system prompt for the agent"
+                rows={4}
+              />
+            </div>
+
+            
+
+            {/* 8. Tools */}
             <div className={styles.formSection}>
               <label className={styles.formLabel}>Tools</label>
               <div className={styles.toolsGrid}>

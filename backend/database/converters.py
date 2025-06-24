@@ -33,6 +33,8 @@ class ModelConverter:
             name=db_agent.name,
             description=db_agent.description,
             system_prompt=db_agent.system_prompt,
+            preferred_region=db_agent.preferred_region,
+            enable_advanced_settings=db_agent.enable_advanced_settings,
             model_config=llm_config,  # Use the alias name
             tools=tools,
             metadata=db_agent.extra_metadata or {}
@@ -57,6 +59,8 @@ class ModelConverter:
         db_agent.name = agent.config.name
         db_agent.description = agent.config.description
         db_agent.system_prompt = agent.config.system_prompt
+        db_agent.preferred_region = agent.config.preferred_region
+        db_agent.enable_advanced_settings = agent.config.enable_advanced_settings
         db_agent.llm_config = agent.config.llm_config.dict()
         db_agent.tools = [tool.dict() for tool in agent.config.tools]
         db_agent.is_active = agent.is_active

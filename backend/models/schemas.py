@@ -297,3 +297,47 @@ class SupportedTool(BaseModel):
     category: str = Field(..., description="Tool category")
     parameters_schema: Dict[str, Any] = Field(default_factory=dict, description="Tool parameters schema")
     examples: List[str] = Field(default_factory=list, description="Usage examples")
+
+
+# App Settings Models
+
+class AppSetting(BaseModel):
+    """Application setting model."""
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    setting_title: str = Field(..., min_length=1, max_length=50, description="Setting title/category")
+    json_data: Dict[str, Any] = Field(default_factory=dict, description="Setting data as JSON")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        },
+        json_schema_extra={
+            "example": {
+                "setting_title": "general",
+                "json_data": {
+                    "language": "en",
+                    "theme": "dark",
+                    "default_agent": "agent-uuid-here"
+                }
+            }
+        }
+    )
+
+
+class AppSettingCreateRequest(BaseModel):
+    """Request model for creating a new app setting."""
+    setting_title: str = Field(..., min_length=1, max_length=50, description="Setting title/category")
+    json_data: Dict[str, Any] = Field(default_factory=dict, description="Setting data as JSON")
+
+
+class AppSettingUpdateRequest(BaseModel):
+    """Request model for updating an app setting."""
+    json_data: Dict[str, Any] = Field(..., description="Updated setting data as JSON")
+
+
+class AppSettingListResponse(BaseModel):
+    """Response model for listing app settings."""
+    settings: List[AppSetting]
+    total: int

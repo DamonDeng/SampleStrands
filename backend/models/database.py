@@ -111,7 +111,7 @@ class SessionDB(Base):
 class MessageDB(Base):
     """Database model for chat messages."""
     __tablename__ = "messages"
-    
+
     id = Column(String, primary_key=True, default=generate_uuid)
     session_id = Column(String, ForeignKey("sessions.id"), nullable=False, index=True)
     role = Column(String, nullable=False)  # 'user', 'assistant', 'system'
@@ -120,12 +120,25 @@ class MessageDB(Base):
 
     # Message metadata for flexible development
     extra_metadata = Column(JSON, default=dict)
-    
+
     # Timestamps
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)
-    
+
     # Relationships
     session = relationship("SessionDB", back_populates="messages")
+
+
+class AppSettingDB(Base):
+    """Database model for application settings."""
+    __tablename__ = "app_settings"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    setting_title = Column(String, nullable=False, unique=True, index=True)
+    json_data = Column(JSON, nullable=False, default=dict)
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 # Event listeners to ensure updated_at is properly maintained
@@ -146,4 +159,9 @@ def receive_before_update_model(mapper, connection, target):
 
 @event.listens_for(SupportedToolDB, 'before_update')
 def receive_before_update_tool(mapper, connection, target):
+    target.updated_at = datetime.utcnow()
+
+
+@event.listens_for(AppSettingDB, 'before_update')
+def receive_before_update_app_setting(mapper, connection, target):
     target.updated_at = datetime.utcnow()

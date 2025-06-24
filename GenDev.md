@@ -7,7 +7,7 @@
 **Target Platforms**: macOS (Intel & Apple Silicon), Windows  
 **UI Design**: Slack-like three-column layout  
 **Developer**: DamonDeng (dengmingxuan@hotmail.com)  
-**Status**: ✅ Core functionality complete, Python backend integration complete, Frontend-Backend integration complete with optimistic updates, Enhanced logging system implemented, **AWS Strands Agents SDK integration complete with real AI capabilities**, **UI/UX improvements complete with modern design system**, **Agent Configuration Backend APIs complete**, **Agent Management Frontend complete with creation modal**, **Database Migration to Persistent Storage complete with SQLite + SQLAlchemy**
+**Status**: ✅ Core functionality complete, Python backend integration complete, Frontend-Backend integration complete with optimistic updates, Enhanced logging system implemented, **AWS Strands Agents SDK integration complete with real AI capabilities**, **UI/UX improvements complete with modern design system**, **Agent Configuration Backend APIs complete**, **Agent Management Frontend complete with creation modal**, **Database Migration to Persistent Storage complete with SQLite + SQLAlchemy**, **Application Settings System complete with auto-save functionality**
 
 ## Key Challenge Solved
 
@@ -710,6 +710,174 @@ curl -X POST http://127.0.0.1:3867/api/v1/sessions/{id}/chat \
   -d '{"message":"What is 25 * 4?"}'
 node test_integration.js                             # Run integration test suite
 ```
+
+## Application Settings System (COMPLETED ✅)
+
+### Implementation Overview
+**Date**: June 24, 2025
+**Status**: ✅ Complete Settings System with Auto-Save Functionality
+**Architecture**: Flexible JSON-based settings storage with comprehensive frontend UI
+
+### Key Components Built
+
+#### 1. Backend Database Schema (`backend/models/database.py`)
+**AppSettingDB Table**:
+- **id**: UUID primary key for unique identification
+- **setting_title**: Unique string identifier for setting categories ("general", "advanced")
+- **json_data**: JSON field for flexible setting storage
+- **created_at/updated_at**: Automatic timestamp management
+
+**Design Philosophy**: Simple two-field approach (title + JSON) provides maximum flexibility for evolving settings structure without schema migrations.
+
+#### 2. Backend API Layer
+**Service Layer** (`backend/services/app_setting_service.py`):
+- **CRUD Operations**: Complete create, read, update, delete functionality
+- **Default Initialization**: Automatic setup of "general" and "advanced" settings on first run
+- **Validation**: Setting title uniqueness and JSON data validation
+- **Statistics**: Settings summary and count tracking
+
+**REST API Endpoints** (`backend/api/app_setting_routes.py`):
+```
+GET    /api/v1/settings                    # List all settings
+GET    /api/v1/settings/{title}            # Get specific setting by title
+POST   /api/v1/settings                    # Create new setting
+PUT    /api/v1/settings/{title}            # Update existing setting
+DELETE /api/v1/settings/{title}            # Delete setting
+GET    /api/v1/settings/stats/summary      # Get settings statistics
+POST   /api/v1/settings/initialize         # Initialize default settings
+```
+
+#### 3. Frontend Components Architecture
+
+**SettingList Component** (`components/SettingList.tsx`):
+- **Consistent Design**: Matches SessionList and AgentList styling patterns
+- **Setting Categories**: Visual icons and descriptions for each setting type
+- **Status Indicators**: Shows option count and last updated time
+- **Loading/Error States**: Proper feedback for async operations
+- **Empty State**: Guidance when no settings available
+
+**SettingGeneralDetail Component** (`components/SettingGeneralDetail.tsx`):
+- **Language Selection**: Multi-language support (English, Chinese, Spanish, French, German, Japanese)
+- **Theme Configuration**: Dark, Light, Auto theme options with radio button interface
+- **Default Agent Selection**: Comprehensive dropdown with all agents from database
+- **Agent Status Display**: Shows active/inactive status with visual indicators
+- **Agent Sorting**: Active agents first, then inactive, alphabetically sorted within groups
+- **Auto-Save System**: 2-second debounced saving with visual status indicators
+
+**SettingAdvancedDetail Component** (`components/SettingAdvancedDetail.tsx`):
+- **Placeholder Design**: Professional "Coming Soon" interface
+- **Feature Preview**: Lists planned advanced features (Debug Options, Performance Settings, Developer Tools, Experimental Features)
+- **Consistent Styling**: Matches other detail pages with proper theming
+
+#### 4. Auto-Save System Implementation
+**Design Philosophy**: Modern applications (Notion, Figma) expect seamless editing without save anxiety
+
+**Auto-Save Triggers**:
+- **Debounced Save**: 2 seconds after user stops making changes
+- **Navigation Save**: Automatic save when switching between settings
+- **Component Unmount**: Save when navigating away from settings view
+- **View Change**: Save when switching between Chat/Agents/Settings tabs
+
+**Visual Feedback System**:
+- **Idle State**: No indicator when no changes
+- **Unsaved Changes**: Orange save icon with "Unsaved changes" text
+- **Saving State**: Spinning indicator with "Saving..." text
+- **Saved State**: Green checkmark with "Saved" text (auto-clears after 2 seconds)
+- **Error State**: Warning icon with "Save failed" text (auto-clears after 3 seconds)
+
+#### 5. Agent Integration Enhancement
+**Complete Agent Access**: Modified ChatLayout to load agents when entering settings view
+**Enhanced Agent Display**:
+- **All Agents Shown**: Both active and inactive agents available in dropdown
+- **Smart Sorting**: Active agents appear first with ✓ indicator, inactive agents show "(inactive)"
+- **Status Summary**: Shows count of active/inactive agents below dropdown
+- **Error Handling**: Graceful handling of deleted agents with appropriate messaging
+- **Guidance**: Directs users to Agent management when no agents exist
+
+### Default Settings Configuration
+
+#### General Settings JSON Structure
+```json
+{
+  "language": "en",           // Interface language (en, zh, es, fr, de, ja)
+  "theme": "dark",           // UI theme (dark, light, auto)
+  "default_agent": null      // UUID of default agent for new chats
+}
+```
+
+#### Advanced Settings JSON Structure
+```json
+{}  // Empty placeholder for future advanced configurations
+```
+
+### Technical Implementation Details
+
+#### 1. Database Integration
+- **Automatic Initialization**: Default settings created on first app startup
+- **Schema Flexibility**: JSON field allows adding new settings without database migrations
+- **Version Tracking**: Created/updated timestamps for change tracking
+- **Unique Constraints**: Setting titles are unique to prevent duplicates
+
+#### 2. Frontend State Management
+- **Centralized State**: Settings state managed in ChatLayout component
+- **Optimistic Updates**: UI updates immediately, syncs with backend asynchronously
+- **Error Recovery**: Failed operations show user-friendly error messages
+- **Loading States**: Proper loading indicators during data fetching
+
+#### 3. Type Safety & API Integration
+**TypeScript Interfaces** (`utils/appSettingAPI.ts`):
+- **AppSetting**: Complete setting model with metadata
+- **AppSettingCreateRequest/UpdateRequest**: API request models
+- **AppSettingListResponse**: API response models
+- **Full CRUD Client**: Complete HTTP client with error handling
+
+### User Experience Design
+
+#### 1. Navigation Flow
+1. **Settings Icon**: Click settings icon in sidebar (4th position)
+2. **Settings List**: View available setting categories in middle column
+3. **Setting Detail**: Select category to view/edit in third column
+4. **Auto-Save**: Changes save automatically without manual intervention
+
+#### 2. Visual Design Consistency
+- **Dark Theme**: Matches existing app color scheme (#36393f, #40444b, #5865f2)
+- **Icon System**: React Icons for professional appearance
+- **Layout Pattern**: Three-column layout consistent with Chat and Agent views
+- **Typography**: Consistent font sizes, weights, and spacing
+- **Interactive States**: Proper hover, focus, and disabled states
+
+#### 3. Error Handling & Feedback
+- **Backend Unavailable**: Clear messaging with retry options
+- **Validation Errors**: Inline feedback for invalid inputs
+- **Network Errors**: User-friendly error messages with troubleshooting guidance
+- **Loading States**: Skeleton loading and spinner indicators
+
+### Current Status & Production Readiness
+
+#### ✅ Fully Working Features
+- **Complete Settings CRUD**: Create, read, update, delete operations
+- **Auto-Save System**: Seamless editing experience with visual feedback
+- **Agent Integration**: Full access to agent database for default selection
+- **Multi-Language Support**: Interface language selection ready
+- **Theme System**: Dark/Light/Auto theme configuration
+- **Database Persistence**: All settings stored in SQLite database
+- **API Integration**: Full REST API with comprehensive error handling
+- **Type Safety**: Complete TypeScript coverage
+
+#### 🎯 Ready for Production Use
+The Application Settings system is now complete and ready for production use with:
+- **Intuitive Interface**: Easy-to-use settings management
+- **Flexible Architecture**: JSON-based storage for easy feature additions
+- **Robust Auto-Save**: No data loss with comprehensive save triggers
+- **Professional Design**: Consistent with existing app design system
+- **Error Resilience**: Graceful handling of all error scenarios
+
+### Future Enhancement Opportunities
+1. **Settings Import/Export**: Backup and restore user preferences
+2. **Advanced Settings Population**: Add performance, debug, and developer options
+3. **Theme Customization**: Custom color schemes and UI preferences
+4. **Keyboard Shortcuts**: Settings for custom keyboard shortcuts
+5. **Notification Preferences**: Configure app notifications and alerts
 
 ## Critical Success Factors
 

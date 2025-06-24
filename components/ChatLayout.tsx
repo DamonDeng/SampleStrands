@@ -5,8 +5,12 @@ import ChatArea from './ChatArea';
 import AgentList from './AgentList';
 import AgentDetail from './AgentDetail';
 import AgentCreateModal from './AgentCreateModal';
+import SettingList from './SettingList';
+import SettingGeneralDetail from './SettingGeneralDetail';
+import SettingAdvancedDetail from './SettingAdvancedDetail';
 import { Session, Message } from '../types/chat';
 import { Agent, SupportedModel, SupportedTool, AgentCreateRequest } from '../types/agent';
+import { AppSetting, appSettingAPI } from '../utils/appSettingAPI';
 import { pythonAPI } from '../utils/pythonAPI';
 import { agentAPI } from '../utils/agentAPI';
 import { convertBackendSession } from '../utils/typeConverters';
@@ -27,6 +31,12 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [supportedModels, setSupportedModels] = useState<SupportedModel[]>([]);
   const [supportedTools, setSupportedTools] = useState<SupportedTool[]>([]);
+
+  // Settings state
+  const [settings, setSettings] = useState<AppSetting[]>([]);
+  const [selectedSettingTitle, setSelectedSettingTitle] = useState<string | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
 
   // Debug logging for state changes
   useEffect(() => {
@@ -70,6 +80,17 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
       loadAgentsFromBackend();
     }
   }, [currentView, backendAvailable]);
+
+  // Load settings and agents when switching to settings view
+  useEffect(() => {
+    if (currentView === 'settings' && backendAvailable) {
+      loadSettingsFromBackend();
+      // Also load agents for the default agent dropdown in general settings
+      if (agents.length === 0) {
+        loadAgentsFromBackend();
+      }
+    }
+  }, [currentView, backendAvailable, agents.length]);
 
   // Periodic sync with backend (every 30 seconds)
   useEffect(() => {
@@ -465,6 +486,68 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     }
   };
 
+  const loadSettingsFromBackend = async () => {
+    try {
+      if (!backendAvailable) {
+        console.log('⚠️ Backend not available, skipping settings loading');
+        return;
+      }
+
+      setSettingsLoading(true);
+      setSettingsError(null);
+
+      console.log('🔄 Loading settings from backend...');
+      const settingsData = await appSettingAPI.getAllSettings();
+      setSettings(settingsData);
+
+      // Auto-select general setting if available and none selected
+      if (settingsData.length > 0 && !selectedSettingTitle) {
+        const generalSetting = settingsData.find(s => s.setting_title === 'general');
+        setSelectedSettingTitle(generalSetting ? 'general' : settingsData[0].setting_title);
+      }
+
+      console.log(`✅ Successfully loaded ${settingsData.length} settings`);
+    } catch (error) {
+      console.error('❌ Failed to load settings:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setSettingsError(`Failed to load settings: ${errorMessage}`);
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
+
+  // Settings management functions
+  const handleSelectSetting = (settingTitle: string) => {
+    setSelectedSettingTitle(settingTitle);
+  };
+
+  const handleUpdateSetting = async (settingTitle: string, jsonData: Record<string, any>) => {
+    try {
+      if (backendAvailable) {
+        const updatedSetting = await appSettingAPI.updateSetting(settingTitle, { json_data: jsonData });
+
+        if (updatedSetting) {
+          // Update local state
+          setSettings(prev => prev.map(setting =>
+            setting.setting_title === settingTitle ? updatedSetting : setting
+          ));
+
+          console.log(`✏️ Updated setting ${settingTitle}`);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update setting:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setSyncError(`Failed to update setting: ${errorMessage}`);
+      setTimeout(() => setSyncError(null), 5000);
+    }
+  };
+
+  const handleSettingChange = () => {
+    // Called when navigating away from a setting
+    console.log('🔄 Setting navigation detected');
+  };
+
   const handleNavigation = (view: 'chat' | 'agents' | 'settings' | 'help') => {
     // If leaving agents view with a selected agent, trigger auto-save
     if (currentView === 'agents' && selectedAgentId && view !== 'agents') {
@@ -589,6 +672,14 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
           onToggleAgent={handleToggleAgent}
           onCreateAgent={handleQuickCreateAgent}
         />
+      ) : currentView === 'settings' ? (
+        <SettingList
+          settings={settings}
+          selectedSettingTitle={selectedSettingTitle}
+          onSelectSetting={handleSelectSetting}
+          loading={settingsLoading}
+          error={settingsError}
+        />
       ) : (
         <div style={{
           background: '#36393f',
@@ -599,7 +690,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
           color: '#72767d',
           fontSize: '14px'
         }}>
-          {currentView === 'settings' ? 'Settings' : 'Help'}
+          Help
         </div>
       )}
 
@@ -663,6 +754,50 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
             </div>
           </div>
         )
+      ) : currentView === 'settings' ? (
+        selectedSettingTitle && settings.find(s => s.setting_title === selectedSettingTitle) ? (
+          selectedSettingTitle === 'general' ? (
+            <SettingGeneralDetail
+              setting={settings.find(s => s.setting_title === 'general')!}
+              agents={agents}
+              onUpdateSetting={handleUpdateSetting}
+              onSettingChange={handleSettingChange}
+            />
+          ) : selectedSettingTitle === 'advanced' ? (
+            <SettingAdvancedDetail
+              setting={settings.find(s => s.setting_title === 'advanced')!}
+              onUpdateSetting={handleUpdateSetting}
+              onSettingChange={handleSettingChange}
+            />
+          ) : (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyStateContent}>
+                <h2>Unknown Setting</h2>
+                <p>The selected setting type is not recognized.</p>
+              </div>
+            </div>
+          )
+        ) : (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyStateContent}>
+              <h2>Settings</h2>
+              {backendAvailable ? (
+                <p>Select a setting category to configure your preferences.</p>
+              ) : (
+                <>
+                  <p>Backend service is currently unavailable.</p>
+                  <p>Please check that the Python backend is running.</p>
+                  <button
+                    className={styles.retryButton}
+                    onClick={() => loadSettingsFromBackend()}
+                  >
+                    Retry Connection
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )
       ) : currentView === 'agents' ? (
         selectedAgentId && agents.find(a => a.id === selectedAgentId) ? (
           <AgentDetail
@@ -705,7 +840,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
       ) : (
         <div className={styles.emptyState}>
           <div className={styles.emptyStateContent}>
-            <h2>{currentView === 'settings' ? 'Settings' : 'Help'}</h2>
+            <h2>Help</h2>
             <p>This feature is coming soon.</p>
           </div>
         </div>

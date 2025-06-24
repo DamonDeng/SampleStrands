@@ -20,6 +20,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from api.routes import router
 from api.agent_routes import router as agent_router
+from api.app_setting_routes import router as app_setting_router
 from models.schemas import ErrorResponse
 from database.connection import init_database, test_database_connection, get_database_info
 from database.config_loader import config_loader
@@ -69,6 +70,15 @@ async def lifespan(app: FastAPI):
             # Log database info
             db_info = get_database_info()
             logger.info(f"🗄️ Database info: {len(db_info.get('tables', []))} tables")
+
+            # Initialize default app settings
+            try:
+                from services.app_setting_service import app_setting_service
+                logger.info("🔧 Initializing default app settings...")
+                await app_setting_service.initialize_default_settings()
+                logger.info("✅ Default app settings initialized")
+            except Exception as e:
+                logger.error(f"❌ Failed to initialize default app settings: {str(e)}")
 
         else:
             logger.error("❌ Database connection failed")
@@ -199,6 +209,7 @@ async def log_requests(request: Request, call_next):
 # Include API routes
 app.include_router(router, prefix="/api/v1")
 app.include_router(agent_router, prefix="/api/v1")
+app.include_router(app_setting_router, prefix="/api/v1")
 
 
 # Root endpoint

@@ -7,10 +7,10 @@ from typing import List, Optional, Dict, Any
 
 from models.schemas import (
     Agent, AgentConfig, Session, Message, MessageRole, MessageStatus,
-    SupportedModel, SupportedTool, ModelConfig, ToolConfig
+    SupportedModel, SupportedTool, ModelConfig, ToolConfig, AppSetting
 )
 from models.database import (
-    AgentDB, SessionDB, MessageDB, SupportedModelDB, SupportedToolDB
+    AgentDB, SessionDB, MessageDB, SupportedModelDB, SupportedToolDB, AppSettingDB
 )
 
 
@@ -241,6 +241,31 @@ class ModelConverter:
             db_tools.append(db_tool)
         
         return db_tools
+
+    @staticmethod
+    def db_to_app_setting(db_setting: AppSettingDB) -> AppSetting:
+        """Convert SQLAlchemy AppSetting to Pydantic AppSetting."""
+        return AppSetting(
+            id=db_setting.id,
+            setting_title=db_setting.setting_title,
+            json_data=db_setting.json_data or {},
+            created_at=db_setting.created_at,
+            updated_at=db_setting.updated_at
+        )
+
+    @staticmethod
+    def app_setting_to_db(setting: AppSetting, db_setting: Optional[AppSettingDB] = None) -> AppSettingDB:
+        """Convert Pydantic AppSetting to SQLAlchemy AppSetting."""
+        if db_setting is None:
+            db_setting = AppSettingDB()
+
+        db_setting.id = setting.id
+        db_setting.setting_title = setting.setting_title
+        db_setting.json_data = setting.json_data
+        db_setting.created_at = setting.created_at
+        db_setting.updated_at = setting.updated_at
+
+        return db_setting
 
 
 # Global converter instance

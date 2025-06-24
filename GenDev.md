@@ -1265,6 +1265,9 @@ python init_app.py --verbose        # Detailed logging
 
 # Test fresh environment setup
 python test_fresh_init.py           # Simulate and test fresh environment
+
+# Reset database for testing (recommended)
+rm ./backend/chat_app.db            # Remove database file to simulate fresh environment
 ```
 
 #### Schema Evolution Strategy

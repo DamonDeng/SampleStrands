@@ -19,8 +19,26 @@ isDev = !app.isPackaged;
 
 // Python backend management functions
 async function startPythonBackend(): Promise<boolean> {
-  return new Promise((resolve) => {
-    console.log('🐍 Starting Python backend...');
+  return new Promise(async (resolve) => {
+    console.log('🐍 Checking for existing backend...');
+
+    // First, check if there's already a backend running
+    const healthCheck = await checkBackendHealth();
+
+    if (healthCheck.healthy && healthCheck.isOurBackend) {
+      console.log('✅ Our backend is already running and healthy, reusing existing process');
+      console.log('📊 Backend info:', healthCheck.response);
+      resolve(true);
+      return;
+    } else if (healthCheck.healthy && !healthCheck.isOurBackend) {
+      console.log('⚠️ Port conflict detected: Another service is using port 3867');
+      console.log('🔍 Service response:', healthCheck.response);
+      await showPortConflictDialog(healthCheck.response);
+      resolve(false);
+      return;
+    }
+
+    console.log('🐍 Starting new Python backend process...');
 
     // Command to start Python backend
     const backendPath = isDev
@@ -77,11 +95,15 @@ async function startPythonBackend(): Promise<boolean> {
 
     // Wait for backend to be ready
     setTimeout(() => {
-      checkBackendHealth().then((healthy) => {
-        if (healthy) {
+      checkBackendHealth().then((healthResult) => {
+        if (healthResult.healthy && healthResult.isOurBackend) {
           console.log('✅ Python backend started successfully');
+          console.log('📊 Backend info:', healthResult.response);
           backendStartupAttempts = 0;
           resolve(true);
+        } else if (healthResult.healthy && !healthResult.isOurBackend) {
+          console.error('⚠️ Port conflict: Another service took over port 3867');
+          resolve(false);
         } else {
           console.error('❌ Python backend failed to start');
           resolve(false);
@@ -91,7 +113,7 @@ async function startPythonBackend(): Promise<boolean> {
   });
 }
 
-async function checkBackendHealth(): Promise<boolean> {
+async function checkBackendHealth(): Promise<{ healthy: boolean; isOurBackend: boolean; response?: any }> {
   return new Promise((resolve) => {
     const req = http.request({
       hostname: BACKEND_HOST,
@@ -100,16 +122,42 @@ async function checkBackendHealth(): Promise<boolean> {
       method: 'GET',
       timeout: 2000
     }, (res) => {
-      resolve(res.statusCode === 200);
+      let data = '';
+
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        try {
+          const response = JSON.parse(data);
+          // Check if this is our AI Chat Desktop Backend
+          const isOurBackend = response.service === 'AI Chat Desktop Backend' ||
+                              response.status === 'healthy';
+
+          resolve({
+            healthy: res.statusCode === 200,
+            isOurBackend: isOurBackend,
+            response: response
+          });
+        } catch (error) {
+          // If we can't parse JSON, it's probably not our backend
+          resolve({
+            healthy: res.statusCode === 200,
+            isOurBackend: false,
+            response: data
+          });
+        }
+      });
     });
 
     req.on('error', () => {
-      resolve(false);
+      resolve({ healthy: false, isOurBackend: false });
     });
 
     req.on('timeout', () => {
       req.destroy();
-      resolve(false);
+      resolve({ healthy: false, isOurBackend: false });
     });
 
     req.end();
@@ -121,6 +169,41 @@ function stopPythonBackend(): void {
     console.log('🛑 Stopping Python backend...');
     pythonBackend.kill('SIGTERM');
     pythonBackend = null;
+  }
+}
+
+async function showPortConflictDialog(conflictingService: any): Promise<void> {
+  const serviceInfo = typeof conflictingService === 'string'
+    ? conflictingService
+    : JSON.stringify(conflictingService, null, 2);
+
+  const result = await dialog.showMessageBox(mainWindow!, {
+    type: 'warning',
+    title: 'Port Conflict Detected',
+    message: 'Another service is using port 3867',
+    detail: `AI Chat Desktop cannot start its backend service because port 3867 is already in use by another application.\n\n` +
+            `Service Information:\n${serviceInfo}\n\n` +
+            `Please either:\n` +
+            `1. Stop the conflicting service and retry\n` +
+            `2. Continue without backend (limited functionality)\n` +
+            `3. Exit and resolve the conflict manually\n\n` +
+            `Note: We don't automatically kill other services to avoid disrupting your work.`,
+    buttons: ['Retry', 'Continue without backend', 'Exit'],
+    defaultId: 0,
+    cancelId: 2
+  });
+
+  switch (result.response) {
+    case 0: // Retry
+      backendStartupAttempts = 0;
+      await startPythonBackend();
+      break;
+    case 1: // Continue without backend
+      console.log('⚠️ Continuing without Python backend due to port conflict');
+      break;
+    case 2: // Exit
+      app.quit();
+      break;
   }
 }
 

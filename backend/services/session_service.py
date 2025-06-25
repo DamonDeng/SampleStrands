@@ -210,6 +210,35 @@ class SessionService:
         except Exception as e:
             logger.error(f"❌ Failed to clear all sessions: {str(e)}")
 
+    async def update_session_agent(self, session_id: str, agent_id: str) -> bool:
+        """Update the agent associated with a session.
+
+        Args:
+            session_id: Session UUID
+            agent_id: New agent UUID
+
+        Returns:
+            True if updated successfully, False otherwise
+        """
+        logger.info(f"🔄 Updating session {session_id} agent to {agent_id}")
+
+        try:
+            with get_db_session() as session_db:
+                db_session = session_db.query(SessionDB).filter(SessionDB.id == session_id).first()
+                if db_session:
+                    old_agent_id = db_session.agent_id
+                    db_session.agent_id = agent_id
+                    session_db.commit()
+
+                    logger.info(f"✅ Session agent updated: {old_agent_id} → {agent_id}")
+                    return True
+                else:
+                    logger.warning(f"❌ Session not found for agent update: {session_id}")
+                    return False
+        except Exception as e:
+            logger.error(f"❌ Failed to update session agent {session_id}: {str(e)}")
+            return False
+
     async def get_sessions_summary(self) -> Dict[str, int]:
         """Get a summary of sessions."""
         try:

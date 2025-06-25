@@ -38,9 +38,10 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, isElect
 
     try {
       if (backendAvailable) {
-        // Use backend API for AI response
+        // Use backend API for AI response with agent information
         const response = await pythonAPI.sendMessage(sessionId, {
           message: content,
+          agent_id: session.agentId,  // Send agent ID from session
           stream: false
         });
 

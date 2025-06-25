@@ -114,7 +114,7 @@
     },
     {
       "uuid": "ff46f71a-ecce-4704-8421-a12edc542b4a",
-      "model_id": "deepseek.r1-v1:0",
+      "model_id": "us.deepseek.r1-v1:0",
       "model_name": "DeepSeek R1",
       "provider": "bedrock",
       "description": "DeepSeek's flagship reasoning model with advanced problem-solving capabilities",
@@ -124,7 +124,7 @@
       "category": "deepseek",
       "activated_in_app": true,
       "default_seq_number": 10,
-      "config_version": 2
+      "config_version": 3
     },
     {
       "uuid": "5cac419a-402d-40e9-9f3a-a8ad8c871d1f",

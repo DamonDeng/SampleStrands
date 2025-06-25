@@ -24,6 +24,71 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+async def _handle_session_agent_logic(session: Session, requested_agent_id: str = None) -> str:
+    """Handle agent assignment and switching logic for a session.
+
+    Args:
+        session: Current session object
+        requested_agent_id: Agent ID requested by frontend
+
+    Returns:
+        Effective agent ID to use for this request
+
+    Raises:
+        HTTPException: If agent validation fails
+    """
+    from services.agent_service import agent_service
+
+    # If no agent requested, use session's current agent
+    if not requested_agent_id:
+        if session.agent_id:
+            logger.debug(f"   🔄 Using session's current agent: {session.agent_id}")
+            return session.agent_id
+        else:
+            logger.warning(f"   ⚠️ No agent specified and session has no agent")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No agent specified for session without assigned agent"
+            )
+
+    # Verify requested agent exists and is active
+    agent = await agent_service.get_agent(requested_agent_id)
+    if not agent:
+        logger.warning(f"   ❌ Requested agent not found: {requested_agent_id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent {requested_agent_id} not found"
+        )
+
+    if not agent.is_active:
+        logger.warning(f"   ❌ Requested agent is inactive: {requested_agent_id}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Agent {requested_agent_id} is not active"
+        )
+
+    # Check if agent is changing
+    if session.agent_id != requested_agent_id:
+        logger.info(f"   🔄 Agent switching: {session.agent_id} → {requested_agent_id}")
+
+        # Update session with new agent
+        from models.schemas import SessionUpdateRequest
+        update_request = SessionUpdateRequest(title=session.title)
+        # Note: We'll need to add agent_id to SessionUpdateRequest
+
+        # For now, update the session's agent_id directly in the database
+        await session_service.update_session_agent(session.id, requested_agent_id)
+
+        # Clear old agent from pool since agent changed
+        llm_service.remove_session_agent(session.id)
+
+        logger.info(f"   ✅ Session agent updated to: {requested_agent_id}")
+    else:
+        logger.debug(f"   ✅ Agent consistent: {requested_agent_id}")
+
+    return requested_agent_id
+
+
 @router.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint."""
@@ -131,15 +196,20 @@ async def chat_completion(session_id: str, request: ChatRequest):
     """Send a message and get AI response (non-streaming)."""
     logger.info(f"💬 Chat request for session {session_id}")
     logger.debug(f"   📝 Message: {request.message[:100]}{'...' if len(request.message) > 100 else ''}")
-    logger.debug(f"   🎛️ Model: {request.model}, Temperature: {request.temperature}, Max tokens: {request.max_tokens}")
+    if request.agent_id:
+        logger.debug(f"   🤖 Requested agent: {request.agent_id}")
 
-    # Verify session exists
-    if not await session_service.session_exists(session_id):
+    # Verify session exists and handle agent logic
+    session = await session_service.get_session(session_id)
+    if not session:
         logger.warning(f"❌ Session {session_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Session {session_id} not found"
         )
+
+    # Handle agent assignment and switching
+    effective_agent_id = await _handle_session_agent_logic(session, request.agent_id)
 
     try:
         # Add user message to session
@@ -155,9 +225,11 @@ async def chat_completion(session_id: str, request: ChatRequest):
         session_messages = await session_service.get_session_messages(session_id)
         logger.debug(f"   📚 Retrieved {len(session_messages)} messages for context")
 
-        # Generate AI response
-        logger.info(f"🤖 Generating AI response...")
-        ai_response = await llm_service.generate_response(request, session_messages, session_id)
+        # Generate AI response with effective agent
+        logger.info(f"🤖 Generating AI response with agent {effective_agent_id}...")
+        ai_response = await llm_service.generate_response_with_agent(
+            request, session_messages, session_id, effective_agent_id
+        )
         logger.info(f"✅ AI response generated: {len(ai_response.content)} characters")
         logger.debug(f"   🤖 Response preview: {ai_response.content[:100]}{'...' if len(ai_response.content) > 100 else ''}")
 
@@ -193,12 +265,21 @@ async def chat_completion(session_id: str, request: ChatRequest):
 @router.post("/sessions/{session_id}/stream")
 async def chat_stream(session_id: str, request: ChatRequest):
     """Send a message and get streaming AI response."""
-    # Verify session exists
-    if not await session_service.session_exists(session_id):
+    logger.info(f"🌊 Streaming chat request for session {session_id}")
+    if request.agent_id:
+        logger.debug(f"   🤖 Requested agent: {request.agent_id}")
+
+    # Verify session exists and handle agent logic
+    session = await session_service.get_session(session_id)
+    if not session:
+        logger.warning(f"❌ Session {session_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Session {session_id} not found"
         )
+
+    # Handle agent assignment and switching
+    effective_agent_id = await _handle_session_agent_logic(session, request.agent_id)
     
     try:
         # Add user message to session
@@ -217,7 +298,9 @@ async def chat_stream(session_id: str, request: ChatRequest):
             full_content = ""
             message_id = None
             
-            async for chunk in llm_service.generate_streaming_response(request, session_messages, session_id):
+            async for chunk in llm_service.generate_streaming_response_with_agent(
+                request, session_messages, session_id, effective_agent_id
+            ):
                 # Accumulate content
                 if chunk.content:
                     full_content += chunk.content

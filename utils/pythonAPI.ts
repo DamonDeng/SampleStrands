@@ -24,10 +24,9 @@ export interface Session {
 
 export interface ChatRequest {
   message: string;
+  agent_id?: string;  // Agent UUID to use for this request
   stream?: boolean;
-  temperature?: number;
-  max_tokens?: number;
-  model?: string;
+  // Note: temperature, max_tokens, model determined from agent configuration
 }
 
 export interface ChatResponse {

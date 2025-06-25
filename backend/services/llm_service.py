@@ -12,6 +12,7 @@ import threading
 import time
 
 from strands import Agent
+from strands.models import BedrockModel
 from strands_tools import calculator
 
 from models.schemas import Message, MessageRole, ChatRequest, StreamChunk
@@ -107,28 +108,40 @@ class AgentPoolManager:
             # Configure tools based on agent configuration
             tools = self._configure_tools(agent_config)
 
-            # Create agent with configured tools
-            agent = Agent(tools=tools)
+            # Get model configuration
+            model_instance = self._create_model_instance(agent_config)
 
-            # Apply model configuration if available
-            if agent_config and agent_config.get('llm_config'):
-                self._apply_model_config(agent, agent_config['llm_config'])
+            # Create agent with model and tools
+            if model_instance:
+                agent = Agent(model=model_instance, tools=tools)
+                logger.debug(f"✅ Created Strands Agent with custom model and {len(tools)} tools")
+            else:
+                # Fallback to default model with tools
+                agent = Agent(tools=tools)
+                logger.debug(f"✅ Created Strands Agent with default model and {len(tools)} tools")
 
             # Apply system prompt if available
             if agent_config and agent_config.get('system_prompt'):
                 self._apply_system_prompt(agent, agent_config['system_prompt'])
 
-            logger.debug(f"✅ Created Strands Agent with {len(tools)} tools")
             if agent_config:
                 logger.debug(f"   🤖 Agent: {agent_config.get('name', 'Unknown')}")
-                logger.debug(f"   🎛️ Model: {agent_config.get('llm_config', {}).get('model_name', 'Default')}")
+                llm_config = agent_config.get('llm_config', {})
+                logger.debug(f"   🎛️ Model: {llm_config.get('model_name', 'Default')} ({llm_config.get('model_id', 'default')})")
 
             return agent
 
         except Exception as e:
             logger.error(f"❌ Failed to create Strands Agent: {e}")
-            # Fallback to basic agent
-            return Agent(tools=[calculator])
+            # Fallback to basic agent with default model
+            logger.info("🔄 Creating fallback agent with default configuration")
+            try:
+                # Try with default Claude 3.7 Sonnet model
+                return Agent(model="us.anthropic.claude-3-7-sonnet-20250219-v1:0", tools=[calculator])
+            except Exception as fallback_error:
+                logger.error(f"❌ Fallback agent creation also failed: {fallback_error}")
+                # Last resort - basic agent with no model specified
+                return Agent(tools=[calculator])
 
     def _configure_tools(self, agent_config: Optional[Dict[str, Any]] = None) -> List[Any]:
         """Configure tools for the agent based on configuration.
@@ -175,23 +188,73 @@ class AgentPoolManager:
 
         return configured_tools
 
-    def _apply_model_config(self, agent: Agent, llm_config: Dict[str, Any]):
-        """Apply model configuration to the agent.
+    def _create_model_instance(self, agent_config: Optional[Dict[str, Any]] = None):
+        """Create a BedrockModel instance from agent configuration.
 
         Args:
-            agent: Strands Agent instance
-            llm_config: Model configuration dictionary
+            agent_config: Agent configuration from database
+
+        Returns:
+            BedrockModel instance or None if using default
         """
-        # Note: Strands Agent SDK handles model configuration internally
-        # This method is for future use when SDK supports runtime model configuration
-        model_name = llm_config.get('model_name', 'Unknown')
-        temperature = llm_config.get('temperature', 0.7)
-        max_tokens = llm_config.get('max_tokens', 1000)
+        if not agent_config or not agent_config.get('llm_config'):
+            logger.debug("🎛️ No model config provided, using default model")
+            return None
 
-        logger.debug(f"   🎛️ Model config: {model_name} (temp: {temperature}, max_tokens: {max_tokens})")
+        llm_config = agent_config['llm_config']
+        enable_advanced = agent_config.get('enable_advanced_settings', False)
+        preferred_region = agent_config.get('preferred_region')
 
-        # TODO: Apply model configuration when Strands SDK supports it
-        # For now, we log the configuration for debugging
+        # Get model ID (required)
+        model_id = llm_config.get('model_id')
+        if not model_id:
+            logger.warning("⚠️ No model_id in config, using default model")
+            return None
+
+        try:
+            # Start with basic model configuration
+            model_kwargs = {
+                'model_id': model_id
+            }
+
+            # Add preferred region if specified
+            if preferred_region and preferred_region.strip():
+                model_kwargs['region_name'] = preferred_region.strip()
+                logger.debug(f"🌍 Setting preferred region: {preferred_region}")
+
+            # Add advanced settings if enabled
+            if enable_advanced:
+                # Apply advanced model parameters
+                if 'temperature' in llm_config:
+                    model_kwargs['temperature'] = llm_config['temperature']
+                if 'max_tokens' in llm_config:
+                    model_kwargs['max_tokens'] = llm_config['max_tokens']
+                if 'top_p' in llm_config:
+                    model_kwargs['top_p'] = llm_config['top_p']
+                if 'stop_sequences' in llm_config and llm_config['stop_sequences']:
+                    model_kwargs['stop_sequences'] = llm_config['stop_sequences']
+
+                logger.debug(f"🔧 Advanced settings enabled for model {model_id}")
+                logger.debug(f"   🌡️ Temperature: {model_kwargs.get('temperature', 'default')}")
+                logger.debug(f"   📏 Max tokens: {model_kwargs.get('max_tokens', 'default')}")
+                logger.debug(f"   🎯 Top-p: {model_kwargs.get('top_p', 'default')}")
+                if model_kwargs.get('stop_sequences'):
+                    logger.debug(f"   🛑 Stop sequences: {model_kwargs['stop_sequences']}")
+            else:
+                logger.debug(f"🔧 Advanced settings disabled for model {model_id}, using model defaults")
+
+            # Create BedrockModel instance
+            bedrock_model = BedrockModel(**model_kwargs)
+            logger.debug(f"✅ Created BedrockModel: {model_id}")
+
+            return bedrock_model
+
+        except Exception as e:
+            logger.error(f"❌ Failed to create BedrockModel with {model_id}: {e}")
+            logger.info("🔄 Falling back to default model")
+            return None
+
+
 
     def _apply_system_prompt(self, agent: Agent, system_prompt: str):
         """Apply system prompt to the agent.
@@ -342,6 +405,71 @@ class StrandsAgentService:
 
         logger.info("✅ Strands Agent Service initialized with agent pooling")
     
+    async def generate_response_with_agent(
+        self,
+        request: ChatRequest,
+        session_messages: List[Message],
+        session_id: str,
+        agent_id: str
+    ) -> Message:
+        """Generate a response using a specific agent configuration.
+
+        Args:
+            request: Chat request
+            session_messages: Previous messages for context
+            session_id: Session UUID
+            agent_id: Agent UUID to use for configuration
+
+        Returns:
+            Generated message response
+        """
+        logger.info(f"🤖 Generating response for session {session_id[:8]}... with agent {agent_id[:8]}...")
+
+        try:
+            # Get agent configuration from database
+            agent_config = await self._get_agent_config_for_agent_id(agent_id)
+            if not agent_config:
+                logger.warning(f"⚠️ Agent config not found for {agent_id}, using defaults")
+                agent_config = {}
+
+            # Get or create agent instance from pool
+            agent = self.agent_pool.get_agent(session_id, agent_config)
+
+            # Apply agent's preferred region if specified
+            await self._apply_agent_region_settings(agent_config)
+
+            # Log effective configuration
+            self._log_effective_agent_config(agent_config)
+
+            # Generate response using Strands Agent
+            logger.debug("   🔄 Calling Strands Agent...")
+            agent_result = agent(request.message)
+
+            # Extract content from agent result
+            content = str(agent_result)
+            logger.info(f"✅ Response generated: {len(content)} characters")
+            logger.debug(f"   📝 Response preview: {content[:100]}{'...' if len(content) > 100 else ''}")
+
+            # Create response message
+            response_message = Message(
+                id=str(uuid4()),
+                content=content,
+                role=MessageRole.ASSISTANT,
+                timestamp=datetime.now(timezone.utc)
+            )
+
+            return response_message
+
+        except Exception as e:
+            logger.error(f"❌ Error generating response: {e}")
+            error_message = self._handle_error(e)
+            return Message(
+                id=str(uuid4()),
+                content=error_message,
+                role=MessageRole.ASSISTANT,
+                timestamp=datetime.now(timezone.utc)
+            )
+
     async def generate_response(self, request: ChatRequest, session_messages: List[Message], session_id: str) -> Message:
         """Generate a non-streaming response using Strands Agent."""
         logger.info(f"🤖 Generating response for message: {request.message[:50]}{'...' if len(request.message) > 50 else ''}")
@@ -382,6 +510,82 @@ class StrandsAgentService:
                 timestamp=datetime.now(timezone.utc)
             )
     
+    async def generate_streaming_response_with_agent(
+        self,
+        request: ChatRequest,
+        session_messages: List[Message],
+        session_id: str,
+        agent_id: str
+    ) -> AsyncGenerator[StreamChunk, None]:
+        """Generate a streaming response using a specific agent configuration.
+
+        Args:
+            request: Chat request
+            session_messages: Previous messages for context
+            session_id: Session UUID
+            agent_id: Agent UUID to use for configuration
+
+        Yields:
+            StreamChunk objects with response content
+        """
+        logger.info(f"🌊 Generating streaming response for session {session_id[:8]}... with agent {agent_id[:8]}...")
+
+        try:
+            # Get agent configuration from database
+            agent_config = await self._get_agent_config_for_agent_id(agent_id)
+            if not agent_config:
+                logger.warning(f"⚠️ Agent config not found for {agent_id}, using defaults")
+                agent_config = {}
+
+            # Get or create agent instance from pool
+            agent = self.agent_pool.get_agent(session_id, agent_config)
+
+            # Apply agent's preferred region if specified
+            await self._apply_agent_region_settings(agent_config)
+
+            # Log effective configuration
+            self._log_effective_agent_config(agent_config)
+
+            # Use Strands Agent's streaming capability
+            logger.debug("   🔄 Starting Strands Agent streaming...")
+
+            # Note: Strands Agent SDK doesn't currently support streaming
+            # For now, we'll simulate streaming by generating the full response
+            # and then yielding it in chunks
+
+            agent_result = agent(request.message)
+            content = str(agent_result)
+
+            # Simulate streaming by yielding content in chunks
+            message_id = str(uuid4())
+            chunk_size = 50  # Characters per chunk
+
+            for i in range(0, len(content), chunk_size):
+                chunk_content = content[i:i + chunk_size]
+                is_final = i + chunk_size >= len(content)
+
+                yield StreamChunk(
+                    content=chunk_content,
+                    finished=is_final,
+                    message_id=message_id
+                )
+
+                # Small delay to simulate streaming
+                import asyncio
+                await asyncio.sleep(0.05)
+
+            logger.info(f"✅ Streaming response completed: {len(content)} characters")
+
+        except Exception as e:
+            logger.error(f"❌ Error in streaming response: {e}")
+            error_message = self._handle_error(e)
+
+            yield StreamChunk(
+                content=error_message,
+                finished=True,
+                message_id=str(uuid4())
+            )
+
     async def generate_streaming_response(
         self,
         request: ChatRequest,
@@ -615,6 +819,87 @@ class StrandsAgentService:
         except Exception as e:
             logger.error(f"❌ Failed to load agent pool settings: {e}")
             logger.info("🔄 Using default agent pool size: 40")
+
+    async def _get_agent_config_for_agent_id(self, agent_id: str) -> Optional[Dict[str, Any]]:
+        """Get agent configuration directly by agent ID.
+
+        Args:
+            agent_id: Agent UUID
+
+        Returns:
+            Agent configuration dictionary or None if not found
+        """
+        try:
+            # Get agent configuration from database
+            agent = await agent_service.get_agent(agent_id)
+            if not agent:
+                logger.warning(f"⚠️ Agent {agent_id} not found")
+                return None
+
+            logger.debug(f"🤖 Loaded agent config: {agent.config.name}")
+            return {
+                'id': agent.id,
+                'name': agent.config.name,
+                'description': agent.config.description,
+                'system_prompt': agent.config.system_prompt,
+                'llm_config': agent.config.llm_config.dict(),
+                'tools': [tool.dict() for tool in agent.config.tools],
+                'preferred_region': agent.config.preferred_region,
+                'enable_advanced_settings': agent.config.enable_advanced_settings
+            }
+
+        except Exception as e:
+            logger.error(f"❌ Failed to get agent config for {agent_id}: {e}")
+            return None
+
+    async def _apply_agent_region_settings(self, agent_config: Dict[str, Any]):
+        """Apply agent's preferred region settings.
+
+        Args:
+            agent_config: Agent configuration dictionary
+        """
+        preferred_region = agent_config.get('preferred_region')
+        if preferred_region and preferred_region.strip():
+            logger.info(f"🌍 Applying preferred region: {preferred_region}")
+            # TODO: Apply region settings to Strands Agent when SDK supports it
+            # For now, we log the preference for debugging
+        else:
+            logger.debug("🌍 No preferred region specified, using default")
+
+    def _log_effective_agent_config(self, agent_config: Dict[str, Any]):
+        """Log the effective agent configuration being used.
+
+        Args:
+            agent_config: Agent configuration dictionary
+        """
+        if not agent_config:
+            logger.debug("🎛️ Using default agent configuration")
+            return
+
+        llm_config = agent_config.get('llm_config', {})
+        enable_advanced = agent_config.get('enable_advanced_settings', False)
+
+        logger.debug(f"🎛️ Agent: {agent_config.get('name', 'Unknown')}")
+        logger.debug(f"   📱 Model: {llm_config.get('model_name', 'Default')}")
+
+        if enable_advanced:
+            logger.debug(f"   🔧 Advanced settings enabled:")
+            logger.debug(f"      🌡️ Temperature: {llm_config.get('temperature', 0.7)}")
+            logger.debug(f"      📏 Max tokens: {llm_config.get('max_tokens', 1000)}")
+            logger.debug(f"      🎯 Top-p: {llm_config.get('top_p', 0.9)}")
+            stop_sequences = llm_config.get('stop_sequences', [])
+            if stop_sequences:
+                logger.debug(f"      🛑 Stop sequences: {stop_sequences}")
+        else:
+            logger.debug(f"   🔧 Advanced settings disabled (using model defaults)")
+
+        tools = agent_config.get('tools', [])
+        enabled_tools = [tool['tool_name'] for tool in tools if tool.get('enabled', True)]
+        logger.debug(f"   🛠️ Tools: {enabled_tools if enabled_tools else ['calculator (default)']}")
+
+        if agent_config.get('system_prompt'):
+            prompt_preview = agent_config['system_prompt'][:50]
+            logger.debug(f"   📝 System prompt: {prompt_preview}{'...' if len(agent_config['system_prompt']) > 50 else ''}")
 
 
 # Global LLM service instance

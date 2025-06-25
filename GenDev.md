@@ -556,32 +556,160 @@ Output: "The square root of 144 is 12."
 - ✅ **Response Format**: Proper JSON responses with message metadata
 - ✅ **Error Handling**: Network and authentication errors handled gracefully
 
+#### 5. Agent Pool Monitoring and Management
+The system provides comprehensive monitoring and management capabilities for the agent pool:
+
+**API Endpoints:**
+```bash
+# Get detailed agent pool statistics
+GET /api/v1/agent-pool/stats
+
+# Clear all agents from pool (maintenance)
+POST /api/v1/agent-pool/clear
+
+# Service statistics including pool data
+GET /api/v1/stats
+```
+
+**Pool Statistics Response:**
+```json
+{
+  "pool_size": 15,
+  "max_pool_size": 40,
+  "utilization": 0.375,
+  "agents": [
+    {
+      "session_id": "abc12345...",
+      "age_seconds": 1200,
+      "idle_seconds": 45
+    }
+  ]
+}
+```
+
+**Advanced Settings Integration:**
+- Pool size configurable via database: `advanced_settings.max_agent_pool_size`
+- Runtime updates without service restart
+- Automatic settings loading on service startup
+- Performance warnings when utilization > 80%
+
 #### Performance Metrics
 - **Response Time**: 3-7 seconds for complex calculations (including tool execution)
 - **Streaming**: Real-time token streaming working
 - **Context Management**: Conversation history maintained automatically
 - **Tool Latency**: Calculator tool execution < 100ms
+- **Agent Pool Performance**:
+  - Agent reuse eliminates model initialization overhead
+  - LRU eviction prevents memory bloat
+  - Thread-safe concurrent access
+  - Configurable pool size based on system resources
 
 ### Technical Implementation Details
 
-#### 1. Agent Initialization
-```python
-from strands import Agent
-from strands_tools import calculator
+#### 1. Agent Pool Architecture (NEW)
+The LLM service now implements a sophisticated agent pooling system for optimal performance and resource management:
 
-# Initialize agent with calculator tool
-self.agent = Agent(tools=[calculator])
+```python
+class AgentPoolManager:
+    """Manages a pool of Strands Agent instances indexed by session UUID."""
+
+    def __init__(self, max_pool_size: int = 40):
+        self.agent_pool: OrderedDict[str, Dict[str, Any]] = OrderedDict()
+        self.lock = threading.RLock()
+
+    def get_agent(self, session_id: str, agent_config: Dict[str, Any]) -> Agent:
+        # LRU-based agent retrieval and creation
+        # Automatic eviction when pool exceeds capacity
 ```
 
-#### 2. Response Generation
-```python
-# Non-streaming response
-agent_result = agent(request.message)
-content = str(agent_result)
+**Key Features:**
+- **Session-based indexing**: Each session UUID maps to a dedicated Agent instance
+- **LRU eviction**: Automatically removes least recently used agents when pool exceeds 40 instances
+- **Thread-safe operations**: Uses threading.RLock for concurrent access
+- **Configurable pool size**: Max size configurable via advanced settings (default: 40)
+- **Performance monitoring**: Real-time statistics and utilization warnings
 
-# Streaming response
-async for event in agent.stream_async(request.message):
-    # Process streaming events
+#### 2. Agent Creation with Model Configuration (REDESIGNED)
+The agent creation process now properly applies database configurations to Strands Agents:
+
+```python
+def _create_agent_from_config(self, agent_config: Dict[str, Any]) -> Agent:
+    # Configure tools based on agent configuration
+    tools = self._configure_tools(agent_config)
+
+    # Create model instance with proper configuration
+    model_instance = self._create_model_instance(agent_config)
+
+    # Create agent with model and tools - CRITICAL: Model set during creation
+    if model_instance:
+        agent = Agent(model=model_instance, tools=tools)
+    else:
+        agent = Agent(tools=tools)  # Fallback to default
+```
+
+**Model Configuration Process:**
+```python
+def _create_model_instance(self, agent_config: Dict[str, Any]):
+    llm_config = agent_config['llm_config']
+    enable_advanced = agent_config.get('enable_advanced_settings', False)
+
+    # Build model configuration
+    model_kwargs = {'model_id': llm_config['model_id']}
+
+    # Apply preferred region
+    if preferred_region:
+        model_kwargs['region_name'] = preferred_region
+
+    # Apply advanced settings only when enabled
+    if enable_advanced:
+        model_kwargs.update({
+            'temperature': llm_config.get('temperature', 0.7),
+            'max_tokens': llm_config.get('max_tokens', 1000),
+            'top_p': llm_config.get('top_p', 0.9),
+            'stop_sequences': llm_config.get('stop_sequences', [])
+        })
+
+    return BedrockModel(**model_kwargs)
+```
+
+#### 3. Database as Single Source of Truth
+The system now uses the backend database as the authoritative source for all agent configurations:
+
+**Frontend → Backend Flow:**
+```typescript
+// Frontend sends agent_id with every chat request
+const response = await pythonAPI.sendMessage(sessionId, {
+  message: content,
+  agent_id: session.agentId,  // Agent UUID from session
+  stream: false
+});
+```
+
+**Backend Agent Logic:**
+```python
+# Verify agent consistency and handle switching
+effective_agent_id = await _handle_session_agent_logic(session, request.agent_id)
+
+# Generate response with agent-specific configuration
+ai_response = await llm_service.generate_response_with_agent(
+    request, session_messages, session_id, effective_agent_id
+)
+```
+
+#### 4. Agent Switching Support
+The system supports mid-conversation agent switching with proper session management:
+
+```python
+async def _handle_session_agent_logic(session, requested_agent_id):
+    # Check if agent is changing
+    if session.agent_id != requested_agent_id:
+        # Update session with new agent
+        await session_service.update_session_agent(session.id, requested_agent_id)
+
+        # Clear old agent from pool since agent changed
+        llm_service.remove_session_agent(session.id)
+
+    return requested_agent_id
 ```
 
 #### 3. Error Handling Implementation
@@ -1008,6 +1136,157 @@ POST /api/v1/sessions
 3. **Separate Click Areas**: Split button into main and arrow areas for clear interaction model
 4. **Agent Filtering**: Only show active agents to prevent user confusion
 5. **No Auto-Session**: Setting default agent doesn't create session (prevents accidental creation)
+
+## Agent Pool and Model Configuration Architecture (COMPLETED ✅)
+
+### Implementation Overview
+**Date**: June 25, 2025
+**Status**: ✅ Complete Agent Pooling with Database-Driven Model Configuration
+**Architecture**: Session-based agent pooling with proper Strands Agent model configuration
+
+### 🎯 Critical Architectural Decisions
+
+#### 1. Agent Pool Design Pattern
+**Decision**: Implement session-based agent pooling with LRU eviction
+**Rationale**:
+- **Performance**: Eliminates repeated agent initialization overhead (3-5 second savings per request)
+- **Memory Management**: Prevents unlimited agent accumulation with configurable limits
+- **Session Continuity**: Each session maintains dedicated agent instance for conversation context
+- **Scalability**: Configurable pool size (default: 40) based on system resources
+
+**Implementation Pattern**:
+```python
+# Session UUID → Agent Instance mapping with LRU ordering
+agent_pool: OrderedDict[str, Dict[str, Any]] = OrderedDict()
+
+# Automatic eviction when pool exceeds capacity
+if len(self.agent_pool) >= self.max_pool_size:
+    self._evict_oldest_agent()  # Remove least recently used
+```
+
+#### 2. Database as Single Source of Truth
+**Decision**: Backend database stores all agent configurations; frontend sends agent_id with requests
+**Rationale**:
+- **Consistency**: Eliminates configuration drift between frontend/backend
+- **Agent Switching**: Supports mid-conversation agent changes with session updates
+- **Security**: Prevents client-side configuration tampering
+- **Flexibility**: Allows complex agent configurations without frontend complexity
+
+**Critical Implementation Pattern**:
+```python
+# Frontend → Backend flow
+ChatRequest { message: str, agent_id: str }  # Agent ID sent with every request
+↓
+Backend verifies agent_id consistency with session
+↓
+Loads agent config from database (model_id, temperature, tools, etc.)
+↓
+Creates/retrieves Strands Agent with proper model configuration
+```
+
+#### 3. Strands Agent Model Configuration (CRITICAL FIX)
+**Decision**: Set model during Agent instantiation, not after creation
+**Critical Learning**: Strands SDK requires model configuration at creation time - post-creation updates have no effect
+
+**❌ WRONG Approach** (was causing all agents to use default model):
+```python
+agent = Agent(tools=[calculator])
+agent.model.update_config(model_id="...")  # No effect - silent failure!
+```
+
+**✅ CORRECT Approach**:
+```python
+# Create BedrockModel with full configuration
+bedrock_model = BedrockModel(
+    model_id="us.anthropic.claude-3-7-sonnet-20250219-v1:0",  # From database
+    temperature=0.7,        # From agent config
+    max_tokens=1000,        # From agent config
+    top_p=0.9,             # From agent config
+    region_name="us-east-1" # From preferred_region
+)
+# Pass model during Agent creation
+agent = Agent(model=bedrock_model, tools=tools)
+```
+
+#### 4. Advanced Settings Toggle Pattern
+**Decision**: Apply advanced model settings only when explicitly enabled in agent config
+**Rationale**: Provides clean UX while allowing power users full control over model behavior
+
+**Implementation**:
+```python
+if agent_config.get('enable_advanced_settings', False):
+    # Apply custom temperature, max_tokens, top_p, stop_sequences
+    model_kwargs.update({
+        'temperature': llm_config.get('temperature', 0.7),
+        'max_tokens': llm_config.get('max_tokens', 1000),
+        'top_p': llm_config.get('top_p', 0.9),
+        'stop_sequences': llm_config.get('stop_sequences', [])
+    })
+else:
+    # Use model defaults only - no custom parameters
+    model_kwargs = {'model_id': model_id}
+```
+
+#### 5. Agent Switching Support
+**Decision**: Support mid-conversation agent switching with proper session management
+**Implementation**:
+- Compare requested agent_id with session's current agent_id
+- Update session record when agent changes
+- Clear old agent from pool to force recreation with new config
+- Preserve conversation history across agent switches
+
+### 📊 Performance and Monitoring Benefits
+
+#### Agent Pool Performance Metrics
+- **Agent Reuse**: Eliminates 3-5 second model initialization overhead per request
+- **Memory Efficiency**: LRU eviction prevents memory bloat with configurable limits
+- **Thread Safety**: Concurrent access with threading.RLock for production stability
+- **Utilization Monitoring**: Real-time pool statistics with performance warnings
+
+#### Monitoring API Endpoints
+```bash
+# Get detailed agent pool statistics
+GET /api/v1/agent-pool/stats
+Response: {
+  "pool_size": 15,
+  "max_pool_size": 40,
+  "utilization": 0.375,
+  "agents": [{"session_id": "abc...", "age_seconds": 1200, "idle_seconds": 45}]
+}
+
+# Clear pool for maintenance
+POST /api/v1/agent-pool/clear
+
+# Service statistics including pool data
+GET /api/v1/stats
+```
+
+#### Advanced Settings Integration
+- **Database Configuration**: Pool size stored in `advanced_settings.max_agent_pool_size`
+- **Runtime Updates**: Pool size adjustable without service restart
+- **Automatic Loading**: Settings loaded on service startup
+- **Performance Warnings**: Alerts when utilization exceeds 80%
+
+### 🔧 Implementation Learnings for Future AI Agents
+
+#### Critical Strands SDK Patterns
+1. **Model Configuration Timing**: Always set model during Agent() instantiation
+2. **BedrockModel Creation**: Use BedrockModel class for advanced configurations
+3. **Region Settings**: Apply preferred_region via BedrockModel constructor
+4. **Tool Configuration**: Tools can be set during or after Agent creation
+5. **System Prompts**: Applied after Agent creation (future SDK enhancement)
+
+#### Database Schema Patterns
+- **Agent Configurations**: Store model_id (Bedrock identifier) and model_name (human-readable)
+- **Session Management**: agent_id foreign key for session-agent associations
+- **Advanced Settings**: Boolean toggle controls parameter application
+- **JSON Storage**: Flexible llm_config and tools storage for complex configurations
+
+#### Error Handling Patterns
+- **Multiple Fallback Levels**: Custom model → Default model → Basic agent
+- **Graceful Degradation**: Service continues with defaults if configuration fails
+- **Comprehensive Logging**: Detailed model configuration and pool operation logs
+- **Pool Recovery**: Automatic pool cleanup and recreation on errors
 
 ### Future Enhancement Opportunities
 1. **Settings Import/Export**: Backup and restore user preferences

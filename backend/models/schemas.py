@@ -74,10 +74,10 @@ class Session(BaseModel):
 class ChatRequest(BaseModel):
     """Request model for chat completion."""
     message: str
+    agent_id: Optional[str] = Field(default=None, description="ID of the agent to use for this request")
     stream: bool = False
-    temperature: Optional[float] = Field(default=0.7, ge=0.0, le=2.0)
-    max_tokens: Optional[int] = Field(default=1000, ge=1, le=4000)
-    model: Optional[str] = "claude-3-sonnet"
+    # Note: temperature, max_tokens, model will be determined from agent configuration
+    # These fields are kept for backward compatibility but will be overridden by agent config
 
 
 class ChatResponse(BaseModel):

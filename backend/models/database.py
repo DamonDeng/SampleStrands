@@ -33,6 +33,7 @@ class SupportedModelDB(Base):
     max_tokens = Column(Integer, nullable=False, default=4096)
     supports_streaming = Column(Boolean, default=True)
     supports_tools = Column(Boolean, default=True)
+    support_streaming_tools = Column(Boolean, default=False)  # New field for streaming + tools compatibility
     category = Column(String, nullable=False, default="general")
     activated_in_app = Column(Boolean, default=True)
     default_seq_number = Column(Integer, default=100)

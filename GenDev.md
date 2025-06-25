@@ -1275,18 +1275,153 @@ GET /api/v1/stats
 3. **Region Settings**: Apply preferred_region via BedrockModel constructor
 4. **Tool Configuration**: Tools can be set during or after Agent creation
 5. **System Prompts**: Applied after Agent creation (future SDK enhancement)
+6. **Streaming Tools Compatibility**: Check model capabilities before enabling streaming mode
 
 #### Database Schema Patterns
 - **Agent Configurations**: Store model_id (Bedrock identifier) and model_name (human-readable)
 - **Session Management**: agent_id foreign key for session-agent associations
 - **Advanced Settings**: Boolean toggle controls parameter application
 - **JSON Storage**: Flexible llm_config and tools storage for complex configurations
+- **Model Capabilities**: support_streaming_tools field for compatibility matrix
 
 #### Error Handling Patterns
 - **Multiple Fallback Levels**: Custom model → Default model → Basic agent
 - **Graceful Degradation**: Service continues with defaults if configuration fails
 - **Comprehensive Logging**: Detailed model configuration and pool operation logs
 - **Pool Recovery**: Automatic pool cleanup and recreation on errors
+- **Legacy Model Support**: Inactive models still supported for existing agents
+
+## DeepSeek Streaming Tools Compatibility & Legacy Model Support (COMPLETED ✅)
+
+### Implementation Overview
+**Date**: June 26, 2025
+**Status**: ✅ Complete DeepSeek Compatibility Fix with Legacy Model Support
+**Architecture**: Dynamic streaming mode selection with backward compatibility
+
+### 🎯 Critical Issue Resolved
+
+**Problem**: DeepSeek models failed with streaming tool use:
+```
+ValidationException: This model doesn't support tool use in streaming mode
+```
+
+**Root Cause**: Strands SDK activates tool use functionality even with empty tools array (`tools=[]`), triggering streaming tool limitations in DeepSeek models.
+
+**Solution**: Dynamic streaming mode detection based on model capabilities stored in database.
+
+### 🔧 Technical Implementation
+
+#### 1. Database Schema Enhancement
+```sql
+-- Added new column to supported_models table
+ALTER TABLE supported_models ADD COLUMN support_streaming_tools BOOLEAN DEFAULT FALSE;
+```
+
+**Model Capability Matrix**:
+```json
+// Claude & Nova models - Support streaming with tools
+"support_streaming_tools": true
+
+// DeepSeek models - Don't support streaming with tools
+"support_streaming_tools": false
+```
+
+#### 2. Dynamic Streaming Mode Selection
+```python
+async def _create_model_instance(self, agent_config):
+    # Check model capabilities from database
+    support_streaming_tools = await self._get_model_streaming_tools_support(model_id)
+
+    model_kwargs = {'model_id': model_id}
+
+    # Force non-streaming mode for incompatible models
+    if not support_streaming_tools:
+        model_kwargs['streaming'] = False
+        logger.info(f"🚫 Model {model_id} doesn't support streaming with tools")
+
+    return BedrockModel(**model_kwargs)
+```
+
+#### 3. Legacy Model Support Architecture
+**Challenge**: Existing agents may reference deactivated models, causing validation failures.
+
+**Solution**: Dual validation approach:
+```python
+# For new agent creation - active models only
+await self._validate_model_config(model_config, allow_legacy=False)
+
+# For existing agent updates - include legacy models
+await self._validate_model_config(model_config, allow_legacy=True)
+```
+
+**Database Query Strategy**:
+```python
+async def get_model_by_id_including_legacy(self, model_id: str):
+    # Query ALL models (active and inactive) for legacy support
+    db_model = session.query(SupportedModelDB).filter(
+        SupportedModelDB.model_id == model_id
+    ).first()
+
+    if not db_model.activated_in_app:
+        logger.info(f"🔄 Found legacy model: {model.model_name}")
+```
+
+#### 4. Frontend Legacy Model Handling
+```typescript
+// Show legacy models in agent detail dropdown with warning
+{!supportedModels.find(m => m.model_id === editForm.model_id) && (
+  <option key={editForm.model_id} value={editForm.model_id}>
+    {agent.config.model_config.model_name} - Legacy
+  </option>
+)}
+
+// Display warning for legacy model usage
+{!supportedModels.find(m => m.model_id === editForm.model_id) && (
+  <div className={styles.warningText}>
+    ⚠️ This agent uses a legacy model that is no longer active.
+  </div>
+)}
+```
+
+### 📊 Model Compatibility Results
+
+| Model | Streaming | Tools | Streaming + Tools | Action Taken |
+|-------|-----------|-------|-------------------|--------------|
+| Claude 3.7 Sonnet | ✅ | ✅ | ✅ | Use streaming mode |
+| Claude 3.5 Sonnet | ✅ | ✅ | ✅ | Use streaming mode |
+| Nova Pro | ✅ | ✅ | ✅ | Use streaming mode |
+| DeepSeek R1 | ✅ | ✅ | ❌ | **Force non-streaming** |
+| DeepSeek R1 Distill | ✅ | ✅ | ❌ | **Force non-streaming** |
+
+### 🎯 Legacy Model Support Benefits
+
+1. **Backward Compatibility**: Existing agents continue working after model deactivation
+2. **Graceful Migration**: Users can gradually migrate to active models
+3. **No Data Loss**: Agent configurations preserved during model lifecycle changes
+4. **Clear UX**: Frontend shows legacy status with migration guidance
+5. **Future-Proof**: Pattern supports any model activation/deactivation scenarios
+
+### 🔍 Monitoring and Logging
+
+**Streaming Mode Decisions**:
+```
+🚫 Model us.deepseek.r1-v1:0 doesn't support streaming with tools, using non-streaming mode
+✅ Model us.anthropic.claude-3-7-sonnet-20250219-v1:0 supports streaming with tools
+```
+
+**Legacy Model Usage**:
+```
+🔄 Using legacy model configuration: DeepSeek R1 (us.deepseek.r1-v1:0)
+📝 This model is deactivated but supported for existing agents
+```
+
+### 🚀 Implementation Impact
+
+1. **DeepSeek Compatibility**: All DeepSeek models now work without streaming errors
+2. **Transparent Operation**: Users unaware of streaming mode differences
+3. **Legacy Support**: Existing agents with deactivated models continue functioning
+4. **Future Flexibility**: Easy to add new models with different capability matrices
+5. **Robust Architecture**: Handles model lifecycle changes gracefully
 
 ### Future Enhancement Opportunities
 1. **Settings Import/Export**: Backup and restore user preferences

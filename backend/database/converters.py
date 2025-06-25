@@ -208,6 +208,7 @@ class ModelConverter:
             max_tokens=model_data.get("max_tokens", 4096),
             supports_streaming=model_data.get("supports_streaming", True),
             supports_tools=model_data.get("supports_tools", True),
+            support_streaming_tools=model_data.get("support_streaming_tools", False),
             category=model_data.get("category", "general"),
             activated_in_app=model_data.get("activated_in_app", True),
             default_seq_number=model_data.get("default_seq_number", 100),

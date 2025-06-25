@@ -300,6 +300,7 @@ class ConfigurationLoader:
                         "max_tokens": db_model.max_tokens,
                         "supports_streaming": db_model.supports_streaming,
                         "supports_tools": db_model.supports_tools,
+                        "support_streaming_tools": db_model.support_streaming_tools,
                         "category": db_model.category,
                         "activated_in_app": db_model.activated_in_app,
                         "default_seq_number": db_model.default_seq_number,

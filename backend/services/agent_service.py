@@ -168,7 +168,8 @@ class AgentService:
                 # Update configuration if provided
                 if request.config:
                     logger.debug(f"   🔄 Updating configuration")
-                    await self._validate_model_config(request.config.llm_config)
+                    # Allow legacy models when updating existing agents
+                    await self._validate_model_config(request.config.llm_config, allow_legacy=True)
                     await self._validate_tool_configs(request.config.tools)
 
                     # Update database fields
@@ -257,11 +258,12 @@ class AgentService:
             return []
 
     async def get_model_by_id(self, model_id: str) -> Optional[SupportedModel]:
-        """Get a supported model by ID."""
+        """Get a supported model by ID (active models only)."""
         try:
             with get_db_session() as session:
                 db_model = session.query(SupportedModelDB).filter(
-                    SupportedModelDB.model_id == model_id
+                    SupportedModelDB.model_id == model_id,
+                    SupportedModelDB.activated_in_app == True
                 ).first()
 
                 if db_model:
@@ -269,6 +271,34 @@ class AgentService:
                 return None
         except Exception as e:
             logger.error(f"❌ Failed to get model by ID {model_id}: {str(e)}")
+            return None
+
+    async def get_model_by_id_including_legacy(self, model_id: str) -> Optional[SupportedModel]:
+        """Get a supported model by ID (including inactive/legacy models).
+
+        This method supports legacy agent configurations that may reference
+        deactivated models. Inactive models are still supported for existing
+        agents but not available for new selections.
+        """
+        try:
+            with get_db_session() as session:
+                # Query ALL models (active and inactive) to support legacy configurations
+                db_model = session.query(SupportedModelDB).filter(
+                    SupportedModelDB.model_id == model_id
+                ).first()
+
+                if db_model:
+                    model = converter.supported_model_db_to_pydantic(db_model)
+
+                    # Log legacy model usage for monitoring
+                    if not db_model.activated_in_app:
+                        logger.info(f"🔄 Found legacy model configuration: {model.model_name} ({model_id})")
+                        logger.info(f"   📝 This model is deactivated but supported for existing agents")
+
+                    return model
+                return None
+        except Exception as e:
+            logger.error(f"❌ Failed to get model by ID (including legacy) {model_id}: {str(e)}")
             return None
 
     async def get_tool_by_id(self, tool_id: str) -> Optional[SupportedTool]:
@@ -331,8 +361,13 @@ class AgentService:
                 "tool_usage": {}
             }
     
-    async def _validate_model_config(self, model_config) -> None:
-        """Validate model configuration."""
+    async def _validate_model_config(self, model_config, allow_legacy: bool = False) -> None:
+        """Validate model configuration.
+
+        Args:
+            model_config: Model configuration to validate
+            allow_legacy: If True, allows inactive/legacy models (for existing agents)
+        """
         logger.debug(f"🔍 Raw model_config type: {type(model_config)}")
         logger.debug(f"🔍 Raw model_config: {model_config}")
 
@@ -349,12 +384,19 @@ class AgentService:
             logger.error(f"❌ Invalid model_config format: {type(model_config)}")
             raise ValueError("Invalid model_config format")
 
-        logger.debug(f"🔍 Validating model config: {model_id}")
+        logger.debug(f"🔍 Validating model config: {model_id} (allow_legacy: {allow_legacy})")
 
-        # Check if model is supported
-        supported_model = await self.get_model_by_id(model_id)
+        # Check if model is supported (with or without legacy support)
+        if allow_legacy:
+            supported_model = await self.get_model_by_id_including_legacy(model_id)
+        else:
+            supported_model = await self.get_model_by_id(model_id)
+
         if not supported_model:
-            raise ValueError(f"Unsupported model: {model_id}")
+            if allow_legacy:
+                raise ValueError(f"Model not found in database: {model_id}")
+            else:
+                raise ValueError(f"Unsupported or inactive model: {model_id}")
 
         # Validate max_tokens against model limits
         if max_tokens and max_tokens > supported_model.max_tokens:

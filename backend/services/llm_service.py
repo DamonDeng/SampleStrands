@@ -62,7 +62,7 @@ class AgentPoolManager:
         self.lock = threading.RLock()
         logger.info(f"🏊 Initialized Agent Pool Manager with max size: {max_pool_size}")
 
-    def get_agent(self, session_id: str, agent_config: Optional[Dict[str, Any]] = None) -> Agent:
+    async def get_agent(self, session_id: str, agent_config: Optional[Dict[str, Any]] = None) -> Agent:
         """Get or create an agent instance for a session.
 
         Args:
@@ -84,7 +84,7 @@ class AgentPoolManager:
 
             # Create new agent
             logger.info(f"🆕 Creating new agent for session {session_id[:8]}...")
-            agent = self._create_agent_from_config(agent_config)
+            agent = await self._create_agent_from_config(agent_config)
 
             # Initialize agent with session history if needed
             # Note: Strands Agent SDK handles conversation history automatically
@@ -95,7 +95,7 @@ class AgentPoolManager:
 
             return agent
 
-    def _create_agent_from_config(self, agent_config: Optional[Dict[str, Any]] = None) -> Agent:
+    async def _create_agent_from_config(self, agent_config: Optional[Dict[str, Any]] = None) -> Agent:
         """Create a Strands Agent instance from configuration.
 
         Args:
@@ -109,7 +109,7 @@ class AgentPoolManager:
             tools = self._configure_tools(agent_config)
 
             # Get model configuration
-            model_instance = self._create_model_instance(agent_config)
+            model_instance = await self._create_model_instance(agent_config)
 
             # Create agent with model and tools
             if model_instance:
@@ -188,7 +188,7 @@ class AgentPoolManager:
 
         return configured_tools
 
-    def _create_model_instance(self, agent_config: Optional[Dict[str, Any]] = None):
+    async def _create_model_instance(self, agent_config: Optional[Dict[str, Any]] = None):
         """Create a BedrockModel instance from agent configuration.
 
         Args:
@@ -222,6 +222,14 @@ class AgentPoolManager:
                 model_kwargs['region_name'] = preferred_region.strip()
                 logger.debug(f"🌍 Setting preferred region: {preferred_region}")
 
+            # Check streaming tools support and set streaming mode
+            support_streaming_tools = await self._get_model_streaming_tools_support(model_id)
+            if not support_streaming_tools:
+                model_kwargs['streaming'] = False
+                logger.info(f"🚫 Model {model_id} doesn't support streaming with tools, using non-streaming mode")
+            else:
+                logger.debug(f"✅ Model {model_id} supports streaming with tools")
+
             # Add advanced settings if enabled
             if enable_advanced:
                 # Apply advanced model parameters
@@ -245,7 +253,7 @@ class AgentPoolManager:
 
             # Create BedrockModel instance
             bedrock_model = BedrockModel(**model_kwargs)
-            logger.debug(f"✅ Created BedrockModel: {model_id}")
+            logger.debug(f"✅ Created BedrockModel: {model_id} (streaming: {model_kwargs.get('streaming', True)})")
 
             return bedrock_model
 
@@ -254,7 +262,48 @@ class AgentPoolManager:
             logger.info("🔄 Falling back to default model")
             return None
 
+    async def _get_model_streaming_tools_support(self, model_id: str) -> bool:
+        """Get streaming tools support for a specific model.
 
+        This method supports both active and inactive models to handle legacy agent configurations.
+        Inactive models are still supported for existing agents but not available for new selections.
+
+        Args:
+            model_id: The Bedrock model identifier
+
+        Returns:
+            True if model supports streaming with tools, False otherwise
+        """
+        try:
+            # Query database for model capabilities (including inactive models)
+            from database.connection import get_db_session
+            from models.database import SupportedModelDB
+
+            with get_db_session() as session:
+                # Query ALL models (active and inactive) to support legacy configurations
+                model = session.query(SupportedModelDB).filter(
+                    SupportedModelDB.model_id == model_id
+                ).first()
+
+                if model:
+                    support_streaming_tools = getattr(model, 'support_streaming_tools', False)
+                    active_status = "active" if model.activated_in_app else "inactive (legacy)"
+                    logger.debug(f"🔍 Model {model_id} ({active_status}) streaming tools support: {support_streaming_tools}")
+
+                    # Log legacy model usage for monitoring
+                    if not model.activated_in_app:
+                        logger.info(f"🔄 Using legacy model configuration: {model.model_name} ({model_id})")
+                        logger.info(f"   📝 This model is deactivated but supported for existing agents")
+
+                    return support_streaming_tools
+                else:
+                    logger.warning(f"⚠️ Model {model_id} not found in database, defaulting to False")
+                    return False
+
+        except Exception as e:
+            logger.error(f"❌ Failed to get model streaming tools support for {model_id}: {e}")
+            # Default to False for safety
+            return False
 
     def _apply_system_prompt(self, agent: Agent, system_prompt: str):
         """Apply system prompt to the agent.
@@ -433,7 +482,7 @@ class StrandsAgentService:
                 agent_config = {}
 
             # Get or create agent instance from pool
-            agent = self.agent_pool.get_agent(session_id, agent_config)
+            agent = await self.agent_pool.get_agent(session_id, agent_config)
 
             # Apply agent's preferred region if specified
             await self._apply_agent_region_settings(agent_config)
@@ -538,7 +587,7 @@ class StrandsAgentService:
                 agent_config = {}
 
             # Get or create agent instance from pool
-            agent = self.agent_pool.get_agent(session_id, agent_config)
+            agent = await self.agent_pool.get_agent(session_id, agent_config)
 
             # Apply agent's preferred region if specified
             await self._apply_agent_region_settings(agent_config)
@@ -599,7 +648,7 @@ class StrandsAgentService:
         try:
             # Get or create agent for this session from pool
             agent_config = await self._get_agent_config_for_session(session_id)
-            agent = self.agent_pool.get_agent(session_id, agent_config)
+            agent = await self.agent_pool.get_agent(session_id, agent_config)
 
             # Use Strands Agent's streaming capability
             logger.debug("   🔄 Starting Strands Agent streaming...")

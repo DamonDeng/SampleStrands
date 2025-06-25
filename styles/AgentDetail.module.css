@@ -195,6 +195,16 @@
   background-color: #c62828;
 }
 
+.warningText {
+  font-size: 12px;
+  color: #ff9500;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background-color: rgba(255, 149, 0, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid #ff9500;
+}
+
 .saveButton {
   background-color: #5865f2;
 }

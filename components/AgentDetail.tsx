@@ -342,12 +342,27 @@ export default function AgentDetail({
                 onChange={(e) => handleFormChange('model_id', e.target.value)}
                 className={styles.formSelect}
               >
+                {/* Show current model even if it's legacy/inactive */}
+                {!supportedModels.find(m => m.model_id === editForm.model_id) && (
+                  <option key={editForm.model_id} value={editForm.model_id}>
+                    {agent.config.model_config.model_name} ({agent.config.model_config.provider}) - Legacy
+                  </option>
+                )}
+
+                {/* Show all active models */}
                 {supportedModels.map((model) => (
                   <option key={model.model_id} value={model.model_id}>
                     {model.model_name} ({model.provider})
                   </option>
                 ))}
               </select>
+
+              {/* Show warning for legacy models */}
+              {!supportedModels.find(m => m.model_id === editForm.model_id) && (
+                <div className={styles.warningText}>
+                  ⚠️ This agent uses a legacy model that is no longer active. You can continue using it or switch to an active model.
+                </div>
+              )}
             </div>
 
             {/* 3. Preferred Region (new) */}

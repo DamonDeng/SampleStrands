@@ -383,6 +383,13 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     );
   };
 
+  const handleStreamingUpdate = (content: string) => {
+    // This is called during streaming to update the UI
+    // The actual message will be added when streaming completes via onAIResponse
+    // For now, this is just for UI feedback - the streaming content is handled in ChatArea
+    console.log('🌊 Streaming update:', content.length, 'characters');
+  };
+
   // Agent management functions
   const handleSelectAgent = (agentId: string) => {
     // If switching to a different agent, trigger auto-save for current agent
@@ -794,6 +801,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
                 addAIMessage(activeSessionId, content);
               }
             }}
+            onStreamingUpdate={handleStreamingUpdate}
             isElectron={isElectron}
             backendAvailable={backendAvailable}
             sessionId={activeSessionId}

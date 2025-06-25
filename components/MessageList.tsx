@@ -6,9 +6,11 @@ import styles from '../styles/MessageList.module.css';
 interface MessageListProps {
   messages: Message[];
   isLoading: boolean;
+  isStreaming?: boolean;
+  streamingContent?: string;
 }
 
-export default function MessageList({ messages, isLoading }: MessageListProps) {
+export default function MessageList({ messages, isLoading, isStreaming, streamingContent }: MessageListProps) {
   return (
     <div className={styles.messageList}>
       {messages.map((message, index) => (
@@ -19,7 +21,23 @@ export default function MessageList({ messages, isLoading }: MessageListProps) {
           isLast={index === messages.length - 1 || messages[index + 1]?.sender !== message.sender}
         />
       ))}
-      
+
+      {/* Show streaming message while AI is responding */}
+      {isStreaming && streamingContent && (
+        <div className={styles.streamingMessage}>
+          <div className={styles.avatar}>
+            <span className={styles.avatarIcon}><RiRobot2Line /></span>
+          </div>
+          <div className={styles.streamingBubble}>
+            <div className={styles.streamingContent}>
+              {streamingContent}
+              <span className={styles.cursor}>|</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Show loading indicator when waiting for AI to start */}
       {isLoading && (
         <div className={styles.loadingMessage}>
           <div className={styles.avatar}>

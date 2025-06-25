@@ -198,9 +198,15 @@ class AppSettingService:
                 },
                 {
                     "setting_title": "advanced",
-                    "json_data": {}
+                    "json_data": {
+                        "max_agent_pool_size": 40,  # Maximum number of agent instances in memory
+                        "debug_mode": False,
+                        "performance_monitoring": True,
+                        "experimental_features": False
+                    }
                 }
             ]
+            
             
             created_count = 0
             

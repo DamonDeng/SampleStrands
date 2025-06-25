@@ -87,6 +87,16 @@ async def lifespan(app: FastAPI):
         logger.error(f"❌ Database initialization failed: {str(e)}")
         # Don't fail startup, but log the error
 
+    # Initialize agent pool settings
+    try:
+        logger.info("🏊 Loading agent pool settings...")
+        from services.llm_service import llm_service
+        await llm_service.load_agent_pool_settings()
+        logger.info("✅ Agent pool settings loaded")
+    except Exception as e:
+        logger.error(f"❌ Failed to load agent pool settings: {str(e)}")
+        # Don't fail startup, use defaults
+
     logger.info("✅ Services initialized successfully")
 
     yield

@@ -157,7 +157,7 @@ async def chat_completion(session_id: str, request: ChatRequest):
 
         # Generate AI response
         logger.info(f"🤖 Generating AI response...")
-        ai_response = await llm_service.generate_response(request, session_messages)
+        ai_response = await llm_service.generate_response(request, session_messages, session_id)
         logger.info(f"✅ AI response generated: {len(ai_response.content)} characters")
         logger.debug(f"   🤖 Response preview: {ai_response.content[:100]}{'...' if len(ai_response.content) > 100 else ''}")
 
@@ -217,7 +217,7 @@ async def chat_stream(session_id: str, request: ChatRequest):
             full_content = ""
             message_id = None
             
-            async for chunk in llm_service.generate_streaming_response(request, session_messages):
+            async for chunk in llm_service.generate_streaming_response(request, session_messages, session_id):
                 # Accumulate content
                 if chunk.content:
                     full_content += chunk.content
@@ -363,11 +363,15 @@ async def get_stats():
     # Get agent statistics
     agents_summary = await agent_service.get_agents_summary()
 
+    # Get agent pool statistics
+    agent_pool_stats = llm_service.get_agent_pool_stats()
+
     stats = {
         "service": "AI Chat Desktop Backend",
         "uptime": "active",
         "sessions": sessions_summary,
         "agents": agents_summary,
+        "agent_pool": agent_pool_stats,
         "supported_models": len(await agent_service.get_supported_models()),
         "supported_tools": len(await agent_service.get_supported_tools())
     }
@@ -375,5 +379,33 @@ async def get_stats():
     logger.info(f"✅ Service statistics retrieved")
     logger.debug(f"   📝 Sessions: {sessions_summary}")
     logger.debug(f"   🤖 Agents: {agents_summary}")
+    logger.debug(f"   🏊 Agent Pool: {agent_pool_stats}")
 
     return stats
+
+
+@router.get("/agent-pool/stats")
+async def get_agent_pool_stats():
+    """Get detailed agent pool statistics."""
+    logger.info("🏊 Getting agent pool statistics")
+
+    stats = llm_service.get_agent_pool_stats()
+    logger.debug(f"🏊 Agent pool stats: {stats}")
+
+    return stats
+
+
+@router.post("/agent-pool/clear")
+async def clear_agent_pool():
+    """Clear all agents from the pool (for debugging/maintenance)."""
+    logger.info("🧹 Clearing agent pool")
+
+    try:
+        llm_service.clear_agent_pool()
+        return {"message": "Agent pool cleared successfully"}
+    except Exception as e:
+        logger.error(f"❌ Failed to clear agent pool: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear agent pool: {str(e)}"
+        )

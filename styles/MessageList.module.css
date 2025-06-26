@@ -96,8 +96,14 @@
   color: #dcddde;
   line-height: 1.4;
   word-wrap: break-word;
-  white-space: pre-wrap;
   position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.streamingContent > div {
+  flex: 1;
 }
 
 .cursor {

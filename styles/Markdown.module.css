@@ -1,0 +1,396 @@
+/* Dark theme variables for markdown - using direct color values instead of CSS variables */
+
+.markdownBody {
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  margin: 0;
+  color: #c9d1d9;
+  background-color: transparent;
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.loading {
+  color: #8b949e;
+  font-style: italic;
+}
+
+/* Headers */
+.markdownBody h1,
+.markdownBody h2,
+.markdownBody h3,
+.markdownBody h4,
+.markdownBody h5,
+.markdownBody h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #c9d1d9;
+}
+
+.markdownBody h1 {
+  font-size: 2em;
+  border-bottom: 1px solid #21262d;
+  padding-bottom: 0.3em;
+}
+
+.markdownBody h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid #21262d;
+  padding-bottom: 0.3em;
+}
+
+.markdownBody h3 {
+  font-size: 1.25em;
+}
+
+.markdownBody h4 {
+  font-size: 1em;
+}
+
+.markdownBody h5 {
+  font-size: 0.875em;
+}
+
+.markdownBody h6 {
+  font-size: 0.85em;
+  color: #8b949e;
+}
+
+/* Paragraphs */
+.markdownBody p {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+/* Links */
+.markdownBody a {
+  color: #58a6ff;
+  text-decoration: none;
+}
+
+.markdownBody a:hover {
+  text-decoration: underline;
+}
+
+/* Lists */
+.markdownBody ul,
+.markdownBody ol {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-left: 2em;
+}
+
+.markdownBody li {
+  margin-top: 0.25em;
+}
+
+/* Blockquotes */
+.markdownBody blockquote {
+  margin: 0 0 16px 0;
+  padding: 0 1em;
+  color: #8b949e;
+  border-left: 0.25em solid #30363d;
+}
+
+/* Tables */
+.markdownBody table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  margin-bottom: 16px;
+}
+
+.markdownBody table th,
+.markdownBody table td {
+  padding: 6px 13px;
+  border: 1px solid #30363d;
+}
+
+.markdownBody table th {
+  font-weight: 600;
+  background-color: #161b22;
+}
+
+.markdownBody table tr {
+  background-color: transparent;
+  border-top: 1px solid #21262d;
+}
+
+.markdownBody table tr:nth-child(2n) {
+  background-color: #161b22;
+}
+
+/* Horizontal rules */
+.markdownBody hr {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: #30363d;
+  border: 0;
+}
+
+/* Strong and emphasis */
+.markdownBody strong {
+  font-weight: 600;
+}
+
+.markdownBody em {
+  font-style: italic;
+}
+
+/* Images */
+.markdownBody img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+/* First and last child margins */
+.markdownBody > *:first-child {
+  margin-top: 0 !important;
+}
+
+.markdownBody > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Inline code */
+.markdownBody code {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+  white-space: break-spaces;
+  background-color: rgba(110, 118, 129, 0.4);
+  border-radius: 6px;
+}
+
+/* Code blocks */
+.codeBlock {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: #1a1b26;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+  border: 1px solid #30363d;
+}
+
+.codeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #21262d;
+  border-bottom: 1px solid #30363d;
+  font-size: 12px;
+}
+
+.languageLabel {
+  color: #8b949e;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.codeBlock code {
+  background: transparent;
+  padding: 16px;
+  margin: 0;
+  font-size: inherit;
+  white-space: pre;
+  border-radius: 0;
+  display: block;
+  overflow-x: auto;
+}
+
+.copyButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #c9d1d9;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 60px;
+  justify-content: center;
+}
+
+.copyButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.copyButton.copied {
+  background: rgba(46, 160, 67, 0.2);
+  border-color: rgba(46, 160, 67, 0.4);
+  color: #3fb950;
+}
+
+.copyButton:focus {
+  outline: 2px solid #58a6ff;
+  outline-offset: 2px;
+}
+
+/* Enhanced Syntax highlighting - Tokyo Night theme */
+.markdownBody .hljs {
+  background: transparent;
+  color: #cbd2ea;
+  padding: 0;
+}
+
+/* Comments and documentation */
+.markdownBody .hljs-comment,
+.markdownBody .hljs-meta,
+.markdownBody .hljs-quote {
+  color: #565f89;
+  font-style: italic;
+}
+
+/* Keywords and control flow */
+.markdownBody .hljs-keyword,
+.markdownBody .hljs-selector-tag,
+.markdownBody .hljs-literal,
+.markdownBody .hljs-section,
+.markdownBody .hljs-link {
+  color: #bb9af7;
+  font-weight: 500;
+}
+
+/* Strings and text */
+.markdownBody .hljs-string,
+.markdownBody .hljs-subst,
+.markdownBody .hljs-symbol,
+.markdownBody .hljs-regexp,
+.markdownBody .hljs-addition,
+.markdownBody .hljs-bullet {
+  color: #9ece6a;
+}
+
+/* Numbers and literals */
+.markdownBody .hljs-number,
+.markdownBody .hljs-built_in,
+.markdownBody .hljs-builtin-name,
+.markdownBody .hljs-literal,
+.markdownBody .hljs-type,
+.markdownBody .hljs-params {
+  color: #ff9e64;
+}
+
+/* Functions and methods */
+.markdownBody .hljs-function,
+.markdownBody .hljs-title,
+.markdownBody .hljs-title.function_,
+.markdownBody .hljs-title.class_,
+.markdownBody .hljs-title.class_.inherited__ {
+  color: #7dcfff;
+  font-weight: 500;
+}
+
+/* Variables and identifiers */
+.markdownBody .hljs-variable,
+.markdownBody .hljs-template-variable,
+.markdownBody .hljs-variable.language_,
+.markdownBody .hljs-name,
+.markdownBody .hljs-attr {
+  color: #f7768e;
+}
+
+/* Attributes and properties */
+.markdownBody .hljs-attribute,
+.markdownBody .hljs-property {
+  color: #e0af68;
+}
+
+/* Tags and markup */
+.markdownBody .hljs-tag,
+.markdownBody .hljs-doctag,
+.markdownBody .hljs-selector-id,
+.markdownBody .hljs-selector-class,
+.markdownBody .hljs-selector-attr,
+.markdownBody .hljs-selector-pseudo {
+  color: #73daca;
+}
+
+/* Operators and punctuation */
+.markdownBody .hljs-operator,
+.markdownBody .hljs-punctuation {
+  color: #c0caf5;
+}
+
+/* Deletions and errors */
+.markdownBody .hljs-deletion {
+  color: #f7768e;
+  background-color: rgba(247, 118, 142, 0.1);
+}
+
+/* Special formatting */
+.markdownBody .hljs-emphasis {
+  font-style: italic;
+}
+
+.markdownBody .hljs-strong {
+  font-weight: 700;
+}
+
+/* Language-specific enhancements */
+.markdownBody .hljs-formula,
+.markdownBody .hljs-code {
+  color: #7aa2f7;
+}
+
+/* JSON specific */
+.markdownBody .language-json .hljs-attr {
+  color: #7dcfff;
+}
+
+/* SQL specific */
+.markdownBody .language-sql .hljs-keyword {
+  color: #bb9af7;
+  text-transform: uppercase;
+}
+
+/* Shell/Bash specific */
+.markdownBody .language-bash .hljs-built_in,
+.markdownBody .language-sh .hljs-built_in,
+.markdownBody .language-shell .hljs-built_in {
+  color: #7dcfff;
+}
+
+/* CSS specific */
+.markdownBody .language-css .hljs-selector-tag,
+.markdownBody .language-css .hljs-selector-id,
+.markdownBody .language-css .hljs-selector-class {
+  color: #73daca;
+}
+
+.markdownBody .language-css .hljs-attribute {
+  color: #7dcfff;
+}
+
+/* Python specific */
+.markdownBody .language-python .hljs-built_in {
+  color: #e0af68;
+}
+
+/* JavaScript/TypeScript specific */
+.markdownBody .language-javascript .hljs-built_in,
+.markdownBody .language-typescript .hljs-built_in,
+.markdownBody .language-js .hljs-built_in,
+.markdownBody .language-ts .hljs-built_in {
+  color: #e0af68;
+}

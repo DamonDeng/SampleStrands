@@ -1,6 +1,7 @@
 import { Message } from '../types/chat';
 import { IoPersonOutline } from 'react-icons/io5';
 import { RiRobot2Line } from 'react-icons/ri';
+import { Markdown } from './Markdown';
 import styles from '../styles/MessageBubble.module.css';
 
 interface MessageBubbleProps {
@@ -16,15 +17,7 @@ export default function MessageBubble({ message, isFirst, isLast }: MessageBubbl
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const formatContent = (content: string) => {
-    // Simple formatting for line breaks
-    return content.split('\n').map((line, index) => (
-      <span key={index}>
-        {line}
-        {index < content.split('\n').length - 1 && <br />}
-      </span>
-    ));
-  };
+  // Remove the old formatContent function as we'll use Markdown component
 
   return (
     <div className={`${styles.messageContainer} ${isUser ? styles.user : styles.assistant}`}>
@@ -46,7 +39,7 @@ export default function MessageBubble({ message, isFirst, isLast }: MessageBubbl
           
           <div className={`${styles.messageBubble} ${isUser ? styles.userBubble : styles.assistantBubble}`}>
             <div className={styles.messageText}>
-              {formatContent(message.content)}
+              <Markdown content={message.content} fontSize={14} />
             </div>
           </div>
           

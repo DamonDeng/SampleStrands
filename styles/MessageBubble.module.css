@@ -94,6 +94,80 @@
   margin: 0;
 }
 
+/* Ensure markdown content inherits bubble colors */
+.assistantBubble .messageText {
+  color: #ffffff;
+}
+
+.userBubble .messageText {
+  color: #ffffff;
+}
+
+/* Override markdown styles within message bubbles */
+.messageText :global(.markdownBody) {
+  color: inherit;
+  background: transparent;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.messageText :global(.markdownBody) h1,
+.messageText :global(.markdownBody) h2,
+.messageText :global(.markdownBody) h3,
+.messageText :global(.markdownBody) h4,
+.messageText :global(.markdownBody) h5,
+.messageText :global(.markdownBody) h6 {
+  color: inherit;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+.messageText :global(.markdownBody) h1:first-child,
+.messageText :global(.markdownBody) h2:first-child,
+.messageText :global(.markdownBody) h3:first-child,
+.messageText :global(.markdownBody) h4:first-child,
+.messageText :global(.markdownBody) h5:first-child,
+.messageText :global(.markdownBody) h6:first-child {
+  margin-top: 0;
+}
+
+.messageText :global(.markdownBody) p {
+  margin-bottom: 8px;
+}
+
+.messageText :global(.markdownBody) p:last-child {
+  margin-bottom: 0;
+}
+
+.messageText :global(.markdownBody) ul,
+.messageText :global(.markdownBody) ol {
+  margin-bottom: 8px;
+}
+
+.messageText :global(.markdownBody) blockquote {
+  margin: 8px 0;
+  border-left-color: rgba(255, 255, 255, 0.3);
+}
+
+.messageText :global(.markdownBody) code {
+  background-color: rgba(0, 0, 0, 0.2);
+  color: inherit;
+}
+
+.messageText :global(.markdownBody) pre {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  margin: 8px 0;
+}
+
+.messageText :global(.markdownBody) a {
+  color: #87ceeb;
+}
+
+.userBubble .messageText :global(.markdownBody) a {
+  color: #add8e6;
+}
+
 .messageTime {
   font-size: 11px;
   color: #72767d;

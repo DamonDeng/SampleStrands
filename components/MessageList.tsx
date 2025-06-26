@@ -1,6 +1,7 @@
 import { Message } from '../types/chat';
 import MessageBubble from './MessageBubble';
 import { RiRobot2Line } from 'react-icons/ri';
+import { Markdown } from './Markdown';
 import styles from '../styles/MessageList.module.css';
 
 interface MessageListProps {
@@ -30,7 +31,7 @@ export default function MessageList({ messages, isLoading, isStreaming, streamin
           </div>
           <div className={styles.streamingBubble}>
             <div className={styles.streamingContent}>
-              {streamingContent}
+              <Markdown content={streamingContent} fontSize={14} />
               <span className={styles.cursor}>|</span>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import "katex/dist/katex.min.css";
+import "highlight.js/styles/github-dark.css";
 import RemarkMath from "remark-math";
 import RemarkBreaks from "remark-breaks";
 import RehypeKatex from "rehype-katex";
@@ -9,9 +10,8 @@ import { useRef, useState, RefObject, useEffect, useMemo } from "react";
 import React from "react";
 import styles from '../styles/Markdown.module.css';
 
-// Import highlight.js for better language support
-import hljs from 'highlight.js/lib/core';
-// Import commonly used languages
+// Import lowlight (used by rehype-highlight) and languages
+import { createLowlight } from 'lowlight';
 import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
 import python from 'highlight.js/lib/languages/python';
@@ -32,40 +32,41 @@ import yaml from 'highlight.js/lib/languages/yaml';
 import markdown from 'highlight.js/lib/languages/markdown';
 import dockerfile from 'highlight.js/lib/languages/dockerfile';
 
-// Register languages
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('js', javascript);
-hljs.registerLanguage('typescript', typescript);
-hljs.registerLanguage('ts', typescript);
-hljs.registerLanguage('python', python);
-hljs.registerLanguage('py', python);
-hljs.registerLanguage('java', java);
-hljs.registerLanguage('cpp', cpp);
-hljs.registerLanguage('c++', cpp);
-hljs.registerLanguage('csharp', csharp);
-hljs.registerLanguage('c#', csharp);
-hljs.registerLanguage('php', php);
-hljs.registerLanguage('ruby', ruby);
-hljs.registerLanguage('rb', ruby);
-hljs.registerLanguage('go', go);
-hljs.registerLanguage('golang', go);
-hljs.registerLanguage('rust', rust);
-hljs.registerLanguage('rs', rust);
-hljs.registerLanguage('sql', sql);
-hljs.registerLanguage('json', json);
-hljs.registerLanguage('xml', xml);
-hljs.registerLanguage('html', xml);
-hljs.registerLanguage('css', css);
-hljs.registerLanguage('scss', scss);
-hljs.registerLanguage('sass', scss);
-hljs.registerLanguage('bash', bash);
-hljs.registerLanguage('sh', bash);
-hljs.registerLanguage('shell', bash);
-hljs.registerLanguage('yaml', yaml);
-hljs.registerLanguage('yml', yaml);
-hljs.registerLanguage('markdown', markdown);
-hljs.registerLanguage('md', markdown);
-hljs.registerLanguage('dockerfile', dockerfile);
+// Create lowlight instance and register languages
+const lowlight = createLowlight();
+lowlight.register('javascript', javascript);
+lowlight.register('js', javascript);
+lowlight.register('typescript', typescript);
+lowlight.register('ts', typescript);
+lowlight.register('python', python);
+lowlight.register('py', python);
+lowlight.register('java', java);
+lowlight.register('cpp', cpp);
+lowlight.register('c++', cpp);
+lowlight.register('csharp', csharp);
+lowlight.register('c#', csharp);
+lowlight.register('php', php);
+lowlight.register('ruby', ruby);
+lowlight.register('rb', ruby);
+lowlight.register('go', go);
+lowlight.register('golang', go);
+lowlight.register('rust', rust);
+lowlight.register('rs', rust);
+lowlight.register('sql', sql);
+lowlight.register('json', json);
+lowlight.register('xml', xml);
+lowlight.register('html', xml);
+lowlight.register('css', css);
+lowlight.register('scss', scss);
+lowlight.register('sass', scss);
+lowlight.register('bash', bash);
+lowlight.register('sh', bash);
+lowlight.register('shell', bash);
+lowlight.register('yaml', yaml);
+lowlight.register('yml', yaml);
+lowlight.register('markdown', markdown);
+lowlight.register('md', markdown);
+lowlight.register('dockerfile', dockerfile);
 
 // Copy to clipboard utility function
 const copyToClipboard = (text: string) => {
@@ -167,13 +168,7 @@ function _MarkDownContent(props: { content: string }) {
           {
             detect: true, // Enable automatic language detection
             ignoreMissing: true, // Don't throw errors for unknown languages
-            subset: [
-              'javascript', 'js', 'typescript', 'ts', 'python', 'py',
-              'java', 'cpp', 'c++', 'csharp', 'c#', 'php', 'ruby', 'rb',
-              'go', 'golang', 'rust', 'rs', 'sql', 'json', 'xml', 'html',
-              'css', 'scss', 'sass', 'bash', 'sh', 'shell', 'yaml', 'yml',
-              'markdown', 'md', 'dockerfile'
-            ], // Specify supported languages
+            lowlight: lowlight, // Use our configured lowlight instance
           },
         ],
       ]}

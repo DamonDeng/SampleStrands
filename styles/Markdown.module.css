@@ -246,11 +246,16 @@
   outline-offset: 2px;
 }
 
-/* Enhanced Syntax highlighting - Tokyo Night theme */
+/* Enhanced Syntax highlighting - Override highlight.js theme */
 .markdownBody .hljs {
-  background: transparent;
-  color: #cbd2ea;
-  padding: 0;
+  background: transparent !important;
+  color: #cbd2ea !important;
+  padding: 0 !important;
+}
+
+/* Ensure code blocks use our styling */
+.codeBlock .hljs {
+  background: transparent !important;
 }
 
 /* Comments and documentation */

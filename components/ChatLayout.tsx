@@ -65,8 +65,11 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Constants for resize constraints
+  const SIDEBAR_WIDTH = 60;
+  const RESIZE_HANDLE_WIDTH = 4;
   const MIN_SESSION_WIDTH = 200;
   const MAX_SESSION_WIDTH = 500;
+  const MIN_CHAT_AREA_WIDTH = 300; // Minimum width for the third column (chat area)
 
   // Initialize app - check backend availability first
   useEffect(() => {
@@ -703,14 +706,63 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing) return;
 
-    const newWidth = e.clientX - 60; // Subtract sidebar width
-    const constrainedWidth = Math.max(MIN_SESSION_WIDTH, Math.min(MAX_SESSION_WIDTH, newWidth));
+    const windowWidth = window.innerWidth;
+    const newSessionWidth = e.clientX - SIDEBAR_WIDTH; // Subtract sidebar width
+
+    // Ensure chat area doesn't go below minimum
+    const maxAllowedSessionWidth = windowWidth - SIDEBAR_WIDTH - RESIZE_HANDLE_WIDTH - MIN_CHAT_AREA_WIDTH;
+
+    // Apply all constraints
+    const constrainedWidth = Math.max(
+      MIN_SESSION_WIDTH,
+      Math.min(MAX_SESSION_WIDTH, Math.min(newSessionWidth, maxAllowedSessionWidth))
+    );
+
     setSessionListWidth(constrainedWidth);
-  }, [isResizing, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH]);
+  }, [isResizing, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_CHAT_AREA_WIDTH]);
 
   const handleMouseUp = useCallback(() => {
     setIsResizing(false);
   }, []);
+
+  // Window resize handler for intelligent column resizing
+  const handleWindowResize = useCallback(() => {
+    const windowWidth = window.innerWidth;
+    const minTotalWidth = SIDEBAR_WIDTH + MIN_SESSION_WIDTH + RESIZE_HANDLE_WIDTH + MIN_CHAT_AREA_WIDTH;
+
+    // If window is too small, let content overflow (don't resize columns)
+    if (windowWidth < minTotalWidth) {
+      return;
+    }
+
+    // Calculate available width for session list and chat area
+    const availableWidth = windowWidth - SIDEBAR_WIDTH - RESIZE_HANDLE_WIDTH;
+    const desiredChatAreaWidth = availableWidth - sessionListWidth;
+
+    // If chat area would be too small, reduce session list width
+    if (desiredChatAreaWidth < MIN_CHAT_AREA_WIDTH) {
+      const newSessionWidth = Math.max(MIN_SESSION_WIDTH, availableWidth - MIN_CHAT_AREA_WIDTH);
+      setSessionListWidth(newSessionWidth);
+    }
+    // If we have extra space and session list is not at max, expand it
+    else if (sessionListWidth < MAX_SESSION_WIDTH && desiredChatAreaWidth > MIN_CHAT_AREA_WIDTH) {
+      const maxPossibleSessionWidth = Math.min(MAX_SESSION_WIDTH, availableWidth - MIN_CHAT_AREA_WIDTH);
+      if (sessionListWidth < maxPossibleSessionWidth) {
+        setSessionListWidth(maxPossibleSessionWidth);
+      }
+    }
+  }, [sessionListWidth, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH, MIN_CHAT_AREA_WIDTH]);
+
+  // Add window resize listener for intelligent resizing
+  useEffect(() => {
+    window.addEventListener('resize', handleWindowResize);
+    // Initial resize check
+    handleWindowResize();
+
+    return () => {
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  }, [handleWindowResize]);
 
   // Add global mouse event listeners for resize
   useEffect(() => {

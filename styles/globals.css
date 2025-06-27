@@ -8,7 +8,7 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-x: auto; /* Allow horizontal scrolling when content is wider than viewport */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

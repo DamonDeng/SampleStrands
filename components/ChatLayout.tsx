@@ -63,6 +63,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   const [sessionListWidth, setSessionListWidth] = useState(280); // Default width
   const [isResizing, setIsResizing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [lastManualResize, setLastManualResize] = useState<number>(0); // Timestamp of last manual resize
 
   // Debug: Track sessionListWidth changes
   useEffect(() => {
@@ -745,6 +746,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   const handleMouseUp = useCallback(() => {
     console.log('🖱️ Resize handle mouse up');
     setIsResizing(false);
+    setLastManualResize(Date.now()); // Record when manual resize ended
   }, []);
 
   // Window resize handler for intelligent column resizing
@@ -752,6 +754,13 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     // Don't interfere with manual resizing
     if (isResizing) {
       console.log('🚫 Skipping window resize handler - manual resize in progress');
+      return;
+    }
+
+    // Don't interfere shortly after manual resize to prevent snap-back
+    const timeSinceManualResize = Date.now() - lastManualResize;
+    if (timeSinceManualResize < 500) { // 500ms grace period
+      console.log('🚫 Skipping window resize handler - recent manual resize');
       return;
     }
 
@@ -770,21 +779,18 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     const availableWidth = windowWidth - SIDEBAR_WIDTH - RESIZE_HANDLE_WIDTH;
     const desiredChatAreaWidth = availableWidth - sessionListWidth;
 
-    // If chat area would be too small, reduce session list width
+    // Only adjust if there's a real constraint violation, not for optimization
+    // This prevents the handler from "correcting" manual user adjustments
+
+    // ONLY reduce session width if chat area is actually too small
     if (desiredChatAreaWidth < MIN_CHAT_AREA_WIDTH) {
       const newSessionWidth = Math.max(MIN_SESSION_WIDTH, availableWidth - MIN_CHAT_AREA_WIDTH);
-      console.log('🔄 Window resize: reducing session width to', newSessionWidth);
+      console.log('🔄 Window resize: reducing session width to', newSessionWidth, '(chat area too small)');
       setSessionListWidth(newSessionWidth);
     }
-    // If we have extra space and session list is not at max, expand it
-    else if (sessionListWidth < MAX_SESSION_WIDTH && desiredChatAreaWidth > MIN_CHAT_AREA_WIDTH) {
-      const maxPossibleSessionWidth = Math.min(MAX_SESSION_WIDTH, availableWidth - MIN_CHAT_AREA_WIDTH);
-      if (sessionListWidth < maxPossibleSessionWidth) {
-        console.log('🔄 Window resize: expanding session width to', maxPossibleSessionWidth);
-        setSessionListWidth(maxPossibleSessionWidth);
-      }
-    }
-  }, [sessionListWidth, isResizing, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH, MIN_CHAT_AREA_WIDTH]);
+    // Don't automatically expand - let user control this manually
+    // The old auto-expand logic was causing the snap-back behavior
+  }, [sessionListWidth, isResizing, lastManualResize, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH, MIN_CHAT_AREA_WIDTH]);
 
   // Add window resize listener for intelligent resizing
   useEffect(() => {

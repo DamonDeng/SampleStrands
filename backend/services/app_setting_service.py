@@ -193,7 +193,8 @@ class AppSettingService:
                     "json_data": {
                         "language": "en",
                         "theme": "dark",
-                        "default_agent": None  # Will be set to first available agent UUID
+                        "default_agent": None,  # Will be set to first available agent UUID
+                        "shortcut_to_send": "shift_enter"  # Default to Shift+Enter for sending
                     }
                 },
                 {

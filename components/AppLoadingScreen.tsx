@@ -72,7 +72,7 @@ export default function AppLoadingScreen({ backendAvailable, isLoading }: AppLoa
         </div>
 
         {/* App Title */}
-        <h1 className={styles.appTitle}>AI Chat Desktop</h1>
+        <h1 className={styles.appTitle}>SampleStrands</h1>
 
         {/* Status Section */}
         <div className={styles.statusSection}>

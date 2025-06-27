@@ -1,0 +1,12 @@
+# Exclude code reference folder from linting and build
+code_reference/
+code_reference/**/*
+
+# Standard Next.js ignores
+.next/
+out/
+dist/
+node_modules/
+
+# Electron build files
+release/

@@ -120,7 +120,7 @@ export default function AgentDetail({
     } finally {
       setIsSaving(false);
     }
-  }, [hasChanges, isSaving, editForm]);
+  }, [hasChanges, isSaving, editForm]); // handleSave is stable, no need to include
 
   // Debounced auto-save (save 2 seconds after user stops typing)
   useEffect(() => {

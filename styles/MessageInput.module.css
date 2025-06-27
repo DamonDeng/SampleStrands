@@ -7,7 +7,7 @@
   align-items: flex-end;
   gap: 8px;
   background-color: #40444b;
-  border-radius: 24px;
+  border-radius: 12px; /* Reduced from 24px for better space utilization */
   padding: 8px 12px;
   border: 2px solid transparent;
   transition: border-color 0.2s ease;
@@ -115,25 +115,7 @@
   animation: spin 1s linear infinite;
 }
 
-.inputHint {
-  margin-top: 8px;
-  text-align: center;
-}
 
-.hintText {
-  font-size: 11px;
-  color: #72767d;
-}
-
-.hintText kbd {
-  background-color: #36393f;
-  border: 1px solid #40444b;
-  border-radius: 3px;
-  padding: 1px 4px;
-  font-size: 10px;
-  font-family: monospace;
-  color: #b9bbbe;
-}
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
@@ -154,9 +136,5 @@
     width: 28px;
     height: 28px;
     font-size: 14px;
-  }
-  
-  .hintText {
-    font-size: 10px;
   }
 }

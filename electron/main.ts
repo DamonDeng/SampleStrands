@@ -3,6 +3,9 @@ import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import * as http from 'http';
 
+// Set app name early (before app is ready) for macOS menu bar
+app.setName('SampleStrands');
+
 // Keep a global reference of the window object
 let mainWindow: BrowserWindow | null = null;
 let isDev: boolean = false;
@@ -181,7 +184,7 @@ async function showPortConflictDialog(conflictingService: any): Promise<void> {
     type: 'warning',
     title: 'Port Conflict Detected',
     message: 'Another service is using port 3867',
-    detail: `AI Chat Desktop cannot start its backend service because port 3867 is already in use by another application.\n\n` +
+    detail: `SampleStrands cannot start its backend service because port 3867 is already in use by another application.\n\n` +
             `Service Information:\n${serviceInfo}\n\n` +
             `Please either:\n` +
             `1. Stop the conflicting service and retry\n` +
@@ -297,7 +300,7 @@ function createWindow(): void {
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
   // Start Python backend first
-  console.log('🚀 Starting AI Chat Desktop...');
+  console.log('🚀 Starting SampleStrands...');
   const backendStarted = await startPythonBackend();
 
   if (!backendStarted && !isDev) {
@@ -407,7 +410,7 @@ function createMenu(): void {
   // macOS specific menu adjustments
   if (process.platform === 'darwin') {
     template.unshift({
-      label: app.getName(),
+      label: 'SampleStrands', // Force the app name in menu
       submenu: [
         { role: 'about' },
         { type: 'separator' },

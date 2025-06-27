@@ -637,6 +637,12 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     console.log('🔄 Setting navigation detected');
   };
 
+  // Get shortcut preference from settings
+  const getShortcutToSend = useCallback((): 'enter' | 'shift_enter' => {
+    const generalSetting = settings.find(s => s.setting_title === 'general');
+    return generalSetting?.json_data?.shortcut_to_send || 'shift_enter';
+  }, [settings]);
+
   // Get default agent from settings
   const getDefaultAgent = useCallback(() => {
     const generalSetting = settings.find(s => s.setting_title === 'general');
@@ -790,7 +796,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     }
     // Don't automatically expand - let user control this manually
     // The old auto-expand logic was causing the snap-back behavior
-  }, [sessionListWidth, isResizing, lastManualResize, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH, MIN_CHAT_AREA_WIDTH]);
+  }, [sessionListWidth, isResizing, lastManualResize, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_SESSION_WIDTH, MIN_CHAT_AREA_WIDTH]);
 
   // Add window resize listener for intelligent resizing
   useEffect(() => {
@@ -943,14 +949,15 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
             isElectron={isElectron}
             backendAvailable={backendAvailable}
             sessionId={activeSessionId}
+            shortcutToSend={getShortcutToSend()}
           />
         ) : (
           <div className={styles.emptyState}>
             <div className={styles.emptyStateContent}>
-              <h2>Welcome to AI Chat Desktop</h2>
+              <h2>Welcome to SampleStrands</h2>
               {backendAvailable ? (
                 <>
-                  <p>You don't have any chat sessions yet.</p>
+                  <p>You don&apos;t have any chat sessions yet.</p>
                   <button
                     className={styles.createSessionButton}
                     onClick={() => createNewSession().catch(console.error)}

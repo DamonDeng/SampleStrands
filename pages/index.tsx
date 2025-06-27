@@ -13,8 +13,8 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>AI Chat Desktop</title>
-        <meta name="description" content="AI Chat Desktop App" />
+        <title>SampleStrands</title>
+        <meta name="description" content="SampleStrands App" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

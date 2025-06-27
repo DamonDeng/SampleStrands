@@ -1,4 +1,4 @@
-# AI Chat Desktop
+# SampleStrands
 
 A modern desktop chat application built with Electron + Next.js + TypeScript + React, featuring a Slack-like three-column UI design.
 
@@ -34,7 +34,7 @@ A modern desktop chat application built with Electron + Next.js + TypeScript + R
 1. Clone the repository:
 ```bash
 git clone <your-repo-url>
-cd ai-chat-desktop
+cd samplestrands
 ```
 
 2. Install dependencies:

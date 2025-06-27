@@ -22,6 +22,7 @@ interface GeneralSettings {
   language: string;
   theme: string;
   default_agent: string | null;
+  shortcut_to_send: 'enter' | 'shift_enter';
 }
 
 export default function SettingGeneralDetail({
@@ -33,7 +34,8 @@ export default function SettingGeneralDetail({
   const [editForm, setEditForm] = useState<GeneralSettings>({
     language: setting.json_data.language || 'en',
     theme: setting.json_data.theme || 'dark',
-    default_agent: setting.json_data.default_agent || null
+    default_agent: setting.json_data.default_agent || null,
+    shortcut_to_send: setting.json_data.shortcut_to_send || 'shift_enter'
   });
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -263,6 +265,45 @@ export default function SettingGeneralDetail({
               ) : (
                 'No agents available. Create agents in the Agent management section.'
               )}
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.settingSection}>
+          <h3 className={styles.sectionTitle}>
+            <IoSettingsOutline />
+            Message Input
+          </h3>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Send Message Shortcut</label>
+            <div className={styles.radioGroup}>
+              <label className={styles.radioOption}>
+                <input
+                  type="radio"
+                  name="shortcut_to_send"
+                  value="enter"
+                  checked={editForm.shortcut_to_send === 'enter'}
+                  onChange={(e) => handleInputChange('shortcut_to_send', e.target.value)}
+                />
+                <span className={styles.radioLabel}>Enter</span>
+              </label>
+              <label className={styles.radioOption}>
+                <input
+                  type="radio"
+                  name="shortcut_to_send"
+                  value="shift_enter"
+                  checked={editForm.shortcut_to_send === 'shift_enter'}
+                  onChange={(e) => handleInputChange('shortcut_to_send', e.target.value)}
+                />
+                <span className={styles.radioLabel}>Shift + Enter</span>
+              </label>
+            </div>
+            <p className={styles.helpText}>
+              Choose your preferred keyboard shortcut to send messages.
+              {editForm.shortcut_to_send === 'enter' ?
+                ' Press Enter to send, Shift+Enter for new line.' :
+                ' Press Shift+Enter to send, Enter for new line.'
+              }
             </p>
           </div>
         </div>

@@ -1,7 +1,7 @@
 {
-  "name": "ai-chat-desktop",
+  "name": "samplestrands",
   "version": "1.0.0",
-  "description": "AI Chat Desktop App built with Electron + Next.js + TypeScript",
+  "description": "SampleStrands App built with Electron + Next.js + TypeScript",
   "main": "dist/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:next\" \"npm run dev:electron\"",
@@ -62,8 +62,8 @@
     "remark-math": "^6.0.0"
   },
   "build": {
-    "appId": "com.damondeng.ai-chat-desktop",
-    "productName": "AI Chat Desktop",
+    "appId": "com.damondeng.samplestrands",
+    "productName": "SampleStrands",
     "directories": {
       "output": "release"
     },

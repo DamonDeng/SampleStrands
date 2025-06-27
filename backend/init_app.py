@@ -171,7 +171,7 @@ def show_database_status():
 def main():
     """Main initialization function."""
     parser = argparse.ArgumentParser(
-        description="Initialize AI Chat Desktop application database"
+        description="Initialize SampleStrands application database"
     )
     parser.add_argument(
         "--force", 
@@ -189,7 +189,7 @@ def main():
     # Setup logging
     setup_logging(args.verbose)
     
-    print("🚀 AI Chat Desktop - Database Initialization")
+    print("🚀 SampleStrands - Database Initialization")
     print("=" * 50)
     
     # Step 1: Check prerequisites
@@ -207,7 +207,7 @@ def main():
     show_database_status()
     
     print("\n🎉 Initialization Complete!")
-    print("✅ Your AI Chat Desktop app is ready to use")
+    print("✅ Your SampleStrands app is ready to use")
     print("💡 You can now start the backend server with: python main.py")
     
     return True

@@ -30,7 +30,13 @@ const nextConfig = {
         os: false,
       };
     }
-    
+
+    // Exclude code_reference folder from build
+    config.module.rules.push({
+      test: /\.(js|jsx|ts|tsx)$/,
+      exclude: /code_reference/,
+    });
+
     return config;
   },
   

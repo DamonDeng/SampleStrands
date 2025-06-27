@@ -1,6 +1,6 @@
 # Database Migration Guide
 
-This guide explains how to migrate your AI Chat Desktop application from in-memory storage to persistent SQLite database storage.
+This guide explains how to migrate your SampleStrands application from in-memory storage to persistent SQLite database storage.
 
 ## Overview
 

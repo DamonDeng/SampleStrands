@@ -16,9 +16,10 @@ interface ChatAreaProps {
   isElectron: boolean;
   backendAvailable: boolean;
   sessionId: string | null;
+  shortcutToSend?: 'enter' | 'shift_enter';
 }
 
-export default function ChatArea({ session, onSendMessage, onAIResponse, onStreamingUpdate, isElectron, backendAvailable, sessionId }: ChatAreaProps) {
+export default function ChatArea({ session, onSendMessage, onAIResponse, onStreamingUpdate, isElectron, backendAvailable, sessionId, shortcutToSend = 'shift_enter' }: ChatAreaProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
@@ -123,7 +124,7 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, onStrea
       <div className={styles.chatArea}>
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}><RiRobot2Line /></div>
-          <h2 className={styles.emptyTitle}>Welcome to AI Chat Desktop</h2>
+          <h2 className={styles.emptyTitle}>Welcome to SampleStrands</h2>
           <p className={styles.emptyDescription}>
             Select a conversation from the sidebar or create a new one to start chatting.
           </p>
@@ -177,6 +178,7 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, onStrea
         <MessageInput
           onSendMessage={handleSendMessage}
           disabled={isLoading || isStreaming}
+          shortcutToSend={shortcutToSend}
           placeholder={
             isLoading ? "AI is thinking..." :
             isStreaming ? "AI is responding..." :

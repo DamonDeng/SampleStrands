@@ -1,8 +1,8 @@
-# AI Chat Desktop - Development Documentation
+# SampleStrands - Development Documentation
 
 ## Project Overview
 
-**Project Name**: AI Chat Desktop
+**Project Name**: SampleStrands
 **Tech Stack**: Electron + Next.js + TypeScript + React + Python FastAPI Backend
 **Target Platforms**: macOS (Intel & Apple Silicon), Windows
 **UI Design**: Slack-like three-column layout
@@ -127,6 +127,9 @@ webPreferences: {
 - ❌ Non-streaming API when streaming infrastructure exists
 - ❌ Window resize handler interfering with manual drag resize (use grace period)
 - ❌ Adding `-webkit-app-region: drag` without excluding interactive elements with `no-drag`
+- ❌ Hardcoding keyboard shortcuts instead of using user preferences from settings
+- ❌ Setting Electron app name after `app.whenReady()` - must be set early for macOS menu bar
+- ❌ Using complex lowlight configurations that break builds - prefer default rehype-highlight
 
 ## Python Backend Architecture
 
@@ -356,6 +359,32 @@ created_at/updated_at: Automatic timestamp management
 - **Drag Regions**: Header areas of ChatArea, SessionList, AgentList, and SettingList are draggable
 - **Interactive Elements**: Buttons and counts excluded with `-webkit-app-region: no-drag`
 - **Cross-Platform**: Works on macOS, Windows, and Linux
+
+### Message Input Improvements
+**Implementation**: Enhanced user experience for message composition
+- **Dynamic Placeholder**: Shows keyboard shortcut hints when input is empty
+- **Configurable Shortcuts**: User preference for Enter vs Shift+Enter to send (default: Shift+Enter)
+- **Space Optimization**: Reduced border-radius from 24px to 12px for better space utilization
+- **No Persistent Hints**: Removed always-visible hint text below input area
+
+### Application Branding
+**Implementation**: Consistent "SampleStrands" branding across all components
+- **Package Configuration**: Updated package.json, appId, and productName
+- **Electron App Name**: `app.setName('SampleStrands')` early in main process for menu bar display
+- **Menu Bar Fix**: Set app name before `app.whenReady()` and force menu label for macOS
+- **Window Title**: Browser tab and Electron window title
+- **UI Components**: Welcome screens, loading screens, and empty states
+- **Backend Services**: FastAPI application title and service descriptions
+- **Documentation**: README.md, GenDev.md, and migration guides
+- **Build Configuration**: Fixed build issues with lowlight imports and TypeScript errors
+
+### Production Build Process
+**Implementation**: Successful build pipeline with proper error handling
+- **Build Exclusions**: Added `.eslintignore` and updated `tsconfig.json` to exclude `code_reference/`
+- **Lowlight Simplification**: Removed complex lowlight configuration, using default rehype-highlight
+- **TypeScript Fixes**: Fixed component prop types for React Markdown components
+- **Bundle Optimization**: Main bundle 202 kB, shared chunks 80.5 kB
+- **Static Generation**: All pages successfully prerendered as static content
 
 ## Session Message Loading Architecture
 

@@ -46,7 +46,7 @@ uvicorn_logger.setLevel(logging.DEBUG)
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
-    logger.info("🚀 AI Chat Desktop Backend starting up...")
+    logger.info("🚀 SampleStrands Backend starting up...")
     logger.info(f"📅 Startup time: {datetime.utcnow().isoformat()}")
     logger.info("🔧 Initializing services...")
 
@@ -109,8 +109,8 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="AI Chat Desktop Backend",
-    description="Python backend service for AI Chat Desktop application using AWS Bedrock and Strands Agent SDK",
+    title="SampleStrands Backend",
+    description="Python backend service for SampleStrands application using AWS Bedrock and Strands Agent SDK",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -227,13 +227,13 @@ app.include_router(app_setting_router, prefix="/api/v1")
 async def root():
     """Root endpoint with service information."""
     return {
-        "service": "AI Chat Desktop Backend",
+        "service": "SampleStrands Backend",
         "version": "1.0.0",
         "status": "running",
         "timestamp": datetime.utcnow().isoformat(),
         "docs": "/docs",
         "health": "/api/v1/health",
-        "description": "Python backend service for AI Chat Desktop application"
+        "description": "Python backend service for SampleStrands application"
     }
 
 
@@ -244,7 +244,7 @@ async def health():
     return {
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
-        "service": "AI Chat Desktop Backend"
+        "service": "SampleStrands Backend"
     }
 
 

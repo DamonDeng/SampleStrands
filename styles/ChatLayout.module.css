@@ -5,7 +5,7 @@
   background-color: #1a1d21;
   overflow: hidden;
   /* Ensure minimum total width to prevent layout collapse */
-  min-width: 564px; /* 60px sidebar + 200px min session list + 4px handle + 300px min chat area */
+  min-width: 514px; /* 60px sidebar + 150px min session list + 4px handle + 300px min chat area */
 }
 
 /* Empty state styles */
@@ -80,6 +80,9 @@
   cursor: col-resize;
   position: relative;
   transition: background-color 0.2s ease;
+  /* Ensure the handle is clickable and visible */
+  min-height: 100vh;
+  z-index: 10;
 }
 
 .resizeHandle:hover {
@@ -88,4 +91,22 @@
 
 .resizeHandle:active {
   background-color: #4752c4;
+}
+
+/* Add a subtle visual indicator */
+.resizeHandle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 1px;
+  transition: background-color 0.2s ease;
+}
+
+.resizeHandle:hover::before {
+  background-color: rgba(255, 255, 255, 0.3);
 }

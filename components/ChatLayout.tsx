@@ -67,7 +67,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   // Constants for resize constraints
   const SIDEBAR_WIDTH = 60;
   const RESIZE_HANDLE_WIDTH = 4;
-  const MIN_SESSION_WIDTH = 200;
+  const MIN_SESSION_WIDTH = 150; // Reduced from 200px for better small screen support
   const MAX_SESSION_WIDTH = 500;
   const MIN_CHAT_AREA_WIDTH = 300; // Minimum width for the third column (chat area)
 
@@ -699,6 +699,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
 
   // Resize handlers for session list
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    console.log('🖱️ Resize handle mouse down');
     e.preventDefault();
     setIsResizing(true);
   }, []);
@@ -718,10 +719,12 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
       Math.min(MAX_SESSION_WIDTH, Math.min(newSessionWidth, maxAllowedSessionWidth))
     );
 
+    console.log('🖱️ Resizing:', { newSessionWidth, constrainedWidth, windowWidth });
     setSessionListWidth(constrainedWidth);
   }, [isResizing, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_CHAT_AREA_WIDTH]);
 
   const handleMouseUp = useCallback(() => {
+    console.log('🖱️ Resize handle mouse up');
     setIsResizing(false);
   }, []);
 

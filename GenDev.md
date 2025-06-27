@@ -347,6 +347,64 @@ created_at/updated_at: Automatic timestamp management
 - **Rich Text**: Bold, italic, lists, links, and other markdown elements
 - **Consistent Styling**: Matches app's dark theme and design system
 
+## Session Message Loading Architecture
+
+### Critical Bug Fix: Chat History Not Restored After App Restart
+**Problem Solved**: Users could see session titles after app restart, but clicking sessions showed empty chat history despite messages existing in database.
+
+#### Root Cause Analysis
+**Backend Issue**: `session_service.get_all_sessions()` returned sessions with `include_messages=False`
+```python
+# Problem: Sessions loaded without messages on app startup
+sessions = [converter.session_db_to_pydantic(db_session, include_messages=False) for db_session in db_sessions]
+```
+
+#### Solution: On-Demand Message Loading
+**Architecture**: Efficient lazy loading pattern that loads messages only when sessions are selected
+
+#### Key Implementation Components
+
+##### 1. Message Loading Function
+```typescript
+const loadSessionMessages = async (sessionId: string) => {
+  // Fetch messages from backend API
+  const messages = await pythonAPI.getSessionMessages(sessionId);
+
+  // Update local session state with loaded messages
+  setSessions(prev => prev.map(session => {
+    if (session.id === sessionId) {
+      return { ...session, messages: convertedMessages };
+    }
+    return session;
+  }));
+};
+```
+
+##### 2. Smart Session Selection
+```typescript
+const selectSession = async (sessionId: string) => {
+  // Immediate UI response
+  setActiveSessionId(sessionId);
+
+  // Load messages if not already loaded
+  const session = sessions.find(s => s.id === sessionId);
+  if (session && session.messages.length === 0) {
+    await loadSessionMessages(sessionId);
+  }
+};
+```
+
+##### 3. Integration Points
+- **Session List**: Uses `selectSession()` instead of direct `setActiveSessionId()`
+- **App Startup**: First session automatically loads messages via `selectSession()`
+- **Session Deletion**: Switching to next session properly loads its messages
+
+#### Performance Benefits
+- **Startup Speed**: Sessions list appears immediately without waiting for all messages
+- **Memory Efficiency**: Only loads messages for sessions that are actually opened
+- **Network Optimization**: Reduces initial data transfer on app startup
+- **User Experience**: Responsive UI with progressive message loading
+
 ## Development Commands
 
 ### Frontend Development
@@ -437,6 +495,6 @@ This document serves as a reference for AI coding assistants working on this pro
 
 **Developer**: DamonDeng (dengmingxuan@hotmail.com)
 **Project Status**: Production Ready
-**Last Updated**: June 26, 2025
+**Last Updated**: June 27, 2025
 
 *This document serves as a reference for future AI coding assistants working on this project. All key architectural decisions and patterns are captured here for continuity.*

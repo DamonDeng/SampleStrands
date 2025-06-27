@@ -14,7 +14,7 @@ import { Agent, SupportedModel, SupportedTool, AgentCreateRequest } from '../typ
 import { AppSetting, appSettingAPI } from '../utils/appSettingAPI';
 import { pythonAPI } from '../utils/pythonAPI';
 import { agentAPI } from '../utils/agentAPI';
-import { convertBackendSession } from '../utils/typeConverters';
+import { convertBackendSession, convertBackendMessage } from '../utils/typeConverters';
 import { sessionSync } from '../utils/sessionSync';
 import styles from '../styles/ChatLayout.module.css';
 
@@ -156,7 +156,8 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
 
         // Set active session to the first one, or create a new one if none exist
         if (backendSessions.length > 0) {
-          setActiveSessionId(backendSessions[0].id);
+          // Use selectSession to properly load messages for the first session
+          await selectSession(backendSessions[0].id);
         } else {
           // No sessions exist, user can create a new one
           setSessions([]);
@@ -285,6 +286,47 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     }
   }, [isElectron, createNewSession]);
 
+  const loadSessionMessages = async (sessionId: string) => {
+    try {
+      if (!backendAvailable) {
+        console.warn('🐍 Backend not available, cannot load session messages');
+        return;
+      }
+
+      console.log(`📥 Loading messages for session ${sessionId}`);
+      const messages = await pythonAPI.getSessionMessages(sessionId);
+
+      // Update the session in our local state with the loaded messages
+      setSessions(prev => prev.map(session => {
+        if (session.id === sessionId) {
+          const backendMessages = messages.map(convertBackendMessage);
+          console.log(`✅ Loaded ${backendMessages.length} messages for session ${sessionId}`);
+          return {
+            ...session,
+            messages: backendMessages
+          };
+        }
+        return session;
+      }));
+    } catch (error) {
+      console.error(`❌ Failed to load messages for session ${sessionId}:`, error);
+    }
+  };
+
+  const selectSession = async (sessionId: string) => {
+    console.log(`🎯 Selecting session ${sessionId}`);
+
+    // Set the active session immediately for UI responsiveness
+    setActiveSessionId(sessionId);
+
+    // Check if this session already has messages loaded
+    const session = sessions.find(s => s.id === sessionId);
+    if (session && session.messages.length === 0) {
+      // Session has no messages loaded, fetch them from backend
+      await loadSessionMessages(sessionId);
+    }
+  };
+
   const deleteSession = async (sessionId: string) => {
     try {
       // Optimistic update: remove from local state immediately
@@ -293,7 +335,12 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
 
       if (activeSessionId === sessionId) {
         const remainingSessions = sessions.filter(s => s.id !== sessionId);
-        setActiveSessionId(remainingSessions.length > 0 ? remainingSessions[0].id : null);
+        if (remainingSessions.length > 0) {
+          // Use selectSession to properly load messages for the next session
+          await selectSession(remainingSessions[0].id);
+        } else {
+          setActiveSessionId(null);
+        }
       }
 
       if (backendAvailable && sessionToDelete) {
@@ -733,7 +780,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         <SessionList
           sessions={sessions}
           activeSessionId={activeSessionId}
-          onSelectSession={setActiveSessionId}
+          onSelectSession={selectSession}
           onDeleteSession={deleteSession}
           onUpdateTitle={updateSessionTitle}
           defaultAgent={getDefaultAgent()}

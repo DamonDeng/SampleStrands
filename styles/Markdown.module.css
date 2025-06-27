@@ -9,6 +9,10 @@
   font-size: 14px;
   line-height: 1.5;
   word-wrap: break-word;
+  /* Ensure markdown content doesn't break parent layout */
+  max-width: 100%;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .loading {
@@ -183,6 +187,9 @@
   margin-bottom: 16px;
   font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
   border: 1px solid #30363d;
+  /* Ensure code blocks don't break layout */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .codeHeader {

@@ -46,6 +46,8 @@
   flex: 1;
   min-width: 0;
   max-width: 70%;
+  /* Ensure content doesn't overflow the container */
+  overflow: hidden;
 }
 
 .user .messageContent {
@@ -75,6 +77,8 @@
   word-wrap: break-word;
   position: relative;
   animation: slideIn 0.3s ease-out;
+  /* Ensure bubble content doesn't overflow */
+  overflow: hidden;
 }
 
 .assistantBubble {
@@ -158,6 +162,10 @@
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 6px;
   margin: 8px 0;
+  /* Prevent code blocks from expanding beyond message bubble */
+  overflow-x: auto;
+  max-width: 100%;
+  white-space: pre;
 }
 
 .messageText :global(.markdownBody) a {
@@ -166,6 +174,25 @@
 
 .userBubble .messageText :global(.markdownBody) a {
   color: #add8e6;
+}
+
+/* Specific styles for code blocks from Markdown component */
+.messageText :global(.codeBlock) {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.messageText :global(.codeBlock) pre {
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* Ensure all markdown content respects container boundaries */
+.messageText :global(.markdownBody) * {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .messageTime {

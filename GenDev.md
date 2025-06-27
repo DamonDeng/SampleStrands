@@ -80,9 +80,10 @@ grid-template-columns: 60px ${sessionListWidth}px 4px 1fr
 **Critical Learning**: CSS grid column count must match actual DOM elements
 
 #### 3. Resizable Session List
-- **Constraints**: Min 200px, Max 500px, Default 280px
+- **Constraints**: Min 150px, Max 500px, Default 280px
 - **Implementation**: Global mouse event listeners with proper cleanup
 - **Visual Feedback**: Resize handle with hover effects
+- **Critical Fix**: Window resize handler has 500ms grace period after manual resize to prevent snap-back behavior
 
 #### 4. CSS Modules Best Practice
 **Issue**: Descendant selectors don't work with CSS Modules
@@ -124,6 +125,7 @@ webPreferences: {
 - ❌ CSS grid column count mismatch with DOM elements
 - ❌ CSS descendant selectors with CSS Modules
 - ❌ Non-streaming API when streaming infrastructure exists
+- ❌ Window resize handler interfering with manual drag resize (use grace period)
 
 ## Python Backend Architecture
 

@@ -249,7 +249,8 @@ function createWindow(): void {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js'),
     },
-    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    titleBarStyle: 'hidden', // Hide title bar on all platforms for custom drag regions
+    frame: false, // Remove window frame for custom styling
     show: false, // Don't show until ready-to-show
   });
 

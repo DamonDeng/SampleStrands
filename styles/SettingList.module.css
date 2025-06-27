@@ -16,6 +16,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Enable window dragging on this header area */
+  -webkit-app-region: drag;
 }
 
 .title {
@@ -34,6 +36,8 @@
   border-radius: 12px;
   min-width: 20px;
   text-align: center;
+  /* Exclude from drag region to keep it interactive */
+  -webkit-app-region: no-drag;
 }
 
 .settings {

@@ -16,6 +16,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Enable window dragging on this header area */
+  -webkit-app-region: drag;
 }
 
 .title {
@@ -29,6 +31,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  /* Exclude from drag region to keep buttons interactive */
+  -webkit-app-region: no-drag;
 }
 
 .agentCount {

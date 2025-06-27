@@ -126,6 +126,7 @@ webPreferences: {
 - ❌ CSS descendant selectors with CSS Modules
 - ❌ Non-streaming API when streaming infrastructure exists
 - ❌ Window resize handler interfering with manual drag resize (use grace period)
+- ❌ Adding `-webkit-app-region: drag` without excluding interactive elements with `no-drag`
 
 ## Python Backend Architecture
 
@@ -348,6 +349,13 @@ created_at/updated_at: Automatic timestamp management
 - **Syntax Highlighting**: Code blocks with proper language detection
 - **Rich Text**: Bold, italic, lists, links, and other markdown elements
 - **Consistent Styling**: Matches app's dark theme and design system
+
+### Window Dragging Support
+**Implementation**: Custom drag regions for frameless Electron window
+- **Electron Config**: `titleBarStyle: 'hidden'` and `frame: false` for custom window
+- **Drag Regions**: Header areas of ChatArea, SessionList, AgentList, and SettingList are draggable
+- **Interactive Elements**: Buttons and counts excluded with `-webkit-app-region: no-drag`
+- **Cross-Platform**: Works on macOS, Windows, and Linux
 
 ## Session Message Loading Architecture
 

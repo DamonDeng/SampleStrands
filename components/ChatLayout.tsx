@@ -64,6 +64,13 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   const [isResizing, setIsResizing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  // Debug: Track sessionListWidth changes
+  useEffect(() => {
+    const gridTemplate = `60px ${sessionListWidth}px 4px 1fr`;
+    console.log('📏 Session list width changed to:', sessionListWidth);
+    console.log('🎨 CSS Grid template:', gridTemplate);
+  }, [sessionListWidth]);
+
   // Constants for resize constraints
   const SIDEBAR_WIDTH = 60;
   const RESIZE_HANDLE_WIDTH = 4;
@@ -719,9 +726,21 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
       Math.min(MAX_SESSION_WIDTH, Math.min(newSessionWidth, maxAllowedSessionWidth))
     );
 
-    console.log('🖱️ Resizing:', { newSessionWidth, constrainedWidth, windowWidth });
-    setSessionListWidth(constrainedWidth);
-  }, [isResizing, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_CHAT_AREA_WIDTH]);
+    console.log('🖱️ Resizing:', {
+      currentSessionWidth: sessionListWidth,
+      newSessionWidth,
+      constrainedWidth,
+      windowWidth,
+      maxAllowed: maxAllowedSessionWidth,
+      willUpdate: constrainedWidth !== sessionListWidth
+    });
+
+    // Only update if the width actually changed
+    if (constrainedWidth !== sessionListWidth) {
+      console.log('📏 Updating session width from', sessionListWidth, 'to', constrainedWidth);
+      setSessionListWidth(constrainedWidth);
+    }
+  }, [isResizing, sessionListWidth, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_CHAT_AREA_WIDTH]);
 
   const handleMouseUp = useCallback(() => {
     console.log('🖱️ Resize handle mouse up');
@@ -730,11 +749,20 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
 
   // Window resize handler for intelligent column resizing
   const handleWindowResize = useCallback(() => {
+    // Don't interfere with manual resizing
+    if (isResizing) {
+      console.log('🚫 Skipping window resize handler - manual resize in progress');
+      return;
+    }
+
     const windowWidth = window.innerWidth;
     const minTotalWidth = SIDEBAR_WIDTH + MIN_SESSION_WIDTH + RESIZE_HANDLE_WIDTH + MIN_CHAT_AREA_WIDTH;
 
+    console.log('🪟 Window resize handler triggered:', { windowWidth, minTotalWidth, currentSessionWidth: sessionListWidth });
+
     // If window is too small, let content overflow (don't resize columns)
     if (windowWidth < minTotalWidth) {
+      console.log('🚫 Window too small, allowing overflow');
       return;
     }
 
@@ -745,16 +773,18 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
     // If chat area would be too small, reduce session list width
     if (desiredChatAreaWidth < MIN_CHAT_AREA_WIDTH) {
       const newSessionWidth = Math.max(MIN_SESSION_WIDTH, availableWidth - MIN_CHAT_AREA_WIDTH);
+      console.log('🔄 Window resize: reducing session width to', newSessionWidth);
       setSessionListWidth(newSessionWidth);
     }
     // If we have extra space and session list is not at max, expand it
     else if (sessionListWidth < MAX_SESSION_WIDTH && desiredChatAreaWidth > MIN_CHAT_AREA_WIDTH) {
       const maxPossibleSessionWidth = Math.min(MAX_SESSION_WIDTH, availableWidth - MIN_CHAT_AREA_WIDTH);
       if (sessionListWidth < maxPossibleSessionWidth) {
+        console.log('🔄 Window resize: expanding session width to', maxPossibleSessionWidth);
         setSessionListWidth(maxPossibleSessionWidth);
       }
     }
-  }, [sessionListWidth, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH, MIN_CHAT_AREA_WIDTH]);
+  }, [sessionListWidth, isResizing, SIDEBAR_WIDTH, RESIZE_HANDLE_WIDTH, MIN_SESSION_WIDTH, MAX_SESSION_WIDTH, MIN_CHAT_AREA_WIDTH]);
 
   // Add window resize listener for intelligent resizing
   useEffect(() => {

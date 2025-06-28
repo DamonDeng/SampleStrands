@@ -4,8 +4,8 @@ import os
 import sys
 from pathlib import Path
 
-# Get the backend directory
-backend_dir = Path(__file__).parent
+# Get the backend directory (current working directory when running pyinstaller)
+backend_dir = Path.cwd()
 
 # Add backend directory to Python path
 sys.path.insert(0, str(backend_dir))
@@ -19,9 +19,13 @@ a = Analysis(
     datas=[
         # Include configuration files
         ('config/*.json', 'config/'),
-        ('database/models/*.py', 'database/models/'),
+        # Include database module files
         ('database/*.py', 'database/'),
+        # Include models module files
+        ('models/*.py', 'models/'),
+        # Include services module files
         ('services/*.py', 'services/'),
+        # Include API module files
         ('api/*.py', 'api/'),
         # Include any other data files your app needs
     ],

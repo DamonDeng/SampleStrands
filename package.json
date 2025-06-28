@@ -7,13 +7,15 @@
     "dev": "concurrently \"npm run dev:next\" \"npm run dev:electron\"",
     "dev:next": "next dev",
     "dev:electron": "wait-on http://localhost:3000 && electron .",
-    "build": "npm run build:next && npm run build:electron",
+    "build": "npm run build:next && npm run build:backend && npm run build:electron",
     "build:next": "next build",
+    "build:backend": "cd backend && pyinstaller samplestrands-backend.spec --clean --noconfirm",
     "build:electron": "tsc -p electron",
     "dist": "npm run build && electron-builder",
     "dist:mac": "npm run build && electron-builder --mac",
     "dist:win": "npm run build && electron-builder --win",
-    "clean": "rimraf dist out .next",
+    "clean": "rimraf dist out .next backend/dist backend/build",
+    "clean:backend": "cd backend && rimraf dist build *.spec",
     "type-check": "tsc --noEmit",
     "lint": "next lint"
   },
@@ -85,6 +87,10 @@
           "!*.dmg*",
           "!builder-*"
         ]
+      },
+      {
+        "from": "backend/dist/samplestrands-backend",
+        "to": "backend/samplestrands-backend"
       }
     ],
     "mac": {

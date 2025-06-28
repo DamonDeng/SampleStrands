@@ -43,29 +43,42 @@ async function startPythonBackend(): Promise<boolean> {
 
     console.log('🐍 Starting new Python backend process...');
 
-    // Command to start Python backend
-    const backendPath = isDev
-      ? path.join(__dirname, '../backend')
-      : path.join(process.resourcesPath, 'backend');
+    if (isDev) {
+      // Development mode: use conda environment
+      const backendPath = path.join(__dirname, '../backend');
+      const command = process.platform === 'win32'
+        ? `conda activate for_sample_strands && cd "${backendPath}" && python main.py`
+        : `conda run -n for_sample_strands --cwd "${backendPath}" python main.py`;
 
-    // Start Python backend with conda environment
-    let command: string;
-    if (process.platform === 'win32') {
-      // Windows command
-      command = `conda activate for_sample_strands && cd "${backendPath}" && python main.py`;
+      console.log(`🐍 [DEV] Executing command: ${command}`);
+
+      pythonBackend = spawn(command, [], {
+        shell: true,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: backendPath,
+        env: { ...process.env }
+      });
     } else {
-      // macOS/Linux command - use conda run instead of activation
-      command = `conda run -n for_sample_strands --cwd "${backendPath}" python main.py`;
+      // Production mode: use PyInstaller executable
+      const backendExecutable = process.platform === 'win32'
+        ? path.join(process.resourcesPath, 'backend', 'samplestrands-backend.exe')
+        : path.join(process.resourcesPath, 'backend', 'samplestrands-backend');
+
+      console.log(`🐍 [PROD] Executing backend: ${backendExecutable}`);
+
+      // Check if executable exists
+      if (!require('fs').existsSync(backendExecutable)) {
+        console.error(`🐍 Backend executable not found: ${backendExecutable}`);
+        resolve(false);
+        return;
+      }
+
+      pythonBackend = spawn(backendExecutable, [], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: path.dirname(backendExecutable),
+        env: { ...process.env }
+      });
     }
-
-    console.log(`🐍 Executing command: ${command}`);
-
-    pythonBackend = spawn(command, [], {
-      shell: true,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      cwd: backendPath,
-      env: { ...process.env }
-    });
 
     pythonBackend.stdout?.on('data', (data) => {
       console.log(`🐍 Backend stdout: ${data}`);

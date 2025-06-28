@@ -379,12 +379,28 @@ created_at/updated_at: Automatic timestamp management
 - **Build Configuration**: Fixed build issues with lowlight imports and TypeScript errors
 
 ### Production Build Process
-**Implementation**: Successful build pipeline with proper error handling
+**Implementation**: Automated PyInstaller integration for standalone Python backend
+- **PyInstaller Integration**: Automated backend compilation to standalone executable
+- **Development vs Production**: Conda environment for dev, standalone executable for production
+- **Build Pipeline**: `npm run build` automatically creates Python executable
+- **Cross-Platform**: Separate executables for Windows (.exe) and macOS/Linux
+- **No Dependencies**: Users don't need Python/conda installed
 - **Build Exclusions**: Added `.eslintignore` and updated `tsconfig.json` to exclude `code_reference/`
 - **Lowlight Simplification**: Removed complex lowlight configuration, using default rehype-highlight
 - **TypeScript Fixes**: Fixed component prop types for React Markdown components
 - **Bundle Optimization**: Main bundle 202 kB, shared chunks 80.5 kB
 - **Static Generation**: All pages successfully prerendered as static content
+
+### PyInstaller Backend Packaging
+**Implementation**: Standalone Python executable for production deployment
+- **Specification File**: `backend/samplestrands-backend.spec` defines build configuration
+- **Automated Build**: `npm run build:backend` creates standalone executable
+- **Hidden Imports**: Explicitly includes FastAPI, SQLAlchemy, AWS SDK dependencies
+- **Data Files**: Bundles configuration files and database models
+- **Size Optimization**: Excludes unnecessary modules (tkinter, matplotlib, etc.)
+- **Console Mode**: Runs as console application for logging and debugging
+- **Cross-Platform**: Platform-specific executables (.exe for Windows)
+- **No Environment**: Eliminates conda/Python installation requirements for end users
 
 ## Session Message Loading Architecture
 

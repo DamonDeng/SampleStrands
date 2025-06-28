@@ -33,12 +33,11 @@ a = Analysis(
         # Core dependencies
         'fastapi',
         'uvicorn',
+        'uvicorn.main',
         'sqlalchemy',
         'pydantic',
         'boto3',
         'botocore',
-        # AWS Strands SDK (if needed)
-        'strands_agent_sdk',
         # Database drivers
         'sqlite3',
         # Other hidden imports that PyInstaller might miss
@@ -50,6 +49,18 @@ a = Analysis(
         'uvicorn.loops',
         'uvicorn.loops.auto',
         'email_validator',
+        # Local modules that might not be detected
+        'database',
+        'database.connection',
+        'database.config_loader',
+        'models',
+        'models.database',
+        'models.schemas',
+        'services',
+        'api',
+        'api.routes',
+        'api.agent_routes',
+        'api.app_setting_routes',
     ],
     hookspath=[],
     hooksconfig={},

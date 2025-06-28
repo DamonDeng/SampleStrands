@@ -4,6 +4,7 @@ Configuration loader for migrating JSON configurations to database.
 
 import json
 import logging
+import os
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -21,7 +22,15 @@ class ConfigurationLoader:
     """Loads and manages configuration data in the database."""
     
     def __init__(self):
-        self.config_dir = Path(__file__).parent.parent / "config"
+        # Use environment variable for config directory (set by Electron in production)
+        # Fall back to relative path for development
+        config_dir_env = os.getenv('SAMPLESTRANDS_CONFIG_DIR')
+        if config_dir_env:
+            self.config_dir = Path(config_dir_env)
+            logger.info(f"🔧 Using config directory from environment: {self.config_dir}")
+        else:
+            self.config_dir = Path(__file__).parent.parent / "config"
+            logger.info(f"🔧 Using default config directory: {self.config_dir}")
 
     def get_json_config_version(self, config_type: str = "models") -> int:
         """Get the maximum config version from JSON configuration file."""

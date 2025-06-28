@@ -274,8 +274,9 @@ def main():
     # Note: Disable reload to prevent issues with Electron process management
     logger.info("🚀 About to start uvicorn server...")
     try:
+        # Use app object directly instead of string import for PyInstaller compatibility
         uvicorn.run(
-            "main:app",
+            app,  # Pass app object directly instead of "main:app"
             host=host,
             port=port,
             reload=False,  # Always disable reload for stability

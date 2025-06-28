@@ -9,7 +9,7 @@
     "dev:electron": "wait-on http://localhost:3000 && electron .",
     "build": "npm run build:next && npm run build:backend && npm run build:electron",
     "build:next": "next build",
-    "build:backend": "cd backend && pyinstaller samplestrands-backend.spec --clean --noconfirm",
+    "build:backend": "cd backend && conda run -n for_sample_strands pyinstaller samplestrands-backend.spec --clean --noconfirm",
     "build:electron": "tsc -p electron",
     "dist": "npm run build && electron-builder",
     "dist:mac": "npm run build && electron-builder --mac",
@@ -91,6 +91,10 @@
       {
         "from": "backend/dist/samplestrands-backend",
         "to": "backend/samplestrands-backend"
+      },
+      {
+        "from": "backend/config",
+        "to": "backend/config"
       }
     ],
     "mac": {

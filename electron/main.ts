@@ -64,19 +64,40 @@ async function startPythonBackend(): Promise<boolean> {
         ? path.join(process.resourcesPath, 'backend', 'samplestrands-backend.exe')
         : path.join(process.resourcesPath, 'backend', 'samplestrands-backend');
 
+      // Use standard user data directory for database and user files
+      const userDataPath = app.getPath('userData');
+      console.log(`🐍 [PROD] User data directory: ${userDataPath}`);
+
+      // Ensure user data directory exists
+      const fs = require('fs');
+      if (!fs.existsSync(userDataPath)) {
+        fs.mkdirSync(userDataPath, { recursive: true });
+        console.log(`🐍 [PROD] Created user data directory: ${userDataPath}`);
+      }
+
       console.log(`🐍 [PROD] Executing backend: ${backendExecutable}`);
+      console.log(`🐍 [PROD] Working directory: ${userDataPath}`);
 
       // Check if executable exists
-      if (!require('fs').existsSync(backendExecutable)) {
+      if (!fs.existsSync(backendExecutable)) {
         console.error(`🐍 Backend executable not found: ${backendExecutable}`);
         resolve(false);
         return;
       }
 
+      // Set environment variables for backend
+      const backendEnv = {
+        ...process.env,
+        // Pass config directory to backend
+        SAMPLESTRANDS_CONFIG_DIR: path.join(process.resourcesPath, 'backend', 'config'),
+        // Pass user data directory to backend (optional, backend can use cwd)
+        SAMPLESTRANDS_USER_DATA_DIR: userDataPath
+      };
+
       pythonBackend = spawn(backendExecutable, [], {
         stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: path.dirname(backendExecutable),
-        env: { ...process.env }
+        cwd: userDataPath, // Run from user data directory
+        env: backendEnv
       });
     }
 

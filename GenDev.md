@@ -402,6 +402,17 @@ created_at/updated_at: Automatic timestamp management
 - **Cross-Platform**: Platform-specific executables (.exe for Windows)
 - **No Environment**: Eliminates conda/Python installation requirements for end users
 
+### User Data Directory Management
+**Implementation**: Standard desktop app data storage following OS conventions
+- **macOS**: `~/Library/Application Support/SampleStrands/` for user data and database
+- **Windows**: `%APPDATA%/SampleStrands/` for user data and database
+- **Linux**: `~/.config/SampleStrands/` for user data and database
+- **Electron Integration**: Uses `app.getPath('userData')` for cross-platform compatibility
+- **Config Files**: Bundled with app in read-only `Resources/backend/config/`
+- **Database**: Created in user data directory on first run (user-specific)
+- **Environment Variables**: `SAMPLESTRANDS_CONFIG_DIR` points to bundled config files
+- **Working Directory**: Backend runs from user data directory for database access
+
 ## Session Message Loading Architecture
 
 ### Critical Bug Fix: Chat History Not Restored After App Restart

@@ -9,6 +9,28 @@
 **Developer**: DamonDeng (dengmingxuan@hotmail.com)
 **Status**: ✅ Production Ready - Complete AI chat application with real AWS Bedrock integration
 
+## **🎉 MAJOR MILESTONE ACHIEVED: Production-Ready Deployment**
+
+### **Breakthrough: PyInstaller-Based Standalone Distribution**
+**Date**: 2025-06-29
+**Achievement**: Successfully implemented complete standalone desktop app deployment with zero external dependencies
+
+**What This Means**:
+- ✅ **End users need NO Python/conda installation**
+- ✅ **Single DMG download provides complete functionality**
+- ✅ **Professional desktop app experience with standard OS integration**
+- ✅ **Automatic first-run setup with zero configuration required**
+- ✅ **Cross-platform compatibility maintained**
+
+**Technical Breakthrough**: Solved the complex challenge of bundling Python backend with Electron frontend while maintaining:
+- AWS Strands Agents SDK integration
+- SQLite database with automatic initialization
+- Configuration file management
+- Standard desktop app data storage patterns
+- Professional error handling and logging
+
+This represents a **major advancement** from development-only conda-dependent setup to **production-ready commercial distribution**.
+
 ## Core Architecture
 
 ### Frontend-Backend Integration
@@ -412,6 +434,78 @@ created_at/updated_at: Automatic timestamp management
 - **Database**: Created in user data directory on first run (user-specific)
 - **Environment Variables**: `SAMPLESTRANDS_CONFIG_DIR` points to bundled config files
 - **Working Directory**: Backend runs from user data directory for database access
+
+## **🚀 Production Deployment Architecture**
+
+### Complete PyInstaller Integration Success
+**Achievement**: Full standalone desktop app with zero external dependencies
+
+#### **Backend Bundling Strategy**
+- **PyInstaller Single Executable**: `backend/dist/samplestrands-backend` (standalone binary)
+- **No Python Runtime Required**: All dependencies bundled into single file
+- **Cross-Platform Compatibility**: Works on macOS/Windows/Linux without conda
+- **Config File Separation**: Read-only configs bundled, user data in standard directories
+
+#### **Build Pipeline Architecture**
+```bash
+npm run build      # Complete build: backend + frontend + electron
+npm run dist:mac   # Production distribution with DMG installer
+```
+
+**Build Process Flow**:
+1. **Backend Build**: `conda run -n for_sample_strands pyinstaller samplestrands-backend.spec`
+2. **Frontend Build**: Next.js production build with Electron integration
+3. **App Packaging**: Electron Builder creates DMG with bundled backend executable
+4. **File Structure**:
+   ```
+   SampleStrands.app/Contents/Resources/
+   ├── backend/
+   │   ├── samplestrands-backend    # PyInstaller executable
+   │   └── config/                  # Bundled config files
+   └── app/                         # Next.js frontend
+   ```
+
+#### **First-Run Database Initialization**
+**Implementation**: Automatic setup for zero-configuration user experience
+- **Database Creation**: SQLite database auto-created in user data directory
+- **Schema Initialization**: All tables created on first launch
+- **Configuration Loading**: 8 supported tools, 3+ models loaded from bundled configs
+- **Default Settings**: App settings and agent configurations initialized
+- **Environment Resolution**: Config directory resolved via `SAMPLESTRANDS_CONFIG_DIR`
+
+#### **Production Runtime Architecture**
+**Electron Main Process**:
+- **User Data Directory**: Auto-created using `app.getPath('userData')`
+- **Backend Process Management**: Spawns PyInstaller executable with proper environment
+- **Health Check System**: Verifies backend startup and API availability
+- **Error Recovery**: Automatic restart on backend failures
+
+**Backend Process**:
+- **Working Directory**: Runs from user data directory for database access
+- **Config Resolution**: Uses `SAMPLESTRANDS_CONFIG_DIR` environment variable
+- **Port Binding**: Listens on localhost:3867 for frontend communication
+- **Logging**: Comprehensive startup and error logging for debugging
+
+#### **End User Experience**
+**Zero-Configuration Deployment**:
+1. **Download**: Single DMG file download
+2. **Install**: Drag-and-drop installation (standard macOS)
+3. **First Launch**: Automatic database and configuration setup
+4. **Ready to Use**: Full functionality available immediately
+
+**No Technical Requirements**:
+- ❌ No Python installation needed
+- ❌ No conda environment setup
+- ❌ No manual database configuration
+- ❌ No config file editing
+- ✅ Works out-of-the-box on any macOS system
+
+#### **Technical Achievements**
+- **PyInstaller Compatibility**: Fixed uvicorn.run() to use app object instead of string import
+- **Environment Variable Integration**: Seamless config directory resolution
+- **Cross-Platform Data Storage**: Standard OS directories for user data
+- **Professional Error Handling**: Comprehensive logging and recovery mechanisms
+- **Build Automation**: Single-command production builds with integrated testing
 
 ## Session Message Loading Architecture
 

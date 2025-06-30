@@ -10,10 +10,12 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import uvicorn
+import ssl
 
 # Add the backend directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -24,6 +26,7 @@ from api.app_setting_routes import router as app_setting_router
 from models.schemas import ErrorResponse
 from database.connection import init_database, test_database_connection, get_database_info
 from database.config_loader import config_loader
+from security import verify_token, get_auth_status, is_auth_enabled
 
 
 # Configure logging
@@ -40,6 +43,11 @@ logger = logging.getLogger(__name__)
 # Also set uvicorn logger to DEBUG
 uvicorn_logger = logging.getLogger("uvicorn")
 uvicorn_logger.setLevel(logging.DEBUG)
+
+# Security configuration
+USE_HTTPS = os.getenv('SAMPLESTRANDS_USE_HTTPS', 'false').lower() == 'true'
+CERT_PATH = os.getenv('SAMPLESTRANDS_CERT_PATH')
+KEY_PATH = os.getenv('SAMPLESTRANDS_KEY_PATH')
 
 
 @asynccontextmanager
@@ -248,6 +256,17 @@ async def health():
     }
 
 
+# Authentication validation endpoint
+@app.get("/auth/validate")
+async def validate_auth(token: HTTPAuthorizationCredentials = Depends(verify_token)):
+    """Validate authentication token."""
+    return {
+        "status": "valid",
+        "message": "Authentication token is valid",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
 def signal_handler(signum, frame):
     """Handle shutdown signals gracefully."""
     logger.info(f"🛑 Received signal {signum}, shutting down gracefully...")
@@ -265,15 +284,47 @@ def main():
     port = int(os.getenv("PORT", 3867))
     debug = os.getenv("DEBUG", "false").lower() == "true"
 
-    logger.info(f"🌐 Starting server on {host}:{port}")
+    # Security configuration logging
+    if is_auth_enabled():
+        logger.info("🔐 Authentication token configured")
+    else:
+        logger.warning("⚠️ No authentication token - running in open mode")
+
+    if USE_HTTPS:
+        logger.info("🔒 HTTPS mode enabled")
+        if CERT_PATH and KEY_PATH:
+            logger.info(f"📜 Certificate: {CERT_PATH}")
+            logger.info(f"🔑 Private key: {KEY_PATH}")
+        else:
+            logger.error("❌ HTTPS enabled but certificate paths not provided")
+            raise ValueError("HTTPS enabled but SAMPLESTRANDS_CERT_PATH or SAMPLESTRANDS_KEY_PATH not set")
+    else:
+        logger.info("🔓 HTTP mode (development)")
+
+    protocol = "https" if USE_HTTPS else "http"
+    logger.info(f"🌐 Starting server on {protocol}://{host}:{port}")
     logger.info(f"🔧 Debug mode: {debug}")
-    logger.info(f"📚 API documentation available at: http://{host}:{port}/docs")
+    logger.info(f"📚 API documentation available at: {protocol}://{host}:{port}/docs")
     logger.info("🔧 Signal handlers registered for graceful shutdown")
-    
+
     # Run the server
     # Note: Disable reload to prevent issues with Electron process management
     logger.info("🚀 About to start uvicorn server...")
     try:
+        # Configure SSL context if HTTPS is enabled
+        ssl_keyfile = None
+        ssl_certfile = None
+
+        if USE_HTTPS:
+            ssl_keyfile = KEY_PATH
+            ssl_certfile = CERT_PATH
+
+            # Validate certificate files exist
+            if not os.path.exists(ssl_certfile):
+                raise FileNotFoundError(f"Certificate file not found: {ssl_certfile}")
+            if not os.path.exists(ssl_keyfile):
+                raise FileNotFoundError(f"Private key file not found: {ssl_keyfile}")
+
         # Use app object directly instead of string import for PyInstaller compatibility
         uvicorn.run(
             app,  # Pass app object directly instead of "main:app"
@@ -281,7 +332,9 @@ def main():
             port=port,
             reload=False,  # Always disable reload for stability
             log_level="info" if not debug else "debug",
-            access_log=True
+            access_log=True,
+            ssl_keyfile=ssl_keyfile,
+            ssl_certfile=ssl_certfile
         )
     except Exception as e:
         logger.error(f"❌ Server failed to start: {e}")

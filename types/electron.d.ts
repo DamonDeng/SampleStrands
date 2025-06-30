@@ -8,6 +8,12 @@ export interface ElectronAPI {
   maximizeWindow: () => void;
   closeWindow: () => void;
   removeAllListeners: (channel: string) => void;
+  getAuthToken: () => Promise<string | null>;
+  getSecurityConfig: () => Promise<{
+    securityMode: boolean;
+    useHttps: boolean;
+    baseURL: string;
+  }>;
 }
 
 declare global {

@@ -76,6 +76,8 @@ export class PythonAPIError extends Error {
 export class PythonAPI {
   private baseURL: string;
   private timeout: number;
+  private authToken: string | null = null;
+  private useHttps: boolean = false;
 
   constructor(
     baseURL: string = 'http://127.0.0.1:3867',
@@ -83,24 +85,63 @@ export class PythonAPI {
   ) {
     this.baseURL = baseURL;
     this.timeout = timeout;
+    this.initializeSecurityConfig();
+  }
+
+  /**
+   * Initialize security configuration from Electron
+   */
+  private async initializeSecurityConfig(): Promise<void> {
+    try {
+      if (typeof window !== 'undefined' && window.electronAPI) {
+        // Get security configuration from Electron
+        const securityConfig = await window.electronAPI.getSecurityConfig();
+        this.useHttps = securityConfig.useHttps;
+        this.baseURL = securityConfig.baseURL;
+
+        // Get authentication token
+        this.authToken = await window.electronAPI.getAuthToken();
+
+        console.log('🔐 Security configuration initialized:', {
+          useHttps: this.useHttps,
+          baseURL: this.baseURL,
+          hasToken: !!this.authToken
+        });
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to initialize security config:', error);
+    }
   }
 
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
+    // Ensure security config is initialized
+    if (!this.authToken && typeof window !== 'undefined' && window.electronAPI) {
+      await this.initializeSecurityConfig();
+    }
+
     const url = `${this.baseURL}/api/v1${endpoint}`;
-    
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    // Prepare headers with authentication
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> || {}),
+    };
+
+    // Add authentication token if available
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
 
     try {
       const response = await fetch(url, {
         ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
+        headers,
         signal: controller.signal,
       });
 
@@ -200,14 +241,27 @@ export class PythonAPI {
     onError?: (error: Error) => void,
     onComplete?: () => void
   ): Promise<void> {
+    // Ensure security config is initialized
+    if (!this.authToken && typeof window !== 'undefined' && window.electronAPI) {
+      await this.initializeSecurityConfig();
+    }
+
     const url = `${this.baseURL}/api/v1/sessions/${sessionId}/stream`;
-    
+
+    // Prepare headers with authentication
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add authentication token if available
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
+
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(request),
       });
 
@@ -289,6 +343,28 @@ export class PythonAPI {
 
   setTimeout(timeout: number): void {
     this.timeout = timeout;
+  }
+
+  /**
+   * Update security configuration
+   */
+  async updateSecurityConfig(): Promise<void> {
+    await this.initializeSecurityConfig();
+  }
+
+  /**
+   * Get current security status
+   */
+  getSecurityStatus(): {
+    useHttps: boolean;
+    hasToken: boolean;
+    baseURL: string;
+  } {
+    return {
+      useHttps: this.useHttps,
+      hasToken: !!this.authToken,
+      baseURL: this.baseURL
+    };
   }
 }
 

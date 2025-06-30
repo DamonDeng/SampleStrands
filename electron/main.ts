@@ -1,7 +1,8 @@
-import { app, BrowserWindow, Menu, shell, dialog } from 'electron';
+import { app, BrowserWindow, Menu, shell, dialog, ipcMain } from 'electron';
 import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import * as http from 'http';
+import { BackendManager, isSecurityModeEnabled, shouldUseHttps } from './security';
 
 // Set app name early (before app is ready) for macOS menu bar
 app.setName('SampleStrands');
@@ -10,144 +11,75 @@ app.setName('SampleStrands');
 let mainWindow: BrowserWindow | null = null;
 let isDev: boolean = false;
 
-// Python backend process management
-let pythonBackend: ChildProcess | null = null;
+// Security and backend management
+let backendManager: BackendManager | null = null;
+let currentAuthToken: string | null = null;
 const BACKEND_PORT = 3867;
 const BACKEND_HOST = '127.0.0.1';
-let backendStartupAttempts = 0;
-const MAX_STARTUP_ATTEMPTS = 2;
 
 // Determine if we're in development mode
 isDev = !app.isPackaged;
 
-// Python backend management functions
+// Secure backend management functions
 async function startPythonBackend(): Promise<boolean> {
-  return new Promise(async (resolve) => {
-    console.log('🐍 Checking for existing backend...');
+  try {
+    console.log('🔐 Starting secure Python backend...');
 
-    // First, check if there's already a backend running
-    const healthCheck = await checkBackendHealth();
-
-    if (healthCheck.healthy && healthCheck.isOurBackend) {
-      console.log('✅ Our backend is already running and healthy, reusing existing process');
-      console.log('📊 Backend info:', healthCheck.response);
-      resolve(true);
-      return;
-    } else if (healthCheck.healthy && !healthCheck.isOurBackend) {
-      console.log('⚠️ Port conflict detected: Another service is using port 3867');
-      console.log('🔍 Service response:', healthCheck.response);
-      await showPortConflictDialog(healthCheck.response);
-      resolve(false);
-      return;
-    }
-
-    console.log('🐍 Starting new Python backend process...');
-
-    if (isDev) {
-      // Development mode: use conda environment
-      const backendPath = path.join(__dirname, '../backend');
-      const command = process.platform === 'win32'
-        ? `conda activate for_sample_strands && cd "${backendPath}" && python main.py`
-        : `conda run -n for_sample_strands --cwd "${backendPath}" python main.py`;
-
-      console.log(`🐍 [DEV] Executing command: ${command}`);
-
-      pythonBackend = spawn(command, [], {
-        shell: true,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: backendPath,
-        env: { ...process.env }
-      });
-    } else {
-      // Production mode: use PyInstaller executable
-      const backendExecutable = process.platform === 'win32'
-        ? path.join(process.resourcesPath, 'backend', 'samplestrands-backend.exe')
-        : path.join(process.resourcesPath, 'backend', 'samplestrands-backend');
-
-      // Use standard user data directory for database and user files
+    // Initialize backend manager if not already done
+    if (!backendManager) {
       const userDataPath = app.getPath('userData');
-      console.log(`🐍 [PROD] User data directory: ${userDataPath}`);
-
-      // Ensure user data directory exists
-      const fs = require('fs');
-      if (!fs.existsSync(userDataPath)) {
-        fs.mkdirSync(userDataPath, { recursive: true });
-        console.log(`🐍 [PROD] Created user data directory: ${userDataPath}`);
-      }
-
-      console.log(`🐍 [PROD] Executing backend: ${backendExecutable}`);
-      console.log(`🐍 [PROD] Working directory: ${userDataPath}`);
-
-      // Check if executable exists
-      if (!fs.existsSync(backendExecutable)) {
-        console.error(`🐍 Backend executable not found: ${backendExecutable}`);
-        resolve(false);
-        return;
-      }
-
-      // Set environment variables for backend
-      const backendEnv = {
-        ...process.env,
-        // Pass config directory to backend
-        SAMPLESTRANDS_CONFIG_DIR: path.join(process.resourcesPath, 'backend', 'config'),
-        // Pass user data directory to backend (optional, backend can use cwd)
-        SAMPLESTRANDS_USER_DATA_DIR: userDataPath
-      };
-
-      pythonBackend = spawn(backendExecutable, [], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        cwd: userDataPath, // Run from user data directory
-        env: backendEnv
-      });
+      backendManager = new BackendManager(userDataPath);
     }
 
-    pythonBackend.stdout?.on('data', (data) => {
-      console.log(`🐍 Backend stdout: ${data}`);
-    });
+    // Determine security mode
+    const securityMode = isSecurityModeEnabled();
+    const useHttps = shouldUseHttps(isDev);
 
-    pythonBackend.stderr?.on('data', (data) => {
-      console.error(`🐍 Backend stderr: ${data}`);
-    });
+    console.log(`🛡️ Security mode: ${securityMode ? 'ENABLED' : 'DISABLED'}`);
+    console.log(`🔒 HTTPS mode: ${useHttps ? 'ENABLED' : 'DISABLED'}`);
 
-    pythonBackend.on('error', (error) => {
-      console.error('🐍 Backend process error:', error);
-      resolve(false);
-    });
+    // Start or reuse backend
+    const result = await backendManager.startOrReuseBackend(isDev, useHttps);
 
-    pythonBackend.on('exit', (code, signal) => {
-      console.log(`🐍 Backend process exited with code ${code}, signal: ${signal}`);
-      pythonBackend = null;
+    if (result.success && result.token) {
+      currentAuthToken = result.token;
+      console.log('✅ Backend started successfully');
+      console.log(`🔄 Backend reused: ${result.isReused ? 'YES' : 'NO'}`);
+      return true;
+    } else {
+      console.error('❌ Backend startup failed:', result.error);
 
-      // Auto-restart if not intentional shutdown
-      if (code !== 0 && backendStartupAttempts < MAX_STARTUP_ATTEMPTS) {
-        console.log('🔄 Attempting to restart Python backend...');
-        backendStartupAttempts++;
-        setTimeout(() => startPythonBackend(), 2000);
-      } else if (backendStartupAttempts >= MAX_STARTUP_ATTEMPTS) {
-        showBackendErrorDialog();
-      } else if (code === 0) {
-        console.log('✅ Backend exited cleanly (code 0)');
+      // Show appropriate error dialog
+      if (result.error?.includes('port conflict') || result.error?.includes('Port conflict')) {
+        await showPortConflictDialog(result.error);
+      } else {
+        await showBackendErrorDialog();
       }
-    });
 
-    // Wait for backend to be ready
-    setTimeout(() => {
-      checkBackendHealth().then((healthResult) => {
-        if (healthResult.healthy && healthResult.isOurBackend) {
-          console.log('✅ Python backend started successfully');
-          console.log('📊 Backend info:', healthResult.response);
-          backendStartupAttempts = 0;
-          resolve(true);
-        } else if (healthResult.healthy && !healthResult.isOurBackend) {
-          console.error('⚠️ Port conflict: Another service took over port 3867');
-          resolve(false);
-        } else {
-          console.error('❌ Python backend failed to start');
-          resolve(false);
-        }
-      });
-    }, 3000); // Give backend 3 seconds to start
-  });
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Backend startup exception:', error);
+    await showBackendErrorDialog();
+    return false;
+  }
+}
+
+// Get current authentication token for frontend
+function getCurrentAuthToken(): string | null {
+  return currentAuthToken;
+}
+
+// Cleanup security resources
+function cleanupSecurity(): void {
+  console.log('🧹 Cleaning up security resources...');
+
+  if (backendManager) {
+    backendManager.cleanup();
+    backendManager = null;
+  }
+
+  currentAuthToken = null;
 }
 
 async function checkBackendHealth(): Promise<{ healthy: boolean; isOurBackend: boolean; response?: any }> {
@@ -202,11 +134,8 @@ async function checkBackendHealth(): Promise<{ healthy: boolean; isOurBackend: b
 }
 
 function stopPythonBackend(): void {
-  if (pythonBackend) {
-    console.log('🛑 Stopping Python backend...');
-    pythonBackend.kill('SIGTERM');
-    pythonBackend = null;
-  }
+  console.log('🛑 Stopping Python backend and cleaning up security...');
+  cleanupSecurity();
 }
 
 async function showPortConflictDialog(conflictingService: any): Promise<void> {
@@ -232,7 +161,6 @@ async function showPortConflictDialog(conflictingService: any): Promise<void> {
 
   switch (result.response) {
     case 0: // Retry
-      backendStartupAttempts = 0;
       await startPythonBackend();
       break;
     case 1: // Continue without backend
@@ -262,7 +190,6 @@ async function showBackendErrorDialog(): Promise<void> {
 
   switch (result.response) {
     case 0: // Retry
-      backendStartupAttempts = 0;
       await startPythonBackend();
       break;
     case 1: // Continue without backend
@@ -354,7 +281,30 @@ app.whenReady().then(async () => {
 
   // Set up application menu
   createMenu();
+
+  // Set up IPC handlers for security
+  setupSecurityIPC();
 });
+
+// IPC handlers for security
+function setupSecurityIPC(): void {
+  // Get current authentication token
+  ipcMain.handle('get-auth-token', () => {
+    return getCurrentAuthToken();
+  });
+
+  // Get security configuration
+  ipcMain.handle('get-security-config', () => {
+    const securityMode = isSecurityModeEnabled();
+    const useHttps = shouldUseHttps(isDev);
+
+    return {
+      securityMode,
+      useHttps,
+      baseURL: useHttps ? `https://${BACKEND_HOST}:${BACKEND_PORT}` : `http://${BACKEND_HOST}:${BACKEND_PORT}`
+    };
+  });
+}
 
 // Quit when all windows are closed, except on macOS
 app.on('window-all-closed', () => {

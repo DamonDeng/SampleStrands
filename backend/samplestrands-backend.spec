@@ -40,6 +40,18 @@ a = Analysis(
         'botocore',
         # Database drivers
         'sqlite3',
+        # SSL/TLS dependencies for HTTPS
+        'ssl',
+        '_ssl',
+        'cryptography',
+        'cryptography.hazmat',
+        'cryptography.hazmat.primitives',
+        'cryptography.hazmat.primitives.asymmetric',
+        'cryptography.hazmat.primitives.ciphers',
+        'cryptography.hazmat.primitives.hashes',
+        'cryptography.hazmat.primitives.serialization',
+        'cryptography.hazmat.backends',
+        'cryptography.hazmat.backends.openssl',
         # Other hidden imports that PyInstaller might miss
         'uvicorn.lifespan',
         'uvicorn.lifespan.on',
@@ -61,6 +73,7 @@ a = Analysis(
         'api.routes',
         'api.agent_routes',
         'api.app_setting_routes',
+        'security',
     ],
     hookspath=[],
     hooksconfig={},

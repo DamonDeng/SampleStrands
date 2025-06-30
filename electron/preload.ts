@@ -43,6 +43,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Remove all listeners for a specific channel
   removeAllListeners: (channel: string) => {
     ipcRenderer.removeAllListeners(channel);
+  },
+
+  // Security-related functions
+  getAuthToken: () => {
+    return ipcRenderer.invoke('get-auth-token');
+  },
+
+  getSecurityConfig: () => {
+    return ipcRenderer.invoke('get-security-config');
   }
 });
 
@@ -57,6 +66,12 @@ export interface ElectronAPI {
   maximizeWindow: () => void;
   closeWindow: () => void;
   removeAllListeners: (channel: string) => void;
+  getAuthToken: () => Promise<string | null>;
+  getSecurityConfig: () => Promise<{
+    securityMode: boolean;
+    useHttps: boolean;
+    baseURL: string;
+  }>;
 }
 
 declare global {

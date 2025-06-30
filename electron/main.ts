@@ -20,6 +20,42 @@ const BACKEND_HOST = '127.0.0.1';
 // Determine if we're in development mode
 isDev = !app.isPackaged;
 
+// Configure Electron to accept self-signed certificates for localhost
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+  // Allow self-signed certificates for localhost in development
+  if (url.startsWith('https://127.0.0.1:') || url.startsWith('https://localhost:')) {
+    console.log('🔒 Accepting self-signed certificate for localhost:', url);
+    event.preventDefault();
+    callback(true);
+  } else {
+    // Use default behavior for other URLs
+    callback(false);
+  }
+});
+
+// Get appropriate user data path for development vs production
+function getUserDataPath(isDevelopment: boolean): string {
+  if (isDevelopment) {
+    // Use local dev_user_data directory for development
+    const devUserDataPath = path.join(__dirname, '../dev_user_data');
+
+    // Ensure directory exists
+    const fs = require('fs');
+    if (!fs.existsSync(devUserDataPath)) {
+      fs.mkdirSync(devUserDataPath, { recursive: true });
+      console.log(`📁 Created development user data directory: ${devUserDataPath}`);
+    }
+
+    console.log(`📁 [DEV] Using development user data: ${devUserDataPath}`);
+    return devUserDataPath;
+  } else {
+    // Use system userData directory for production
+    const prodUserDataPath = app.getPath('userData');
+    console.log(`📁 [PROD] Using system user data: ${prodUserDataPath}`);
+    return prodUserDataPath;
+  }
+}
+
 // Secure backend management functions
 async function startPythonBackend(): Promise<boolean> {
   try {
@@ -27,7 +63,7 @@ async function startPythonBackend(): Promise<boolean> {
 
     // Initialize backend manager if not already done
     if (!backendManager) {
-      const userDataPath = app.getPath('userData');
+      const userDataPath = getUserDataPath(isDev);
       backendManager = new BackendManager(userDataPath);
     }
 

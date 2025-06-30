@@ -272,15 +272,22 @@ export class BackendManager {
    */
   private async makeRequest(url: string, options: any, useHttps: boolean): Promise<Response> {
     if (useHttps) {
-      // Configure to accept self-signed certificates
-      const agent = new https.Agent({
-        rejectUnauthorized: false
-      });
-      
-      return fetch(url, {
-        ...options,
-        agent
-      });
+      // For HTTPS with self-signed certificates, we need to disable certificate validation
+      // This is safe for localhost communication in our desktop app
+      const originalRejectUnauthorized = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+      try {
+        const response = await fetch(url, options);
+        return response;
+      } finally {
+        // Restore original setting
+        if (originalRejectUnauthorized !== undefined) {
+          process.env.NODE_TLS_REJECT_UNAUTHORIZED = originalRejectUnauthorized;
+        } else {
+          delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+        }
+      }
     } else {
       return fetch(url, options);
     }

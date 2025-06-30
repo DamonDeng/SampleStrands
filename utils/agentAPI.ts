@@ -11,20 +11,63 @@ import {
   ToolsResponse
 } from '../types/agent';
 
-const API_BASE_URL = 'http://127.0.0.1:3867/api/v1';
-
 class AgentAPI {
+  private baseURL: string = 'http://127.0.0.1:3867/api/v1';
+  private authToken: string | null = null;
+  private useHttps: boolean = false;
+
+  constructor() {
+    this.initializeSecurityConfig();
+  }
+
+  /**
+   * Initialize security configuration from Electron
+   */
+  private async initializeSecurityConfig(): Promise<void> {
+    try {
+      if (typeof window !== 'undefined' && window.electronAPI) {
+        // Get security configuration from Electron
+        const securityConfig = await window.electronAPI.getSecurityConfig();
+        this.useHttps = securityConfig.useHttps;
+        this.baseURL = `${securityConfig.baseURL}/api/v1`;
+
+        // Get authentication token
+        this.authToken = await window.electronAPI.getAuthToken();
+
+        console.log('🔐 AgentAPI: Security configuration initialized:', {
+          useHttps: this.useHttps,
+          baseURL: this.baseURL,
+          hasToken: !!this.authToken
+        });
+      }
+    } catch (error) {
+      console.warn('⚠️ AgentAPI: Failed to initialize security config:', error);
+    }
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`;
-    
-    const defaultOptions: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+    // Ensure security config is initialized
+    if (!this.authToken && typeof window !== 'undefined' && window.electronAPI) {
+      await this.initializeSecurityConfig();
+    }
+
+    const url = `${this.baseURL}${endpoint}`;
+
+    // Prepare headers with authentication
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> || {}),
     };
 
-    const response = await fetch(url, { ...defaultOptions, ...options });
+    // Add authentication token if available
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
+
+    const response = await fetch(url, {
+      ...options,
+      headers
+    });
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -47,7 +90,7 @@ class AgentAPI {
   // Agent CRUD operations
   async getAgents(): Promise<AgentListResponse> {
     console.log('🌐 AgentAPI: Fetching agents from /agents');
-    console.log('🌐 Full URL will be:', `${API_BASE_URL}/agents`);
+    console.log('🌐 Full URL will be:', `${this.baseURL}/agents`);
     try {
       const response = await this.request<AgentListResponse>('/agents');
       console.log('✅ AgentAPI: Successfully fetched agents:', response);
@@ -163,6 +206,28 @@ class AgentAPI {
   // Utility methods
   async checkBackendConnectivity(): Promise<boolean> {
     return this.isBackendHealthy();
+  }
+
+  /**
+   * Update security configuration
+   */
+  async updateSecurityConfig(): Promise<void> {
+    await this.initializeSecurityConfig();
+  }
+
+  /**
+   * Get current security status
+   */
+  getSecurityStatus(): {
+    useHttps: boolean;
+    hasToken: boolean;
+    baseURL: string;
+  } {
+    return {
+      useHttps: this.useHttps,
+      hasToken: !!this.authToken,
+      baseURL: this.baseURL
+    };
   }
 }
 

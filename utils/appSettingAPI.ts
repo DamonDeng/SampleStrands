@@ -25,14 +25,71 @@ export interface AppSettingListResponse {
 }
 
 class AppSettingAPI {
-  private baseURL = 'http://127.0.0.1:3867/api/v1';
+  private baseURL: string = 'http://127.0.0.1:3867/api/v1';
+  private authToken: string | null = null;
+  private useHttps: boolean = false;
+
+  constructor() {
+    this.initializeSecurityConfig();
+  }
+
+  /**
+   * Initialize security configuration from Electron
+   */
+  private async initializeSecurityConfig(): Promise<void> {
+    try {
+      if (typeof window !== 'undefined' && window.electronAPI) {
+        // Get security configuration from Electron
+        const securityConfig = await window.electronAPI.getSecurityConfig();
+        this.useHttps = securityConfig.useHttps;
+        this.baseURL = `${securityConfig.baseURL}/api/v1`;
+
+        // Get authentication token
+        this.authToken = await window.electronAPI.getAuthToken();
+
+        console.log('🔐 AppSettingAPI: Security configuration initialized:', {
+          useHttps: this.useHttps,
+          baseURL: this.baseURL,
+          hasToken: !!this.authToken
+        });
+      }
+    } catch (error) {
+      console.warn('⚠️ AppSettingAPI: Failed to initialize security config:', error);
+    }
+  }
+
+  /**
+   * Make authenticated request
+   */
+  private async request(url: string, options: RequestInit = {}): Promise<Response> {
+    // Ensure security config is initialized
+    if (!this.authToken && typeof window !== 'undefined' && window.electronAPI) {
+      await this.initializeSecurityConfig();
+    }
+
+    // Prepare headers with authentication
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string> || {}),
+    };
+
+    // Add authentication token if available
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
+
+    return fetch(url, {
+      ...options,
+      headers
+    });
+  }
 
   /**
    * Get all application settings
    */
   async getAllSettings(): Promise<AppSetting[]> {
     try {
-      const response = await fetch(`${this.baseURL}/settings`);
+      const response = await this.request(`${this.baseURL}/settings`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -49,7 +106,7 @@ class AppSettingAPI {
    */
   async getSettingByTitle(title: string): Promise<AppSetting | null> {
     try {
-      const response = await fetch(`${this.baseURL}/settings/${encodeURIComponent(title)}`);
+      const response = await this.request(`${this.baseURL}/settings/${encodeURIComponent(title)}`);
       if (response.status === 404) {
         return null;
       }
@@ -68,11 +125,8 @@ class AppSettingAPI {
    */
   async createSetting(request: AppSettingCreateRequest): Promise<AppSetting> {
     try {
-      const response = await fetch(`${this.baseURL}/settings`, {
+      const response = await this.request(`${this.baseURL}/settings`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(request),
       });
       if (!response.ok) {
@@ -91,11 +145,8 @@ class AppSettingAPI {
    */
   async updateSetting(title: string, request: AppSettingUpdateRequest): Promise<AppSetting | null> {
     try {
-      const response = await fetch(`${this.baseURL}/settings/${encodeURIComponent(title)}`, {
+      const response = await this.request(`${this.baseURL}/settings/${encodeURIComponent(title)}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(request),
       });
       if (response.status === 404) {
@@ -117,7 +168,7 @@ class AppSettingAPI {
    */
   async deleteSetting(title: string): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseURL}/settings/${encodeURIComponent(title)}`, {
+      const response = await this.request(`${this.baseURL}/settings/${encodeURIComponent(title)}`, {
         method: 'DELETE',
       });
       if (response.status === 404) {
@@ -139,7 +190,7 @@ class AppSettingAPI {
    */
   async getSettingsSummary(): Promise<{ total_settings: number; setting_titles: string[] }> {
     try {
-      const response = await fetch(`${this.baseURL}/settings/stats/summary`);
+      const response = await this.request(`${this.baseURL}/settings/stats/summary`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -155,7 +206,7 @@ class AppSettingAPI {
    */
   async initializeDefaultSettings(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseURL}/settings/initialize`, {
+      const response = await this.request(`${this.baseURL}/settings/initialize`, {
         method: 'POST',
       });
       if (!response.ok) {
@@ -174,14 +225,20 @@ class AppSettingAPI {
    */
   async isBackendAvailable(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseURL}/health`, {
+      const response = await this.request(`${this.baseURL}/health`, {
         method: 'GET',
-        timeout: 5000,
-      } as any);
+      });
       return response.ok;
     } catch (error) {
       return false;
     }
+  }
+
+  /**
+   * Update security configuration
+   */
+  async updateSecurityConfig(): Promise<void> {
+    await this.initializeSecurityConfig();
   }
 }
 

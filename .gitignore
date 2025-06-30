@@ -203,3 +203,6 @@ ehthumbs_vista.db
 
 # Code Reference
 code_reference/
+
+# Development user data (simulates production userData directory)
+dev_user_data/

@@ -32,7 +32,18 @@ export const SECURITY_CONFIG = {
 
 // Security mode detection
 export function isSecurityModeEnabled(): boolean {
-  return process.env.SECURITY_MODE === 'true' || !process.env.NODE_ENV || process.env.NODE_ENV === 'production';
+  // Explicit security mode override
+  if (process.env.SECURITY_MODE === 'true') {
+    return true;
+  }
+
+  // Explicit security mode disable
+  if (process.env.SECURITY_MODE === 'false') {
+    return false;
+  }
+
+  // Default: security enabled only in production
+  return process.env.NODE_ENV === 'production';
 }
 
 // Utility function to determine if HTTPS should be used

@@ -129,6 +129,18 @@ className={`${styles.messageWrapper} ${isUser ? styles.userMessageWrapper : ''}`
 - ✅ **Multi-API Client Security**: All API clients (PythonAPI, AgentAPI, AppSettingAPI) security-aware
 - ✅ **Certificate Acceptance**: Electron renderer configured to accept self-signed certificates
 - ✅ **Data Isolation**: Development data separated in dev_user_data/ directory (gitignored)
+- ✅ **Production Packaging**: Proper dependency management for distributed builds
+
+### **📦 PRODUCTION PACKAGING IMPLEMENTATION**
+**Date**: 2025-06-30
+**Achievement**: Successful macOS distribution with complete security stack and dependency resolution
+
+**Packaging Architecture**:
+- ✅ **Dependency Management**: node-forge moved to production dependencies for proper inclusion
+- ✅ **ASAR Unpacking**: Critical modules unpacked for runtime access in packaged app
+- ✅ **Backend Integration**: PyInstaller-built Python backend included in app bundle
+- ✅ **Multi-Architecture**: Both x64 and ARM64 builds for comprehensive macOS support
+- ✅ **Security Preservation**: Full HTTPS + authentication stack functional in distributed app
 
 ### Core Security Components
 
@@ -739,6 +751,95 @@ samplestrands7/
 ├── server.crt                        # Production certificate
 ├── server.key                        # Production private key
 └── chat-app.db                       # Production database
+```
+
+### Production Packaging Configuration
+```json
+{
+  "dependencies": {
+    "node-forge": "^1.3.1"             # ✅ Moved from devDependencies
+  },
+  "build": {
+    "files": [
+      "dist/**/*",
+      "out/**/*",
+      "!out/mac*/**/*",
+      "!out/*.dmg*",
+      "!out/builder-*"
+    ],
+    "asarUnpack": [
+      "node_modules/node-forge/**/*"    # ✅ Unpacks for runtime access
+    ],
+    "extraResources": [
+      {
+        "from": "out",
+        "to": "app",
+        "filter": ["**/*"]
+      }
+    ]
+  }
+}
+```
+
+### Distribution Build Process
+```bash
+# Complete build and packaging
+npm run dist:mac
+
+# Build components:
+# 1. npm run build:next      → Frontend production build
+# 2. npm run build:backend   → PyInstaller Python executable
+# 3. npm run build:electron  → TypeScript compilation
+# 4. electron-builder --mac  → macOS app packaging
+
+# Output:
+# - release/SampleStrands-1.0.0.dmg       (x64)
+# - release/SampleStrands-1.0.0-arm64.dmg (ARM64)
+```
+
+### Packaged App Structure
+```
+SampleStrands.app/Contents/Resources/
+├── app.asar                          # Main application code (compressed)
+├── app.asar.unpacked/                # Unpacked modules for runtime access
+│   └── node_modules/
+│       └── node-forge/               # ✅ Certificate generation library
+├── backend/
+│   ├── samplestrands-backend         # ✅ Python executable (PyInstaller)
+│   └── config/                       # Backend configuration files
+└── app/                              # Frontend build output
+    └── out/                          # Next.js static export
+```
+
+### Packaging Troubleshooting
+```bash
+# Common Issues and Solutions:
+
+# 1. "Cannot find module 'node-forge'" Error
+# Solution: Ensure node-forge is in dependencies (not devDependencies)
+# and properly configured in asarUnpack
+
+# 2. Backend executable not found
+# Solution: Check backend/dist/ contains samplestrands-backend
+# and extraResources configuration includes backend files
+
+# 3. Certificate generation fails in packaged app
+# Solution: Verify node-forge is unpacked and accessible
+# Check app.asar.unpacked/node_modules/node-forge exists
+
+# 4. Security features not working in production
+# Solution: Ensure all API clients use security configuration
+# and certificate acceptance is properly configured
+
+# Debug packaged app:
+# 1. Check app structure
+ls -la SampleStrands.app/Contents/Resources/
+
+# 2. Verify unpacked modules
+ls -la SampleStrands.app/Contents/Resources/app.asar.unpacked/
+
+# 3. Test backend executable
+./SampleStrands.app/Contents/Resources/backend/samplestrands-backend --help
 ```
 
 ### Python Backend Development

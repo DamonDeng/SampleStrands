@@ -254,7 +254,6 @@ async def process_message(session_id: str, message_id: str):
     Returns:
         AI response
     """
-    logger.info(f"🚀 ENDPOINT HIT: process_message called with session {session_id[:8]}... message {message_id[:8]}...")
     logger.info(f"🤖 Processing message {message_id} in session {session_id}")
 
     try:
@@ -305,12 +304,7 @@ async def process_message(session_id: str, message_id: str):
             attachments=message_attachments
         )
 
-        # Debug logging
-        logger.info(f"📎 ROUTE DEBUG: process_request has attachments: {hasattr(process_request, 'attachments')}")
-        if hasattr(process_request, 'attachments'):
-            logger.info(f"📎 ROUTE DEBUG: attachments count: {len(process_request.attachments)}")
-            for i, att in enumerate(process_request.attachments):
-                logger.info(f"📎 ROUTE DEBUG: attachment {i+1}: {att.original_filename}")
+
 
         # Process through LLM service
         ai_response = await llm_service.generate_response_with_agent(

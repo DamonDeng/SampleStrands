@@ -476,11 +476,6 @@ class StrandsAgentService:
         if not agent_id:
             raise ValueError("Agent ID is required in request")
 
-        # Debug logging
-        logger.info(f"📎 LLM DEBUG: LLM service received request with attachments: {hasattr(request, 'attachments')}")
-        if hasattr(request, 'attachments'):
-            logger.info(f"📎 LLM DEBUG: LLM service attachments count: {len(request.attachments)}")
-
         logger.info(f"🤖 Generating response for session {session_id[:8]}... with agent {agent_id[:8]}...")
 
         try:
@@ -502,9 +497,9 @@ class StrandsAgentService:
             # Prepare and add message with attachments to agent
             await self._add_message_with_attachments_to_agent(agent, request, session_messages)
 
-            # Generate response using Strands Agent with follow-up prompt
-            logger.debug("   🔄 Calling Strands Agent with document support...")
-            agent_result = agent("Please respond to the above message and analyze any attached documents or images.")
+            # Generate response using Strands Agent (responds naturally to message history)
+            logger.debug("   🔄 Calling Strands Agent...")
+            agent_result = agent(".")
 
             # Extract content from agent result
             content = str(agent_result)
@@ -617,7 +612,7 @@ class StrandsAgentService:
             # For now, we'll simulate streaming by generating the full response
             # and then yielding it in chunks
 
-            agent_result = agent("Please respond to the above message and analyze any attached documents or images.")
+            agent_result = agent(".")
             content = str(agent_result)
 
             # Simulate streaming by yielding content in chunks
@@ -673,7 +668,7 @@ class StrandsAgentService:
 
             # Note: For streaming with attachments, we use a follow-up prompt approach
             # The attachments are already in the agent's message history
-            async for event in agent.stream_async("Please respond to the above message and analyze any attached documents or images."):
+            async for event in agent.stream_async("."):
                 # Process different types of events from Strands Agent
                 if isinstance(event, dict):
                     # Handle different event types
@@ -979,7 +974,6 @@ class StrandsAgentService:
             request: Chat request with potential document references
             session_messages: Previous messages in the session
         """
-        logger.info(f"🚀 ATTACHMENT METHOD CALLED: _add_message_with_attachments_to_agent")
         logger.info(f"📝 Creating Strands Agent message with attachments")
 
         # Start with text content block
@@ -987,11 +981,6 @@ class StrandsAgentService:
 
         # Process document attachments if any
         attachments = []
-
-        # Debug: Check what request attributes we have
-        logger.info(f"🔍 Request attributes: {[attr for attr in dir(request) if not attr.startswith('_')]}")
-        logger.info(f"🔍 Request has document_ids: {hasattr(request, 'document_ids')}")
-        logger.info(f"🔍 Request has attachments: {hasattr(request, 'attachments')}")
 
         # Handle document_ids (reference-based approach)
         if hasattr(request, 'document_ids') and request.document_ids:

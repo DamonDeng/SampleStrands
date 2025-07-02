@@ -39,7 +39,7 @@ class ProcessingStatus(str, Enum):
 class DocumentAttachment(BaseModel):
     """Document attachment model."""
     id: str = Field(default_factory=lambda: str(uuid4()))
-    message_id: str
+    message_id: Optional[str] = None  # Allow None for pre-uploaded documents
     filename: str
     original_filename: str
     file_format: str

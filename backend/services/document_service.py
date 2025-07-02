@@ -74,9 +74,11 @@ class DocumentService:
             # Save to database
             with get_db_session() as session:
                 db_attachment = ModelConverter.document_attachment_pydantic_to_db(attachment)
+                logger.info(f"📎 Saving attachment to DB: message_id={db_attachment.message_id}, id={db_attachment.id}")
                 session.add(db_attachment)
                 session.commit()
                 session.refresh(db_attachment)
+                logger.info(f"📎 Attachment saved successfully: {db_attachment.id}")
                 
                 # Convert back to Pydantic for return
                 saved_attachment = ModelConverter.document_attachment_db_to_pydantic(db_attachment)
@@ -365,6 +367,38 @@ class DocumentService:
 
         logger.info(f"📎 Retrieved {len(attachments)} attachments for chat")
         return attachments
+
+    async def get_message_attachments(self, message_id: str) -> List[DocumentAttachment]:
+        """
+        Get all attachments for a specific message.
+
+        Args:
+            message_id: ID of the message
+
+        Returns:
+            List of DocumentAttachment objects
+        """
+        logger.debug(f"🔍 Getting attachments for message: {message_id}")
+
+        try:
+            with get_db_session() as session:
+                # Query for attachments by message_id using ORM
+                db_attachments = session.query(DocumentAttachmentDB).filter(
+                    DocumentAttachmentDB.message_id == message_id
+                ).all()
+
+                attachments = []
+                for db_attachment in db_attachments:
+                    attachment = ModelConverter.document_attachment_db_to_pydantic(db_attachment)
+                    attachments.append(attachment)
+                    logger.debug(f"   ✅ Found attachment: {attachment.original_filename}")
+
+                logger.info(f"📎 Retrieved {len(attachments)} attachments for message {message_id}")
+                return attachments
+
+        except Exception as e:
+            logger.error(f"❌ Failed to get attachments for message {message_id}: {str(e)}")
+            return []
 
 
 # Create global service instance

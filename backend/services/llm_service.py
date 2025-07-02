@@ -458,21 +458,29 @@ class StrandsAgentService:
     async def generate_response_with_agent(
         self,
         request: ChatRequest,
-        session_messages: List[Message],
         session_id: str,
-        agent_id: str
+        session_messages: List[Message]
     ) -> Message:
         """Generate a response using a specific agent configuration.
 
         Args:
-            request: Chat request
-            session_messages: Previous messages for context
+            request: Chat request with agent_id
             session_id: Session UUID
-            agent_id: Agent UUID to use for configuration
+            session_messages: Previous messages for context
 
         Returns:
             Generated message response
         """
+        # Get agent_id from request
+        agent_id = request.agent_id
+        if not agent_id:
+            raise ValueError("Agent ID is required in request")
+
+        # Debug logging
+        logger.info(f"📎 LLM DEBUG: LLM service received request with attachments: {hasattr(request, 'attachments')}")
+        if hasattr(request, 'attachments'):
+            logger.info(f"📎 LLM DEBUG: LLM service attachments count: {len(request.attachments)}")
+
         logger.info(f"🤖 Generating response for session {session_id[:8]}... with agent {agent_id[:8]}...")
 
         try:
@@ -971,19 +979,36 @@ class StrandsAgentService:
             request: Chat request with potential document references
             session_messages: Previous messages in the session
         """
+        logger.info(f"🚀 ATTACHMENT METHOD CALLED: _add_message_with_attachments_to_agent")
         logger.info(f"📝 Creating Strands Agent message with attachments")
 
         # Start with text content block
         content_blocks = [{"text": request.message}]
 
         # Process document attachments if any
+        attachments = []
+
+        # Debug: Check what request attributes we have
+        logger.info(f"🔍 Request attributes: {[attr for attr in dir(request) if not attr.startswith('_')]}")
+        logger.info(f"🔍 Request has document_ids: {hasattr(request, 'document_ids')}")
+        logger.info(f"🔍 Request has attachments: {hasattr(request, 'attachments')}")
+
+        # Handle document_ids (reference-based approach)
         if hasattr(request, 'document_ids') and request.document_ids:
             logger.info(f"📎 Processing {len(request.document_ids)} document reference(s) for Strands Agent")
-
-            # Get the actual document data from the document service
             from services.document_service import document_service
             attachments = await document_service.get_attachments_for_chat(request.document_ids)
 
+        # Handle direct attachments (message-based approach)
+        elif hasattr(request, 'attachments') and request.attachments:
+            logger.info(f"📎 Processing {len(request.attachments)} direct attachment(s) for Strands Agent")
+            attachments = request.attachments
+            logger.info(f"📎 Attachments found: {[att.original_filename for att in attachments]}")
+        else:
+            logger.warning(f"⚠️ No attachments found in request")
+
+        # Process attachments
+        if attachments:
             for i, attachment in enumerate(attachments):
                 try:
                     # Get the file extension
@@ -994,7 +1019,7 @@ class StrandsAgentService:
                         image_content = {
                             "format": file_extension,
                             "source": {
-                                "bytes": attachment.file_content
+                                "bytes": attachment.file_data
                             }
                         }
                         content_blocks.append({"image": image_content})
@@ -1007,7 +1032,7 @@ class StrandsAgentService:
                             "format": file_extension,
                             "name": document_name,
                             "source": {
-                                "bytes": attachment.file_content
+                                "bytes": attachment.file_data
                             }
                         }
                         content_blocks.append({"document": document_content})

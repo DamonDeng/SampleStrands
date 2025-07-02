@@ -5,7 +5,7 @@ API routes for the AI Chat Desktop backend.
 import json
 import logging
 from datetime import datetime
-from typing import List
+from typing import List, Dict, Optional
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -192,6 +192,144 @@ async def get_session_messages(session_id: str, limit: int = None):
     return messages or []
 
 
+@router.post("/sessions/{session_id}/messages", response_model=Dict[str, str])
+async def create_message(session_id: str, request: ChatRequest):
+    """
+    Create a message in a session without processing it yet.
+    This allows uploading documents before LLM processing.
+
+    Args:
+        session_id: ID of the session
+        request: Chat request with message content
+
+    Returns:
+        Dictionary with message_id for document uploads
+    """
+    logger.info(f"📝 Creating message in session {session_id}")
+
+    try:
+        # Validate session exists
+        session = await session_service.get_session(session_id)
+        if not session:
+            logger.warning(f"❌ Session not found: {session_id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Session not found"
+            )
+
+        # Create user message (agent_id comes from session)
+        user_message = Message(
+            role=MessageRole.USER,
+            content=request.message,
+            session_id=session_id,
+            attachments=[]
+        )
+
+        # Save message to session
+        saved_message = await session_service.add_message_to_session(session_id, user_message)
+
+        logger.info(f"✅ Message created: {saved_message.id}")
+        return {"message_id": saved_message.id}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to create message: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create message: {str(e)}"
+        )
+
+
+@router.post("/sessions/{session_id}/messages/{message_id}/process", response_model=ChatResponse)
+async def process_message(session_id: str, message_id: str):
+    """
+    Process a message (with any uploaded attachments) through the LLM.
+
+    Args:
+        session_id: ID of the session
+        message_id: ID of the message to process
+        agent_id: Optional agent ID (can be provided here or in session)
+
+    Returns:
+        AI response
+    """
+    logger.info(f"🚀 ENDPOINT HIT: process_message called with session {session_id[:8]}... message {message_id[:8]}...")
+    logger.info(f"🤖 Processing message {message_id} in session {session_id}")
+
+    try:
+        # Validate session exists
+        session = await session_service.get_session(session_id)
+        if not session:
+            logger.warning(f"❌ Session not found: {session_id}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Session not found"
+            )
+
+        # Get the message with attachments
+        from services.document_service import document_service
+        message_attachments = await document_service.get_message_attachments(message_id)
+        logger.info(f"📎 Retrieved {len(message_attachments)} attachment(s) for message {message_id}")
+        for i, att in enumerate(message_attachments):
+            logger.info(f"   {i+1}. {att.original_filename} ({att.file_size} bytes, {att.file_format})")
+
+        # Get session messages for context
+        session_messages = await session_service.get_session_messages(session_id)
+
+        # Find the user message to process
+        user_message = None
+        for msg in session_messages:
+            if msg.id == message_id:
+                user_message = msg
+                user_message.attachments = message_attachments
+                break
+
+        if not user_message:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Message not found"
+            )
+
+        # Create a ChatRequest-like object for processing
+        class MessageProcessRequest:
+            def __init__(self, message: str, agent_id: str, attachments: list):
+                self.message = message
+                self.agent_id = agent_id
+                self.document_ids = []  # Not used in this flow
+                self.attachments = attachments  # Direct attachments
+
+        process_request = MessageProcessRequest(
+            message=user_message.content,
+            agent_id=session.agent_id,
+            attachments=message_attachments
+        )
+
+        # Debug logging
+        logger.info(f"📎 ROUTE DEBUG: process_request has attachments: {hasattr(process_request, 'attachments')}")
+        if hasattr(process_request, 'attachments'):
+            logger.info(f"📎 ROUTE DEBUG: attachments count: {len(process_request.attachments)}")
+            for i, att in enumerate(process_request.attachments):
+                logger.info(f"📎 ROUTE DEBUG: attachment {i+1}: {att.original_filename}")
+
+        # Process through LLM service
+        ai_response = await llm_service.generate_response_with_agent(
+            process_request, session_id, session_messages
+        )
+
+        logger.info(f"✅ Message processed successfully")
+        return ChatResponse(message=ai_response, session_id=session_id)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to process message: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process message: {str(e)}"
+        )
+
+
 @router.post("/sessions/{session_id}/chat", response_model=ChatResponse)
 async def chat_completion(session_id: str, request: ChatRequest):
     """Send a message and get AI response (non-streaming)."""
@@ -259,8 +397,11 @@ async def chat_completion(session_id: str, request: ChatRequest):
 
         # Generate AI response with effective agent
         logger.info(f"🤖 Generating AI response with agent {effective_agent_id}...")
+
+        # Create a request object with the effective agent_id
+        request.agent_id = effective_agent_id
         ai_response = await llm_service.generate_response_with_agent(
-            request, session_messages, session_id, effective_agent_id
+            request, session_id, session_messages
         )
         logger.info(f"✅ AI response generated: {len(ai_response.content)} characters")
         logger.debug(f"   🤖 Response preview: {ai_response.content[:100]}{'...' if len(ai_response.content) > 100 else ''}")

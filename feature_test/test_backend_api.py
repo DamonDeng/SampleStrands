@@ -93,12 +93,15 @@ def get_available_agent():
         print_colored(f"   ❌ Agent retrieval error: {e}", Colors.RED)
         return None
 
-def create_session():
-    """Create a test session"""
+def create_session(agent_id):
+    """Create a test session with agent"""
     print_colored("\n3️⃣ Creating Test Session...", Colors.YELLOW)
 
     try:
-        session_data = {"name": "Document Test Session"}
+        session_data = {
+            "title": "Document Test Session",
+            "agent_id": agent_id
+        }
         response = requests.post(f"{BASE_URL}/sessions", json=session_data, timeout=10)
 
         if response.status_code == 200:
@@ -115,14 +118,13 @@ def create_session():
         print_colored(f"   ❌ Session creation error: {e}", Colors.RED)
         return None
 
-def test_simple_chat(session_id, agent_id):
-    """Test simple chat without documents"""
+def test_simple_chat(session_id):
+    """Test simple chat without documents (agent comes from session)"""
     print_colored("\n4️⃣ Testing Simple Chat (Baseline)...", Colors.YELLOW)
 
     try:
         message_data = {
-            "message": "Hello, this is a test message without documents",
-            "agent_id": agent_id
+            "message": "Hello, this is a test message without documents"
         }
         response = requests.post(f"{BASE_URL}/sessions/{session_id}/chat", json=message_data, timeout=30)
         
@@ -144,9 +146,9 @@ def test_simple_chat(session_id, agent_id):
         print_colored(f"   ❌ Simple chat error: {e}", Colors.RED)
         return False
 
-def test_document_upload_and_chat(session_id, agent_id):
-    """Test the new two-step approach: upload documents, then chat with references"""
-    print_colored("\n5️⃣ Testing Document Upload and Chat (NEW APPROACH)...", Colors.YELLOW)
+def test_message_create_upload_process(session_id):
+    """Test the new three-step approach: create message, upload documents, process message"""
+    print_colored("\n5️⃣ Testing Message Create → Upload → Process (NEW APPROACH)...", Colors.YELLOW)
 
     # Check if test files exist
     if not Path(TEST_DOC).exists():
@@ -158,15 +160,58 @@ def test_document_upload_and_chat(session_id, agent_id):
         return False
 
     try:
-        # Step 1: Upload documents and get IDs
-        print("   📎 Step 1: Uploading documents...")
+        # Step 1: Create message and get message ID
+        print("   📝 Step 1: Creating message...")
+
+        message_data = {
+            "message": "Please analyze the attached documents and image. What do you see in the document and image?"
+        }
+
+        create_response = requests.post(f"{BASE_URL}/sessions/{session_id}/messages", json=message_data, timeout=30)
+
+        if create_response.status_code != 200:
+            print_colored(f"   ❌ Message creation failed: {create_response.status_code}", Colors.RED)
+            print(f"   Response: {create_response.text}")
+            return False
+
+        create_data = create_response.json()
+        message_id = create_data['message_id']
+
+        print_colored(f"   ✅ Message created: {message_id[:8]}...", Colors.GREEN)
+
+        # Verify the message exists by checking session messages
+        print("      🔍 Verifying message exists...")
+        session_response = requests.get(f"{BASE_URL}/sessions/{session_id}/messages", timeout=10)
+        if session_response.status_code == 200:
+            messages = session_response.json()
+            print(f"      📋 Session has {len(messages)} message(s)")
+            message_found = any(msg.get('id') == message_id for msg in messages)
+            if message_found:
+                print(f"      ✅ Message {message_id[:8]}... found in session")
+            else:
+                print(f"      ⚠️ Message {message_id[:8]}... not found in session")
+        else:
+            print(f"      ⚠️ Could not verify message: {session_response.status_code}")
+
+        # Step 2: Upload documents to the message
+        print("   📎 Step 2: Uploading documents to message...")
+
+        # Check file sizes first
+        doc_size = Path(TEST_DOC).stat().st_size
+        img_size = Path(TEST_IMAGE).stat().st_size
+        print(f"      📄 {TEST_DOC}: {doc_size} bytes")
+        print(f"      🖼️ {TEST_IMAGE}: {img_size} bytes")
 
         files = [
             ('files', (TEST_DOC, open(TEST_DOC, 'rb'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')),
             ('files', (TEST_IMAGE, open(TEST_IMAGE, 'rb'), 'image/png'))
         ]
+        data = {'message_id': message_id}
 
-        upload_response = requests.post(f"{BASE_URL}/documents/upload-for-chat", files=files, timeout=30)
+        print(f"      🔗 Uploading to: {BASE_URL}/documents/upload")
+        print(f"      📋 Message ID: {message_id}")
+
+        upload_response = requests.post(f"{BASE_URL}/documents/upload", files=files, data=data, timeout=30)
 
         # Close files
         for file_tuple in files:
@@ -175,29 +220,30 @@ def test_document_upload_and_chat(session_id, agent_id):
         if upload_response.status_code != 200:
             print_colored(f"   ❌ Document upload failed: {upload_response.status_code}", Colors.RED)
             print(f"   Response: {upload_response.text}")
+
+            # Try to parse error details
+            try:
+                error_data = upload_response.json()
+                print(f"   Error details: {error_data}")
+            except:
+                print(f"   Raw response: {upload_response.text}")
+
             return False
 
         attachments = upload_response.json()
-        document_ids = [att['id'] for att in attachments]
 
         print_colored(f"   ✅ Uploaded {len(attachments)} documents", Colors.GREEN)
         for i, att in enumerate(attachments):
             print(f"      {i+1}. {att['original_filename']} (ID: {att['id'][:8]}..., {att['file_size']} bytes)")
 
-        # Step 2: Send chat request with document IDs
-        print("   🤖 Step 2: Sending chat request with document references...")
+        # Step 3: Process the message with attachments
+        print("   🤖 Step 3: Processing message with attachments...")
 
-        message_data = {
-            "message": "Please analyze the attached documents and image. What do you see in the document and image?",
-            "agent_id": agent_id,
-            "document_ids": document_ids
-        }
+        process_response = requests.post(f"{BASE_URL}/sessions/{session_id}/messages/{message_id}/process", timeout=60)
 
-        chat_response = requests.post(f"{BASE_URL}/sessions/{session_id}/chat", json=message_data, timeout=60)
-
-        if chat_response.status_code == 200:
-            response_data = chat_response.json()
-            print_colored("   ✅ Chat with documents successful", Colors.GREEN)
+        if process_response.status_code == 200:
+            response_data = process_response.json()
+            print_colored("   ✅ Message processing successful", Colors.GREEN)
 
             # Extract and display AI response
             ai_message = response_data.get('message', {})
@@ -219,8 +265,8 @@ def test_document_upload_and_chat(session_id, agent_id):
                 print_colored("   ⚠️ WARNING: AI response doesn't seem to reference the documents", Colors.YELLOW)
                 return False
         else:
-            print_colored(f"   ❌ Chat with documents failed: {chat_response.status_code}", Colors.RED)
-            print(f"   Response: {chat_response.text}")
+            print_colored(f"   ❌ Message processing failed: {process_response.status_code}", Colors.RED)
+            print(f"   Response: {process_response.text}")
             return False
 
     except requests.exceptions.RequestException as e:
@@ -285,23 +331,23 @@ def main():
         print_colored("❌ Cannot get agent. Exiting.", Colors.RED)
         sys.exit(1)
 
-    # 3. Create session
+    # 3. Create session with agent
     total_tests += 1
-    session_id = create_session()
+    session_id = create_session(agent_id)
     if session_id:
         success_count += 1
     else:
         print_colored("❌ Cannot create session. Exiting.", Colors.RED)
         sys.exit(1)
 
-    # 4. Simple chat
+    # 4. Simple chat (agent comes from session)
     total_tests += 1
-    if test_simple_chat(session_id, agent_id):
+    if test_simple_chat(session_id):
         success_count += 1
 
-    # 5. Document upload and chat (KEY TEST - new two-step approach)
+    # 5. Message create, upload, process (KEY TEST - new three-step approach)
     total_tests += 1
-    if test_document_upload_and_chat(session_id, agent_id):
+    if test_message_create_upload_process(session_id):
         success_count += 1
 
     # 6. Supported types

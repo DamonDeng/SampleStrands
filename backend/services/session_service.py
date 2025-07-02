@@ -130,8 +130,8 @@ class SessionService:
             logger.error(f"❌ Failed to delete session {session_id}: {str(e)}")
             return False
     
-    async def add_message_to_session(self, session_id: str, message: Message) -> Optional[Session]:
-        """Add a message to a session."""
+    async def add_message_to_session(self, session_id: str, message: Message) -> Optional[Message]:
+        """Add a message to a session and return the saved message."""
         try:
             with get_db_session() as session_db:
                 # Check if session exists
@@ -151,13 +151,15 @@ class SessionService:
                 db_session.updated_at = datetime.utcnow()
 
                 session_db.commit()
-                session_db.refresh(db_session)
+                session_db.refresh(db_message)  # Refresh the message to get the ID
 
                 # Get message count
                 message_count = session_db.query(MessageDB).filter(MessageDB.session_id == session_id).count()
                 logger.debug(f"   📊 Session now has {message_count} messages")
 
-                return converter.session_db_to_pydantic(db_session, include_messages=True)
+                # Convert back to pydantic and return the saved message
+                saved_message = converter.message_db_to_pydantic(db_message)
+                return saved_message
 
         except Exception as e:
             logger.error(f"❌ Failed to add message to session {session_id}: {str(e)}")

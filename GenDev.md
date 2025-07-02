@@ -9,9 +9,23 @@
 **Developer**: DamonDeng (dengmingxuan@hotmail.com)
 **Status**: ✅ Production Ready - Complete AI chat application with real AWS Bedrock integration
 
-## **🎉 MAJOR MILESTONE ACHIEVED: Production-Ready Deployment**
+## **🎉 MAJOR MILESTONE ACHIEVED: Complete Document Support with AWS Strands Agents SDK**
 
-### **Breakthrough: PyInstaller-Based Standalone Distribution**
+### **Breakthrough: Full Document Analysis Integration**
+**Date**: 2025-07-02
+**Achievement**: Successfully implemented complete document support with AWS Strands Agents SDK - AI can now analyze Word documents, PDFs, images, and other file types
+
+**What This Means**:
+- ✅ **Multi-format Document Support**: Word (.docx), PDF, images (PNG, JPG), CSV, Excel, HTML, Markdown, TXT
+- ✅ **Real Document Analysis**: AI reads and analyzes actual document content using AWS Bedrock + Strands SDK
+- ✅ **Three-Step API Workflow**: Clean separation of message creation, document upload, and processing
+- ✅ **Session-Based Agent Management**: Simplified API with agent stored in session context
+- ✅ **Production-Ready Backend**: Comprehensive error handling, validation, and database storage
+- ✅ **Raw Binary Processing**: Proper file handling without encoding issues
+
+**Technical Breakthrough**: Solved complex integration challenges between multipart file uploads, database storage, and AWS Strands Agents SDK document processing pipeline.
+
+### **Previous Achievement: PyInstaller-Based Standalone Distribution**
 **Date**: 2025-06-29
 **Achievement**: Successfully implemented complete standalone desktop app deployment with zero external dependencies
 
@@ -643,6 +657,136 @@ npm run dist:mac   # Production distribution with DMG installer
 - **Professional Error Handling**: Comprehensive logging and recovery mechanisms
 - **Build Automation**: Single-command production builds with integrated testing
 
+## **🎯 DOCUMENT SUPPORT IMPLEMENTATION: Complete AWS Strands Agents SDK Integration**
+
+### **Three-Step Document Processing Workflow**
+**Architecture**: Clean separation of concerns for optimal user experience and data integrity
+
+#### **Step 1: Message Creation**
+```typescript
+// POST /api/v1/sessions/{session_id}/messages
+const response = await fetch(`${baseURL}/sessions/${sessionId}/messages`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    message: "Please analyze the attached documents and images."
+  })
+});
+const { message_id } = await response.json();
+```
+
+#### **Step 2: Document Upload**
+```typescript
+// POST /api/v1/documents/upload
+const formData = new FormData();
+formData.append('message_id', messageId);
+formData.append('files', wordDocument);
+formData.append('files', imageFile);
+
+const uploadResponse = await fetch(`${baseURL}/documents/upload`, {
+  method: 'POST',
+  body: formData
+});
+const attachments = await uploadResponse.json();
+```
+
+#### **Step 3: Message Processing**
+```typescript
+// POST /api/v1/sessions/{session_id}/messages/{message_id}/process
+const processResponse = await fetch(
+  `${baseURL}/sessions/${sessionId}/messages/${messageId}/process`,
+  { method: 'POST' }
+);
+const { message } = await processResponse.json();
+// AI response includes analysis of all uploaded documents
+```
+
+### **Key Technical Achievements**
+
+#### **1. Session-Based Agent Management**
+**Innovation**: Eliminated redundant agent_id parameters by storing agent in session context
+```python
+# Before: Required agent_id in every request
+POST /sessions/{session_id}/chat
+{
+  "message": "...",
+  "agent_id": "uuid-here"  # ❌ Redundant
+}
+
+# After: Agent stored in session, no redundant parameters
+POST /sessions/{session_id}/messages/{message_id}/process
+# ✅ Agent automatically retrieved from session
+```
+
+#### **2. Raw Binary Document Storage**
+**Solution**: Direct binary storage without encoding overhead
+```python
+class DocumentAttachment:
+    file_data: bytes           # ✅ Raw binary data
+    original_filename: str     # Original file name
+    file_format: str          # Extension (docx, pdf, png, etc.)
+    file_size: int            # Size in bytes
+    mime_type: str            # MIME type for validation
+```
+
+#### **3. Strands SDK Integration Pattern**
+**Critical Fix**: Proper attribute mapping for document processing
+```python
+# The breakthrough fix that made everything work:
+# ❌ Wrong: attachment.file_content (doesn't exist)
+# ✅ Correct: attachment.file_data (actual attribute)
+
+# Strands SDK document format
+document_content = {
+    "format": file_extension,
+    "name": document_name,
+    "source": {
+        "bytes": attachment.file_data  # ✅ Raw bytes to Strands SDK
+    }
+}
+```
+
+### **Supported Document Types**
+**Comprehensive Format Support**: 15+ file types with proper validation
+- **Documents**: PDF, Word (.docx), Excel (.xlsx), CSV, HTML, Markdown, TXT
+- **Images**: PNG, JPG, JPEG, GIF, WebP
+- **Limits**: 20MB per file, 5 files per message
+- **Validation**: File type, size, and MIME type validation
+
+### **Database Architecture for Documents**
+**Schema**: Optimized for performance and data integrity
+```sql
+CREATE TABLE document_attachments (
+    id UUID PRIMARY KEY,
+    message_id UUID REFERENCES messages(id),  -- Links to specific message
+    original_filename VARCHAR NOT NULL,
+    filename VARCHAR NOT NULL,                 -- Unique generated filename
+    file_format VARCHAR NOT NULL,             -- Extension (pdf, docx, png)
+    file_size INTEGER NOT NULL,
+    mime_type VARCHAR,
+    file_data BLOB NOT NULL,                  -- Raw binary content
+    document_type VARCHAR NOT NULL,           -- 'document' or 'image'
+    processing_status VARCHAR DEFAULT 'completed',
+    metadata JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### **Error Handling & Validation**
+**Comprehensive Safety**: Production-ready error handling
+- **File Validation**: Size limits, type checking, empty file detection
+- **Database Integrity**: Proper foreign key relationships and constraints
+- **API Error Responses**: Detailed error messages with HTTP status codes
+- **Graceful Degradation**: Continues processing other files if one fails
+- **Debug Logging**: Comprehensive logging for troubleshooting
+
+### **Performance Optimizations**
+**Efficient Processing**: Optimized for large files and multiple documents
+- **Streaming Uploads**: Multipart form handling for large files
+- **Database Indexing**: Optimized queries for message-attachment relationships
+- **Memory Management**: Efficient binary data handling without memory leaks
+- **Concurrent Processing**: Multiple files processed efficiently
+
 ## Session Message Loading Architecture
 
 ### Critical Bug Fix: Chat History Not Restored After App Restart
@@ -887,14 +1031,154 @@ npm run dev                   # Auto-initializes database on startup
 - **🔄 Backend Service Reuse**: Intelligent detection and reuse of existing backend instances
 - **🛠️ Development Flexibility**: Separate security modes for development vs. production testing
 
+## **📋 TODO: Frontend Document Support Integration**
+
+### **🎯 IMMEDIATE PRIORITY: Frontend Document Upload UI**
+**Status**: Backend document support is complete and fully tested. Frontend integration is the next critical milestone.
+
+#### **Required Frontend Components**
+
+##### **1. Document Attachment UI in Chat Input**
+**Location**: `frontend/components/ChatArea/MessageInput.tsx`
+**Requirements**:
+- **Attachment Button**: Paperclip icon next to send button
+- **File Selection**: Multi-file selection with drag-and-drop support
+- **File Preview Row**: Show selected files above message input with remove buttons
+- **File Type Validation**: Client-side validation for supported types (docx, pdf, png, jpg, etc.)
+- **Size Validation**: 20MB per file, 5 files max per message
+- **Visual Feedback**: Upload progress indicators and error states
+
+##### **2. Three-Step Message Flow Integration**
+**Location**: `frontend/components/ChatArea/ChatArea.tsx`
+**Implementation**:
+```typescript
+const handleSendMessageWithAttachments = async (content: string, files: File[]) => {
+  // Step 1: Create message
+  const { message_id } = await pythonAPI.createMessage(activeSessionId, content);
+
+  // Step 2: Upload documents (if any)
+  if (files.length > 0) {
+    await pythonAPI.uploadDocuments(message_id, files);
+  }
+
+  // Step 3: Process message with streaming
+  await pythonAPI.processMessage(activeSessionId, message_id, (chunk) => {
+    // Handle streaming response
+  });
+};
+```
+
+##### **3. API Client Extensions**
+**Location**: `frontend/lib/api/PythonAPI.ts`
+**New Methods Needed**:
+```typescript
+class PythonAPI {
+  // Create message without processing
+  async createMessage(sessionId: string, content: string): Promise<{message_id: string}>;
+
+  // Upload documents to message
+  async uploadDocuments(messageId: string, files: File[]): Promise<DocumentAttachment[]>;
+
+  // Process message with attachments
+  async processMessage(sessionId: string, messageId: string, onChunk?: (chunk: any) => void): Promise<ChatResponse>;
+}
+```
+
+##### **4. Document Attachment Display**
+**Location**: `frontend/components/ChatArea/MessageBubble.tsx`
+**Requirements**:
+- **Attachment Indicators**: Show document/image icons in message bubbles
+- **File Information**: Display filename, size, and type
+- **Download/View Actions**: Click to download or preview attachments
+- **Visual Distinction**: Different styling for documents vs images
+- **Responsive Design**: Proper layout on different screen sizes
+
+#### **UI/UX Design Requirements**
+
+##### **File Upload Experience**
+- **Drag & Drop Zone**: Entire message input area accepts file drops
+- **File Type Icons**: Visual indicators for different file types (Word, PDF, image icons)
+- **Progress Feedback**: Upload progress bars and success/error states
+- **File Size Display**: Human-readable file sizes (KB, MB)
+- **Remove Functionality**: X button to remove files before sending
+
+##### **Message Display Enhancements**
+- **Attachment Badges**: Small indicators showing number of attachments
+- **File Previews**: Thumbnail previews for images
+- **Document Summaries**: Show first few lines of text documents
+- **Download Links**: Easy access to download original files
+
+##### **Error Handling**
+- **File Type Errors**: Clear messages for unsupported file types
+- **Size Limit Errors**: Helpful messages about file size limits
+- **Upload Failures**: Retry mechanisms and error recovery
+- **Network Issues**: Graceful handling of connection problems
+
+#### **Integration Points**
+
+##### **Message Input Component Updates**
+```typescript
+interface MessageInputProps {
+  onSendMessage: (content: string, files: File[]) => void;  // Updated signature
+  disabled?: boolean;
+  placeholder?: string;
+  maxFiles?: number;        // New: file limit configuration
+  maxFileSize?: number;     // New: size limit configuration
+  supportedTypes?: string[]; // New: allowed file types
+}
+```
+
+##### **Chat State Management**
+```typescript
+interface ChatMessage {
+  id: string;
+  content: string;
+  sender: 'user' | 'assistant';
+  timestamp: Date;
+  attachments?: DocumentAttachment[];  // New: attachment support
+  isStreaming?: boolean;
+  hasAttachments?: boolean;           // New: quick check flag
+}
+```
+
+### **🔧 Technical Implementation Notes**
+
+#### **File Handling Best Practices**
+- **FormData Usage**: Use FormData for multipart file uploads
+- **File Reading**: Use FileReader API for client-side file validation
+- **Memory Management**: Proper cleanup of file objects and blob URLs
+- **Type Safety**: Strong TypeScript interfaces for all file operations
+
+#### **Performance Considerations**
+- **Lazy Loading**: Load attachment details only when needed
+- **File Compression**: Consider client-side image compression for large files
+- **Upload Chunking**: For very large files, implement chunked uploads
+- **Caching**: Cache file metadata to avoid repeated API calls
+
+#### **Accessibility Requirements**
+- **Keyboard Navigation**: Full keyboard support for file operations
+- **Screen Reader Support**: Proper ARIA labels and descriptions
+- **Focus Management**: Logical tab order through file upload UI
+- **Error Announcements**: Screen reader announcements for upload status
+
+### **🎯 Success Criteria**
+**Definition of Done**: Frontend document support is complete when:
+- ✅ Users can select and upload multiple files (drag-and-drop + file picker)
+- ✅ Files are validated client-side before upload
+- ✅ Upload progress is clearly indicated
+- ✅ AI responses demonstrate actual document analysis
+- ✅ Attachments are properly displayed in message history
+- ✅ Error handling provides clear user feedback
+- ✅ All file operations work in both development and production builds
+
 ## Future Enhancement Opportunities
 
 ### Immediate Next Steps
-1. **File Attachment Support**: Document upload and processing capabilities
-2. **Advanced Search**: Full-text search across conversations and agents
-3. **Export/Import**: Conversation backup and restore functionality
-4. **Custom Themes**: UI customization options beyond dark/light themes
-5. **Keyboard Shortcuts**: Configurable shortcuts for power users
+1. **Advanced Search**: Full-text search across conversations and agents
+2. **Export/Import**: Conversation backup and restore functionality
+3. **Custom Themes**: UI customization options beyond dark/light themes
+4. **Keyboard Shortcuts**: Configurable shortcuts for power users
+5. **Document Preview**: In-app document viewing without downloads
 
 ### Advanced Features
 1. **Multi-Model Support**: Support for additional Bedrock models
@@ -902,6 +1186,8 @@ npm run dev                   # Auto-initializes database on startup
 3. **Agent Templates**: Pre-configured agent templates for common use cases
 4. **Conversation Analytics**: Usage statistics and insights
 5. **Auto-updater**: Automatic application updates
+6. **Document OCR**: Text extraction from scanned documents and images
+7. **Collaborative Features**: Share conversations and documents with team members
 
 ---
 

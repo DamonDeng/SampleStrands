@@ -1,4 +1,4 @@
-import { Message } from '../types/chat';
+import { Message, DocumentAttachment } from '../types/chat';
 import { IoPersonOutline } from 'react-icons/io5';
 import { RiRobot2Line, RiFileTextLine, RiImageLine, RiAttachment2 } from 'react-icons/ri';
 import { Markdown } from './Markdown';
@@ -25,7 +25,7 @@ export default function MessageBubble({ message, isFirst, isLast }: MessageBubbl
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
-  const getFileIcon = (attachment: any) => {
+  const getFileIcon = (attachment: DocumentAttachment) => {
     if (attachment.document_type === 'image') {
       return <RiImageLine />;
     }

@@ -2,6 +2,14 @@
   width: 100%;
 }
 
+.attachmentsContainer {
+  padding: 8px 12px;
+  background: #36393f;
+  border: 1px solid #40444b;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
 .inputContainer {
   display: flex;
   align-items: flex-end;

@@ -255,3 +255,62 @@
     font-size: 13px;
   }
 }
+
+/* Attachment styles */
+.attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attachment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.userBubble .attachment {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.attachmentIcon {
+  display: flex;
+  align-items: center;
+  color: #b9bbbe;
+  font-size: 14px;
+}
+
+.attachmentInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.attachmentName {
+  color: #ffffff;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userBubble .attachmentName {
+  color: #2c2f33;
+}
+
+.attachmentSize {
+  color: #72767d;
+  font-size: 10px;
+}
+
+.userBubble .attachmentSize {
+  color: #4f545c;
+}

@@ -1,20 +1,29 @@
 import { useState, useRef, useEffect } from 'react';
+import { RiSendPlaneFill } from 'react-icons/ri';
+import DocumentUpload from './DocumentUpload';
 import styles from '../styles/MessageInput.module.css';
 
 interface MessageInputProps {
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, files?: File[]) => void;
   disabled?: boolean;
   placeholder?: string;
   shortcutToSend?: 'enter' | 'shift_enter';
+  maxFiles?: number;
+  maxFileSizeMB?: number;
+  supportedTypes?: string[];
 }
 
 export default function MessageInput({
   onSendMessage,
   disabled = false,
   placeholder = "Type your message...",
-  shortcutToSend = 'shift_enter'
+  shortcutToSend = 'shift_enter',
+  maxFiles = 5,
+  maxFileSizeMB = 20,
+  supportedTypes = ['pdf', 'docx', 'doc', 'txt', 'csv', 'xlsx', 'xls', 'html', 'md', 'png', 'jpg', 'jpeg', 'gif', 'webp']
 }: MessageInputProps) {
   const [message, setMessage] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Generate dynamic placeholder with shortcut hint
@@ -30,11 +39,20 @@ export default function MessageInput({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSendMessage(message.trim());
+    if ((message.trim() || selectedFiles.length > 0) && !disabled) {
+      onSendMessage(message.trim() || "Please analyze the attached files.", selectedFiles);
       setMessage('');
+      setSelectedFiles([]);
       resetTextareaHeight();
     }
+  };
+
+  const handleFilesSelected = (newFiles: File[]) => {
+    setSelectedFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -72,6 +90,21 @@ export default function MessageInput({
 
   return (
     <form onSubmit={handleSubmit} className={styles.messageForm}>
+      {/* File attachments display */}
+      {selectedFiles.length > 0 && (
+        <div className={styles.attachmentsContainer}>
+          <DocumentUpload
+            onFilesSelected={() => {}} // Not used in display mode
+            selectedFiles={selectedFiles}
+            onRemoveFile={handleRemoveFile}
+            disabled={disabled}
+            maxFiles={maxFiles}
+            maxFileSizeMB={maxFileSizeMB}
+            supportedTypes={supportedTypes}
+          />
+        </div>
+      )}
+
       <div className={styles.inputContainer}>
         <textarea
           ref={textareaRef}
@@ -83,27 +116,28 @@ export default function MessageInput({
           className={`${styles.messageInput} ${disabled ? styles.disabled : ''}`}
           rows={1}
         />
-        
+
         <div className={styles.inputActions}>
-          <button
-            type="button"
-            className={styles.actionButton}
-            title="Attach file"
+          <DocumentUpload
+            onFilesSelected={handleFilesSelected}
+            selectedFiles={[]} // Only show attach button, not files
+            onRemoveFile={() => {}} // Not used in button mode
             disabled={disabled}
-          >
-            📎
-          </button>
-          
+            maxFiles={maxFiles}
+            maxFileSizeMB={maxFileSizeMB}
+            supportedTypes={supportedTypes}
+          />
+
           <button
             type="submit"
-            className={`${styles.sendButton} ${message.trim() && !disabled ? styles.active : ''}`}
-            disabled={!message.trim() || disabled}
+            className={`${styles.sendButton} ${(message.trim() || selectedFiles.length > 0) && !disabled ? styles.active : ''}`}
+            disabled={!(message.trim() || selectedFiles.length > 0) || disabled}
             title={`Send message (${shortcutToSend === 'enter' ? 'Enter' : 'Shift+Enter'})`}
           >
             {disabled ? (
               <div className={styles.spinner} />
             ) : (
-              '➤'
+              <RiSendPlaneFill />
             )}
           </button>
         </div>

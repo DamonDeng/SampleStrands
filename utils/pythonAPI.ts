@@ -3,6 +3,16 @@
  * HTTP client for communicating with the Python FastAPI backend
  */
 
+export interface DocumentAttachment {
+  id: string;
+  original_filename: string;
+  file_size: number;
+  file_format: string;
+  mime_type: string;
+  document_type: 'document' | 'image';
+  created_at: string;
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -10,6 +20,7 @@ export interface Message {
   timestamp: string;
   status?: 'pending' | 'completed' | 'failed';
   metadata?: Record<string, any>;
+  attachments?: DocumentAttachment[];
 }
 
 export interface Session {
@@ -232,6 +243,104 @@ export class PythonAPI {
       method: 'POST',
       body: JSON.stringify(request),
     });
+  }
+
+  // Document support - Three-step workflow
+  async createMessage(
+    sessionId: string,
+    content: string
+  ): Promise<{ message_id: string }> {
+    return this.request(`/sessions/${sessionId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ message: content }),
+    });
+  }
+
+  async uploadDocuments(
+    messageId: string,
+    files: File[]
+  ): Promise<DocumentAttachment[]> {
+    // Ensure security config is initialized
+    if (!this.authToken && typeof window !== 'undefined' && window.electronAPI) {
+      await this.initializeSecurityConfig();
+    }
+
+    const url = `${this.baseURL}/api/v1/documents/upload`;
+    const formData = new FormData();
+
+    // Add message ID
+    formData.append('message_id', messageId);
+
+    // Add files
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    // Prepare headers with authentication (no Content-Type for FormData)
+    const headers: Record<string, string> = {};
+    if (this.authToken) {
+      headers['Authorization'] = `Bearer ${this.authToken}`;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new PythonAPIError(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`,
+          response.status,
+          errorData
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      if (error instanceof PythonAPIError) {
+        throw error;
+      }
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new PythonAPIError('Upload timeout');
+      }
+
+      throw new PythonAPIError(
+        error instanceof Error ? error.message : 'Upload error occurred'
+      );
+    }
+  }
+
+  async processMessage(
+    sessionId: string,
+    messageId: string
+  ): Promise<ChatResponse> {
+    return this.request(`/sessions/${sessionId}/messages/${messageId}/process`, {
+      method: 'POST',
+    });
+  }
+
+  async getSupportedFileTypes(): Promise<{
+    documents: string[];
+    images: string[];
+    all: string[];
+    limits: {
+      max_file_size_mb: number;
+      max_files_per_message: number;
+    };
+  }> {
+    return this.request('/documents/supported-types');
   }
 
   async streamMessage(

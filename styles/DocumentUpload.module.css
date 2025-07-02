@@ -1,0 +1,174 @@
+.documentUpload {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attachButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+}
+
+.attachButton:hover:not(.disabled) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.attachButton.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.selectedFiles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 300px;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.fileIcon {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.fileInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileSize {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.removeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.removeButton:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.dragOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dragContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+  background: var(--bg-primary);
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  color: var(--text-primary);
+}
+
+.dragContent p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .fileItem {
+  background: var(--bg-tertiary);
+}
+
+[data-theme="dark"] .dragContent {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .fileItem {
+  background: #f8f9fa;
+  border-color: #e9ecef;
+}
+
+[data-theme="light"] .dragContent {
+  background: white;
+  border-color: #dee2e6;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .selectedFiles {
+    max-width: 250px;
+  }
+  
+  .fileName {
+    max-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .selectedFiles {
+    max-width: 200px;
+  }
+  
+  .fileName {
+    max-width: 100px;
+  }
+  
+  .dragContent {
+    padding: 24px;
+    margin: 16px;
+  }
+}

@@ -10,7 +10,7 @@ import styles from '../styles/ChatArea.module.css';
 
 interface ChatAreaProps {
   session: Session | undefined;
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, files?: File[]) => void;
   onAIResponse: (content: string) => void;
   onStreamingUpdate: (content: string) => void;
   isElectron: boolean;
@@ -40,56 +40,79 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, onStrea
     }
   }, [isStreaming, streamingContent]);
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, files?: File[]) => {
     if (!session || isLoading || isStreaming || !sessionId) return;
 
     // Send user message (optimistic update)
-    onSendMessage(content);
+    onSendMessage(content, files);
     setIsLoading(true);
     setStreamingContent('');
 
     try {
       if (backendAvailable) {
-        // Use streaming backend API for AI response with agent information
-        setIsStreaming(true);
-        setIsLoading(false); // Not loading anymore, but streaming
+        if (files && files.length > 0) {
+          // Three-step workflow for messages with attachments
+          console.log('📎 Processing message with attachments using three-step workflow');
 
-        let accumulatedContent = '';
+          // Step 1: Create message
+          console.log('📝 Step 1: Creating message...');
+          const createResponse = await pythonAPI.createMessage(sessionId, content);
+          const messageId = createResponse.message_id;
 
-        await pythonAPI.streamMessage(
-          sessionId,
-          {
-            message: content,
-            agent_id: session.agentId,  // Send agent ID from session
-            stream: true
-          },
-          // onChunk callback - called for each streaming chunk
-          (chunk: StreamChunk) => {
-            accumulatedContent += chunk.content;
-            setStreamingContent(accumulatedContent);
-            onStreamingUpdate(accumulatedContent);
-          },
-          // onError callback
-          (error: Error) => {
-            console.error('Streaming error:', error);
-            setIsStreaming(false);
-            setStreamingContent('');
+          // Step 2: Upload documents
+          console.log('📤 Step 2: Uploading documents...');
+          const attachments = await pythonAPI.uploadDocuments(messageId, files);
+          console.log(`✅ Uploaded ${attachments.length} documents`);
 
-            // Try fallback to mock AI on streaming error
-            handleFallbackToMock(content);
-          },
-          // onComplete callback
-          () => {
-            console.log('🌊 Streaming completed');
-            setIsStreaming(false);
+          // Step 3: Process message (non-streaming for now)
+          console.log('🤖 Step 3: Processing message...');
+          const response = await pythonAPI.processMessage(sessionId, messageId);
 
-            // Add the complete AI response to UI
-            if (accumulatedContent) {
-              onAIResponse(accumulatedContent);
+          // Add AI response
+          onAIResponse(response.message.content);
+
+        } else {
+          // Regular streaming for text-only messages
+          setIsStreaming(true);
+          setIsLoading(false); // Not loading anymore, but streaming
+
+          let accumulatedContent = '';
+
+          await pythonAPI.streamMessage(
+            sessionId,
+            {
+              message: content,
+              agent_id: session.agentId,  // Send agent ID from session
+              stream: true
+            },
+            // onChunk callback - called for each streaming chunk
+            (chunk: StreamChunk) => {
+              accumulatedContent += chunk.content;
+              setStreamingContent(accumulatedContent);
+              onStreamingUpdate(accumulatedContent);
+            },
+            // onError callback
+            (error: Error) => {
+              console.error('Streaming error:', error);
+              setIsStreaming(false);
+              setStreamingContent('');
+
+              // Try fallback to mock AI on streaming error
+              handleFallbackToMock(content);
+            },
+            // onComplete callback
+            () => {
+              console.log('🌊 Streaming completed');
+              setIsStreaming(false);
+
+              // Add the complete AI response to UI
+              if (accumulatedContent) {
+                onAIResponse(accumulatedContent);
+              }
+              setStreamingContent('');
             }
-            setStreamingContent('');
-          }
-        );
+          );
+        }
       } else {
         // Fallback to mock AI service when backend unavailable
         console.log('🤖 Using mock AI service (backend unavailable)');

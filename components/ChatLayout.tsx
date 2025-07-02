@@ -931,12 +931,21 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         activeSession ? (
           <ChatArea
             session={activeSession}
-            onSendMessage={(content) => {
+            onSendMessage={(content, files) => {
               if (activeSessionId) {
                 addMessage(activeSessionId, {
                   content,
                   sender: 'user',
                   timestamp: new Date(),
+                  attachments: files ? files.map(file => ({
+                    id: `temp-${Date.now()}-${Math.random()}`,
+                    original_filename: file.name,
+                    file_size: file.size,
+                    file_format: file.name.split('.').pop()?.toLowerCase() || '',
+                    mime_type: file.type,
+                    document_type: file.type.startsWith('image/') ? 'image' as const : 'document' as const,
+                    created_at: new Date().toISOString()
+                  })) : undefined
                 });
               }
             }}

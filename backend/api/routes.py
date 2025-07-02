@@ -6,6 +6,7 @@ import json
 import logging
 from datetime import datetime
 from typing import List
+from pathlib import Path
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
 
@@ -219,7 +220,45 @@ async def chat_completion(session_id: str, request: ChatRequest):
             role=MessageRole.USER,
             timestamp=datetime.utcnow()
         )
-        await session_service.add_message_to_session(session_id, user_message)
+
+        # Process document attachments if any
+        if hasattr(request, 'documents') and request.documents:
+            logger.info(f"📎 Processing {len(request.documents)} document attachment(s)")
+
+            # First save the message to get its ID
+            saved_user_message = await session_service.add_message_to_session(session_id, user_message)
+
+            # Process each document attachment
+            from services.document_service import document_service
+            for doc_upload in request.documents:
+                try:
+                    # Determine document type
+                    file_extension = Path(doc_upload.filename).suffix.lower().lstrip('.')
+                    from models.schemas import DocumentType
+                    document_type = DocumentType.IMAGE if file_extension in {'png', 'jpg', 'jpeg', 'gif', 'webp'} else DocumentType.DOCUMENT
+
+                    # Create document attachment
+                    attachment = await document_service.create_attachment(
+                        message_id=saved_user_message.id,
+                        filename=doc_upload.filename,
+                        file_content=doc_upload.file_data,
+                        file_format=file_extension,
+                        document_type=document_type,
+                        mime_type=doc_upload.mime_type
+                    )
+
+                    # Add attachment to user message
+                    user_message.attachments.append(attachment)
+                    logger.debug(f"   ✅ Processed attachment: {doc_upload.filename}")
+
+                except Exception as e:
+                    logger.error(f"   ❌ Failed to process attachment {doc_upload.filename}: {str(e)}")
+                    continue
+
+            logger.info(f"✅ Successfully processed {len(user_message.attachments)} attachment(s)")
+        else:
+            # No attachments, just save the message normally
+            await session_service.add_message_to_session(session_id, user_message)
 
         # Get session messages for context
         session_messages = await session_service.get_session_messages(session_id)

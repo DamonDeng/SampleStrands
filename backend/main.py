@@ -23,6 +23,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from api.routes import router
 from api.agent_routes import router as agent_router
 from api.app_setting_routes import router as app_setting_router
+from api.document_routes import router as document_router
 from models.schemas import ErrorResponse
 from database.connection import init_database, test_database_connection, get_database_info
 from database.config_loader import config_loader
@@ -228,6 +229,7 @@ async def log_requests(request: Request, call_next):
 app.include_router(router, prefix="/api/v1")
 app.include_router(agent_router, prefix="/api/v1")
 app.include_router(app_setting_router, prefix="/api/v1")
+app.include_router(document_router, prefix="/api/v1/documents")
 
 
 # Root endpoint

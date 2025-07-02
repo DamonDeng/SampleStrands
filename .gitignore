@@ -206,3 +206,6 @@ code_reference/
 
 # Development user data (simulates production userData directory)
 dev_user_data/
+
+# draft of prompts, no need to keep track of them
+prompt_drafts/

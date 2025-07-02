@@ -3,7 +3,7 @@ Data models and schemas for the AI Chat Desktop backend.
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from uuid import UUID, uuid4
 from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
@@ -23,6 +23,44 @@ class MessageStatus(str, Enum):
     FAILED = "failed"
 
 
+class DocumentType(str, Enum):
+    """Document type enumeration."""
+    DOCUMENT = "document"
+    IMAGE = "image"
+
+
+class ProcessingStatus(str, Enum):
+    """Document processing status enumeration."""
+    PENDING = "pending"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class DocumentAttachment(BaseModel):
+    """Document attachment model."""
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    message_id: str
+    filename: str
+    original_filename: str
+    file_format: str
+    file_size: int
+    mime_type: Optional[str] = None
+    file_data: bytes  # Binary file content
+    document_type: DocumentType = DocumentType.DOCUMENT
+    processing_status: ProcessingStatus = ProcessingStatus.COMPLETED
+    error_message: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    model_config = ConfigDict(
+        json_encoders = {
+            datetime: lambda v: v.isoformat(),
+            bytes: lambda v: None  # Don't serialize binary data in JSON
+        }
+    )
+
+
 class Message(BaseModel):
     """Message model."""
     id: str = Field(default_factory=lambda: str(uuid4()))
@@ -31,6 +69,7 @@ class Message(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     status: MessageStatus = MessageStatus.COMPLETED
     metadata: Optional[Dict[str, Any]] = None
+    attachments: List[DocumentAttachment] = Field(default_factory=list)
 
     model_config = ConfigDict(
         json_encoders = {
@@ -71,11 +110,20 @@ class Session(BaseModel):
 
 # Request/Response Models
 
+class DocumentUpload(BaseModel):
+    """Document upload model for chat requests."""
+    filename: str
+    file_data: bytes
+    file_size: int
+    mime_type: Optional[str] = None
+
+
 class ChatRequest(BaseModel):
     """Request model for chat completion."""
     message: str
     agent_id: Optional[str] = Field(default=None, description="ID of the agent to use for this request")
     stream: bool = False
+    documents: List[DocumentUpload] = Field(default_factory=list, description="Document attachments (max 5, 20MB each)")
     # Note: temperature, max_tokens, model will be determined from agent configuration
     # These fields are kept for backward compatibility but will be overridden by agent config
 

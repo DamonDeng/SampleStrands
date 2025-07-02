@@ -15,9 +15,10 @@ from strands import Agent
 from strands.models import BedrockModel
 from strands_tools import calculator
 
-from models.schemas import Message, MessageRole, ChatRequest, StreamChunk
+from models.schemas import Message, MessageRole, ChatRequest, StreamChunk, DocumentAttachment
 from services.agent_service import agent_service
 from services.app_setting_service import app_setting_service
+from services.document_service import document_service
 
 # Create logger for this module
 logger = logging.getLogger(__name__)
@@ -490,9 +491,12 @@ class StrandsAgentService:
             # Log effective configuration
             self._log_effective_agent_config(agent_config)
 
+            # Prepare message with attachments if any
+            message_input = await self._prepare_message_with_attachments(request, session_messages)
+
             # Generate response using Strands Agent
             logger.debug("   🔄 Calling Strands Agent...")
-            agent_result = agent(request.message)
+            agent_result = agent(message_input)
 
             # Extract content from agent result
             content = str(agent_result)
@@ -949,6 +953,45 @@ class StrandsAgentService:
         if agent_config.get('system_prompt'):
             prompt_preview = agent_config['system_prompt'][:50]
             logger.debug(f"   📝 System prompt: {prompt_preview}{'...' if len(agent_config['system_prompt']) > 50 else ''}")
+
+    async def _prepare_message_with_attachments(self, request: ChatRequest, session_messages: List[Message]) -> str:
+        """
+        Prepare message input for Strands Agent, handling document attachments.
+
+        Args:
+            request: Chat request with potential document attachments
+            session_messages: Previous messages in the session
+
+        Returns:
+            Message string for Strands Agent (fallback to text-only for now)
+        """
+        # For now, we'll use a simple approach since Strands Agent SDK
+        # may not directly support Bedrock's complex message format
+
+        message_text = request.message
+
+        # If there are documents in the request, add a note about them
+        if hasattr(request, 'documents') and request.documents:
+            logger.info(f"📎 Request includes {len(request.documents)} document(s)")
+
+            # Add information about attached documents to the message
+            doc_info = []
+            for i, doc in enumerate(request.documents):
+                doc_info.append(f"Document {i+1}: {doc.filename} ({doc.file_size} bytes)")
+
+            # Append document information to the message
+            message_text += f"\n\n[Note: This message includes {len(request.documents)} attached document(s):\n"
+            message_text += "\n".join(doc_info)
+            message_text += "\nPlease analyze the attached documents along with the text above.]"
+
+            logger.debug(f"   📝 Enhanced message with document info: {len(message_text)} characters")
+
+        # TODO: In the future, we may need to explore:
+        # 1. Converting documents to text and including in the message
+        # 2. Using Bedrock converse API directly if Strands Agent supports it
+        # 3. Implementing a hybrid approach
+
+        return message_text
 
 
 # Global LLM service instance

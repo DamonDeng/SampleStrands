@@ -7,10 +7,12 @@ from typing import List, Optional, Dict, Any
 
 from models.schemas import (
     Agent, AgentConfig, Session, Message, MessageRole, MessageStatus,
-    SupportedModel, SupportedTool, ModelConfig, ToolConfig, AppSetting
+    SupportedModel, SupportedTool, ModelConfig, ToolConfig, AppSetting,
+    DocumentAttachment, DocumentType, ProcessingStatus
 )
 from models.database import (
-    AgentDB, SessionDB, MessageDB, SupportedModelDB, SupportedToolDB, AppSettingDB
+    AgentDB, SessionDB, MessageDB, SupportedModelDB, SupportedToolDB, AppSettingDB,
+    DocumentAttachmentDB
 )
 
 
@@ -109,13 +111,22 @@ class ModelConverter:
     @staticmethod
     def message_db_to_pydantic(db_message: MessageDB) -> Message:
         """Convert SQLAlchemy Message to Pydantic Message."""
+        # Convert attachments
+        attachments = []
+        if db_message.attachments:
+            attachments = [
+                ModelConverter.document_attachment_db_to_pydantic(db_attachment)
+                for db_attachment in db_message.attachments
+            ]
+
         return Message(
             id=db_message.id,
             content=db_message.content,
             role=MessageRole(db_message.role),
             timestamp=db_message.timestamp,
             status=MessageStatus(db_message.status),
-            metadata=db_message.extra_metadata or {}
+            metadata=db_message.extra_metadata or {},
+            attachments=attachments
         )
     
     @staticmethod
@@ -133,7 +144,51 @@ class ModelConverter:
         db_message.timestamp = message.timestamp
         
         return db_message
-    
+
+    @staticmethod
+    def document_attachment_db_to_pydantic(db_attachment: DocumentAttachmentDB) -> DocumentAttachment:
+        """Convert SQLAlchemy DocumentAttachment to Pydantic DocumentAttachment."""
+        return DocumentAttachment(
+            id=db_attachment.id,
+            message_id=db_attachment.message_id,
+            filename=db_attachment.filename,
+            original_filename=db_attachment.original_filename,
+            file_format=db_attachment.file_format,
+            file_size=db_attachment.file_size,
+            mime_type=db_attachment.mime_type,
+            file_data=db_attachment.file_data,
+            document_type=DocumentType(db_attachment.document_type),
+            processing_status=ProcessingStatus(db_attachment.processing_status),
+            error_message=db_attachment.error_message,
+            metadata=db_attachment.extra_metadata or {},
+            created_at=db_attachment.created_at,
+            updated_at=db_attachment.updated_at
+        )
+
+    @staticmethod
+    def document_attachment_pydantic_to_db(attachment: DocumentAttachment,
+                                         db_attachment: Optional[DocumentAttachmentDB] = None) -> DocumentAttachmentDB:
+        """Convert Pydantic DocumentAttachment to SQLAlchemy DocumentAttachment."""
+        if db_attachment is None:
+            db_attachment = DocumentAttachmentDB()
+
+        db_attachment.id = attachment.id
+        db_attachment.message_id = attachment.message_id
+        db_attachment.filename = attachment.filename
+        db_attachment.original_filename = attachment.original_filename
+        db_attachment.file_format = attachment.file_format
+        db_attachment.file_size = attachment.file_size
+        db_attachment.mime_type = attachment.mime_type
+        db_attachment.file_data = attachment.file_data
+        db_attachment.document_type = attachment.document_type.value
+        db_attachment.processing_status = attachment.processing_status.value
+        db_attachment.error_message = attachment.error_message
+        db_attachment.extra_metadata = attachment.metadata
+        db_attachment.created_at = attachment.created_at
+        db_attachment.updated_at = attachment.updated_at
+
+        return db_attachment
+
     @staticmethod
     def supported_model_db_to_pydantic(db_model: SupportedModelDB) -> SupportedModel:
         """Convert SQLAlchemy SupportedModel to Pydantic SupportedModel."""

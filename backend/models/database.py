@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Column, String, DateTime, Boolean, Text, JSON, Integer, ForeignKey
+from sqlalchemy import Column, String, DateTime, Boolean, Text, JSON, Integer, ForeignKey, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -127,6 +127,40 @@ class MessageDB(Base):
 
     # Relationships
     session = relationship("SessionDB", back_populates="messages")
+    attachments = relationship("DocumentAttachmentDB", back_populates="message", cascade="all, delete-orphan")
+
+
+class DocumentAttachmentDB(Base):
+    """Database model for document attachments."""
+    __tablename__ = "document_attachments"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    message_id = Column(String, ForeignKey("messages.id"), nullable=False, index=True)
+
+    # File information
+    filename = Column(String, nullable=False)
+    original_filename = Column(String, nullable=False)  # User's original filename
+    file_format = Column(String, nullable=False)  # File extension (pdf, docx, etc.)
+    file_size = Column(Integer, nullable=False)  # File size in bytes
+    mime_type = Column(String, nullable=True)  # MIME type
+
+    # File content stored as binary data
+    file_data = Column(LargeBinary, nullable=False)  # Binary file content
+
+    # Document metadata
+    document_type = Column(String, nullable=False, default="document")  # 'document' or 'image'
+    processing_status = Column(String, default="completed")  # 'pending', 'completed', 'failed'
+    error_message = Column(Text, nullable=True)  # Error details if processing failed
+
+    # Additional metadata
+    extra_metadata = Column(JSON, default=dict)
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    message = relationship("MessageDB", back_populates="attachments")
 
 
 class AppSettingDB(Base):

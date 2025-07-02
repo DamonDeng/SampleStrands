@@ -13,7 +13,16 @@ import time
 
 from strands import Agent
 from strands.models import BedrockModel
-from strands_tools import calculator
+from strands_tools import (
+    calculator,
+    file_read,
+    file_write,
+    shell,
+    http_request,
+    python_repl,
+    current_time,
+    generate_image
+)
 
 from models.schemas import Message, MessageRole, ChatRequest, StreamChunk, DocumentAttachment, DocumentType
 from services.agent_service import agent_service
@@ -153,16 +162,26 @@ class AgentPoolManager:
         Returns:
             List of configured tools
         """
-        # Start with default tools
-        tools = [calculator]
-
+        # If no agent config or no tools specified, return default calculator tool
         if not agent_config or not agent_config.get('tools'):
             logger.debug("🔧 Using default tools: calculator")
-            return tools
+            return [calculator]
 
         # Process configured tools
         configured_tools = []
         tool_configs = agent_config.get('tools', [])
+
+        # Map of tool IDs to actual tool instances
+        available_tools = {
+            'calculator': calculator,
+            'file_system': file_read,  # Map file_system to file_read for now
+            'web_search': http_request,  # Map web_search to http_request for now
+            'email': http_request,  # Map email to http_request for now (can send via API)
+            'database': python_repl,  # Map database to python_repl for now
+            'code_execution': python_repl,  # Map code_execution to python_repl
+            'image_generation': generate_image,
+            'current_time': current_time
+        }
 
         for tool_config in tool_configs:
             if not tool_config.get('enabled', True):
@@ -171,23 +190,29 @@ class AgentPoolManager:
             tool_id = tool_config.get('tool_id', '')
 
             # Map tool IDs to actual tool instances
-            if tool_id == 'calculator':
-                configured_tools.append(calculator)
-                logger.debug(f"   🔧 Added tool: calculator")
-            # TODO: Add more tools as they become available
-            # elif tool_id == 'web_search':
-            #     configured_tools.append(web_search)
-            # elif tool_id == 'file_system':
-            #     configured_tools.append(file_system)
+            if tool_id in available_tools:
+                tool_instance = available_tools[tool_id]
+                configured_tools.append(tool_instance)
+                logger.debug(f"   🔧 Added tool: {tool_id}")
             else:
                 logger.warning(f"⚠️ Unknown tool ID: {tool_id}")
 
-        # Ensure we always have at least calculator
+        # Ensure we always have at least one tool
         if not configured_tools:
             configured_tools = [calculator]
             logger.debug("🔧 No valid tools configured, using default: calculator")
 
-        return configured_tools
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_tools = []
+        for tool in configured_tools:
+            tool_name = getattr(tool, '__name__', str(tool))
+            if tool_name not in seen:
+                seen.add(tool_name)
+                unique_tools.append(tool)
+
+        logger.info(f"🔧 Configured {len(unique_tools)} tools for agent: {[getattr(t, '__name__', str(t)) for t in unique_tools]}")
+        return unique_tools
 
     async def _create_model_instance(self, agent_config: Optional[Dict[str, Any]] = None):
         """Create a BedrockModel instance from agent configuration.

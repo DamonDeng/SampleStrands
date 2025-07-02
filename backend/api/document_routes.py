@@ -36,6 +36,71 @@ MAX_FILE_SIZE = 20 * 1024 * 1024  # 20MB
 MAX_FILES_PER_MESSAGE = 5
 
 
+@router.post("/upload-for-chat", response_model=List[DocumentAttachment])
+async def upload_documents_for_chat(
+    files: List[UploadFile] = File(...)
+):
+    """
+    Upload documents for future chat use (returns document IDs).
+
+    Args:
+        files: List of uploaded files (max 5, 20MB each)
+
+    Returns:
+        List of document attachments with IDs for chat reference
+    """
+    logger.info(f"📎 Uploading {len(files)} document(s) for chat use")
+
+    # Validate number of files
+    if len(files) > MAX_FILES_PER_MESSAGE:
+        logger.warning(f"❌ Too many files: {len(files)} > {MAX_FILES_PER_MESSAGE}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Maximum {MAX_FILES_PER_MESSAGE} files allowed per message"
+        )
+
+    attachments = []
+
+    for i, file in enumerate(files):
+        try:
+            logger.info(f"   📄 Processing file {i+1}/{len(files)}: {file.filename}")
+
+            # Validate file
+            await _validate_uploaded_file(file)
+
+            # Read file content
+            file_content = await file.read()
+
+            # Determine document type
+            file_extension = Path(file.filename).suffix.lower().lstrip('.')
+            document_type = DocumentType.IMAGE if file_extension in SUPPORTED_IMAGE_TYPES else DocumentType.DOCUMENT
+
+            # Create document attachment (without message_id for now)
+            attachment = await document_service.create_attachment(
+                message_id=None,  # Will be set when used in chat
+                filename=file.filename,
+                file_content=file_content,
+                file_format=file_extension,
+                document_type=document_type,
+                mime_type=file.content_type
+            )
+
+            attachments.append(attachment)
+            logger.info(f"   ✅ Document uploaded: {attachment.id} ({attachment.file_size} bytes)")
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"   ❌ Failed to process file {file.filename}: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to process file {file.filename}: {str(e)}"
+            )
+
+    logger.info(f"✅ Successfully uploaded {len(attachments)} document(s)")
+    return attachments
+
+
 @router.post("/upload", response_model=List[DocumentAttachment])
 async def upload_documents(
     message_id: str = Form(...),

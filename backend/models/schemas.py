@@ -123,7 +123,7 @@ class ChatRequest(BaseModel):
     message: str
     agent_id: Optional[str] = Field(default=None, description="ID of the agent to use for this request")
     stream: bool = False
-    documents: List[DocumentUpload] = Field(default_factory=list, description="Document attachments (max 5, 20MB each)")
+    document_ids: List[str] = Field(default_factory=list, description="IDs of pre-uploaded documents to include (max 5)")
     # Note: temperature, max_tokens, model will be determined from agent configuration
     # These fields are kept for backward compatibility but will be overridden by agent config
 

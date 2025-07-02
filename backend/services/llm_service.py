@@ -15,7 +15,7 @@ from strands import Agent
 from strands.models import BedrockModel
 from strands_tools import calculator
 
-from models.schemas import Message, MessageRole, ChatRequest, StreamChunk, DocumentAttachment
+from models.schemas import Message, MessageRole, ChatRequest, StreamChunk, DocumentAttachment, DocumentType
 from services.agent_service import agent_service
 from services.app_setting_service import app_setting_service
 from services.document_service import document_service
@@ -491,12 +491,12 @@ class StrandsAgentService:
             # Log effective configuration
             self._log_effective_agent_config(agent_config)
 
-            # Prepare message with attachments if any
-            message_input = await self._prepare_message_with_attachments(request, session_messages)
+            # Prepare and add message with attachments to agent
+            await self._add_message_with_attachments_to_agent(agent, request, session_messages)
 
-            # Generate response using Strands Agent
-            logger.debug("   🔄 Calling Strands Agent...")
-            agent_result = agent(message_input)
+            # Generate response using Strands Agent with follow-up prompt
+            logger.debug("   🔄 Calling Strands Agent with document support...")
+            agent_result = agent("Please respond to the above message and analyze any attached documents or images.")
 
             # Extract content from agent result
             content = str(agent_result)
@@ -599,14 +599,17 @@ class StrandsAgentService:
             # Log effective configuration
             self._log_effective_agent_config(agent_config)
 
-            # Use Strands Agent's streaming capability
-            logger.debug("   🔄 Starting Strands Agent streaming...")
+            # Add message with attachments to agent first
+            await self._add_message_with_attachments_to_agent(agent, request, session_messages)
+
+            # Use Strands Agent's streaming capability with document support
+            logger.debug("   🔄 Starting Strands Agent streaming with document support...")
 
             # Note: Strands Agent SDK doesn't currently support streaming
             # For now, we'll simulate streaming by generating the full response
             # and then yielding it in chunks
 
-            agent_result = agent(request.message)
+            agent_result = agent("Please respond to the above message and analyze any attached documents or images.")
             content = str(agent_result)
 
             # Simulate streaming by yielding content in chunks
@@ -654,10 +657,15 @@ class StrandsAgentService:
             agent_config = await self._get_agent_config_for_session(session_id)
             agent = await self.agent_pool.get_agent(session_id, agent_config)
 
-            # Use Strands Agent's streaming capability
-            logger.debug("   🔄 Starting Strands Agent streaming...")
+            # Add message with attachments to agent first
+            await self._add_message_with_attachments_to_agent(agent, request, session_messages)
 
-            async for event in agent.stream_async(request.message):
+            # Use Strands Agent's streaming capability with follow-up prompt
+            logger.debug("   🔄 Starting Strands Agent streaming with document support...")
+
+            # Note: For streaming with attachments, we use a follow-up prompt approach
+            # The attachments are already in the agent's message history
+            async for event in agent.stream_async("Please respond to the above message and analyze any attached documents or images."):
                 # Process different types of events from Strands Agent
                 if isinstance(event, dict):
                     # Handle different event types
@@ -954,44 +962,78 @@ class StrandsAgentService:
             prompt_preview = agent_config['system_prompt'][:50]
             logger.debug(f"   📝 System prompt: {prompt_preview}{'...' if len(agent_config['system_prompt']) > 50 else ''}")
 
-    async def _prepare_message_with_attachments(self, request: ChatRequest, session_messages: List[Message]) -> str:
+    async def _add_message_with_attachments_to_agent(self, agent: Agent, request: ChatRequest, session_messages: List[Message]) -> None:
         """
-        Prepare message input for Strands Agent, handling document attachments.
+        Add message with attachments directly to the Strands Agent using the correct approach.
 
         Args:
-            request: Chat request with potential document attachments
+            agent: Strands Agent instance
+            request: Chat request with potential document references
             session_messages: Previous messages in the session
-
-        Returns:
-            Message string for Strands Agent (fallback to text-only for now)
         """
-        # For now, we'll use a simple approach since Strands Agent SDK
-        # may not directly support Bedrock's complex message format
+        logger.info(f"📝 Creating Strands Agent message with attachments")
 
-        message_text = request.message
+        # Start with text content block
+        content_blocks = [{"text": request.message}]
 
-        # If there are documents in the request, add a note about them
-        if hasattr(request, 'documents') and request.documents:
-            logger.info(f"📎 Request includes {len(request.documents)} document(s)")
+        # Process document attachments if any
+        if hasattr(request, 'document_ids') and request.document_ids:
+            logger.info(f"📎 Processing {len(request.document_ids)} document reference(s) for Strands Agent")
 
-            # Add information about attached documents to the message
-            doc_info = []
-            for i, doc in enumerate(request.documents):
-                doc_info.append(f"Document {i+1}: {doc.filename} ({doc.file_size} bytes)")
+            # Get the actual document data from the document service
+            from services.document_service import document_service
+            attachments = await document_service.get_attachments_for_chat(request.document_ids)
 
-            # Append document information to the message
-            message_text += f"\n\n[Note: This message includes {len(request.documents)} attached document(s):\n"
-            message_text += "\n".join(doc_info)
-            message_text += "\nPlease analyze the attached documents along with the text above.]"
+            for i, attachment in enumerate(attachments):
+                try:
+                    # Get the file extension
+                    file_extension = attachment.file_format.lower()
 
-            logger.debug(f"   📝 Enhanced message with document info: {len(message_text)} characters")
+                    if file_extension in {'png', 'jpg', 'jpeg', 'gif', 'webp'}:
+                        # Create image content block using Strands SDK format
+                        image_content = {
+                            "format": file_extension,
+                            "source": {
+                                "bytes": attachment.file_content
+                            }
+                        }
+                        content_blocks.append({"image": image_content})
+                        logger.debug(f"   ✅ Added image {i+1}: {attachment.original_filename} ({attachment.file_size} bytes)")
 
-        # TODO: In the future, we may need to explore:
-        # 1. Converting documents to text and including in the message
-        # 2. Using Bedrock converse API directly if Strands Agent supports it
-        # 3. Implementing a hybrid approach
+                    elif file_extension in {'pdf', 'csv', 'doc', 'docx', 'xls', 'xlsx', 'html', 'txt', 'md'}:
+                        # Create document content block using Strands SDK format
+                        document_name = attachment.original_filename.rsplit('.', 1)[0] if '.' in attachment.original_filename else attachment.original_filename
+                        document_content = {
+                            "format": file_extension,
+                            "name": document_name,
+                            "source": {
+                                "bytes": attachment.file_content
+                            }
+                        }
+                        content_blocks.append({"document": document_content})
+                        logger.debug(f"   ✅ Added document {i+1}: {attachment.original_filename} ({attachment.file_size} bytes)")
 
-        return message_text
+                    else:
+                        logger.warning(f"   ⚠️ Unsupported file type for Strands Agent: {file_extension}")
+                        continue
+
+                except Exception as e:
+                    logger.error(f"   ❌ Failed to process attachment {i+1} ({attachment.original_filename}): {str(e)}")
+                    continue
+
+        # Create the message using Strands SDK format
+        strands_message = {
+            "role": "user",
+            "content": content_blocks
+        }
+
+        # Add the message directly to the agent's messages
+        agent.messages.append(strands_message)
+
+        logger.info(f"✅ Added message with {len(content_blocks)} content blocks to Strands Agent")
+        logger.debug(f"   📊 Content blocks: {len([b for b in content_blocks if 'text' in b])} text, "
+                    f"{len([b for b in content_blocks if 'document' in b])} documents, "
+                    f"{len([b for b in content_blocks if 'image' in b])} images")
 
 
 # Global LLM service instance

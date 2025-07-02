@@ -222,37 +222,30 @@ async def chat_completion(session_id: str, request: ChatRequest):
         )
 
         # Process document attachments if any
-        if hasattr(request, 'documents') and request.documents:
-            logger.info(f"📎 Processing {len(request.documents)} document attachment(s)")
+        if hasattr(request, 'document_ids') and request.document_ids:
+            logger.info(f"📎 Processing {len(request.document_ids)} document reference(s)")
 
             # First save the message to get its ID
             saved_user_message = await session_service.add_message_to_session(session_id, user_message)
 
-            # Process each document attachment
+            # Attach existing documents to this message
             from services.document_service import document_service
-            for doc_upload in request.documents:
+            for doc_id in request.document_ids:
                 try:
-                    # Determine document type
-                    file_extension = Path(doc_upload.filename).suffix.lower().lstrip('.')
-                    from models.schemas import DocumentType
-                    document_type = DocumentType.IMAGE if file_extension in {'png', 'jpg', 'jpeg', 'gif', 'webp'} else DocumentType.DOCUMENT
+                    # Get the existing document
+                    attachment = await document_service.get_attachment(doc_id)
+                    if attachment:
+                        # Associate the document with this message
+                        await document_service.associate_attachment_with_message(doc_id, saved_user_message.id)
 
-                    # Create document attachment
-                    attachment = await document_service.create_attachment(
-                        message_id=saved_user_message.id,
-                        filename=doc_upload.filename,
-                        file_content=doc_upload.file_data,
-                        file_format=file_extension,
-                        document_type=document_type,
-                        mime_type=doc_upload.mime_type
-                    )
-
-                    # Add attachment to user message
-                    user_message.attachments.append(attachment)
-                    logger.debug(f"   ✅ Processed attachment: {doc_upload.filename}")
+                        # Add attachment to user message
+                        user_message.attachments.append(attachment)
+                        logger.debug(f"   ✅ Associated document: {attachment.original_filename}")
+                    else:
+                        logger.warning(f"   ⚠️ Document not found: {doc_id}")
 
                 except Exception as e:
-                    logger.error(f"   ❌ Failed to process attachment {doc_upload.filename}: {str(e)}")
+                    logger.error(f"   ❌ Failed to process document {doc_id}: {str(e)}")
                     continue
 
             logger.info(f"✅ Successfully processed {len(user_message.attachments)} attachment(s)")

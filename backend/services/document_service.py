@@ -29,7 +29,7 @@ class DocumentService:
 
     async def create_attachment(
         self,
-        message_id: str,
+        message_id: Optional[str],  # Allow None for pre-upload
         filename: str,
         file_content: bytes,
         file_format: str,
@@ -285,6 +285,86 @@ class DocumentService:
                 for att in attachments
             ]
         }
+
+    async def get_attachment(self, attachment_id: str) -> Optional[DocumentAttachment]:
+        """
+        Get a document attachment by ID.
+
+        Args:
+            attachment_id: ID of the attachment
+
+        Returns:
+            DocumentAttachment if found, None otherwise
+        """
+        try:
+            async with get_db_session() as session:
+                # Query for the attachment
+                result = await session.execute(
+                    "SELECT * FROM document_attachments WHERE id = ?",
+                    (attachment_id,)
+                )
+                row = result.fetchone()
+
+                if row:
+                    # Convert database row to DocumentAttachment
+                    db_attachment = DocumentAttachmentDB(**dict(row))
+                    return ModelConverter.db_to_attachment(db_attachment)
+                else:
+                    logger.warning(f"📎 Attachment not found: {attachment_id}")
+                    return None
+
+        except Exception as e:
+            logger.error(f"❌ Failed to get attachment {attachment_id}: {str(e)}")
+            return None
+
+    async def associate_attachment_with_message(self, attachment_id: str, message_id: str) -> bool:
+        """
+        Associate an existing attachment with a message.
+
+        Args:
+            attachment_id: ID of the attachment
+            message_id: ID of the message
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            async with get_db_session() as session:
+                # Update the attachment's message_id
+                await session.execute(
+                    "UPDATE document_attachments SET message_id = ? WHERE id = ?",
+                    (message_id, attachment_id)
+                )
+                await session.commit()
+
+                logger.info(f"📎 Associated attachment {attachment_id} with message {message_id}")
+                return True
+
+        except Exception as e:
+            logger.error(f"❌ Failed to associate attachment {attachment_id} with message {message_id}: {str(e)}")
+            return False
+
+    async def get_attachments_for_chat(self, attachment_ids: List[str]) -> List[DocumentAttachment]:
+        """
+        Get multiple attachments for chat processing.
+
+        Args:
+            attachment_ids: List of attachment IDs
+
+        Returns:
+            List of DocumentAttachment objects
+        """
+        attachments = []
+
+        for attachment_id in attachment_ids:
+            attachment = await self.get_attachment(attachment_id)
+            if attachment:
+                attachments.append(attachment)
+            else:
+                logger.warning(f"📎 Skipping missing attachment: {attachment_id}")
+
+        logger.info(f"📎 Retrieved {len(attachments)} attachments for chat")
+        return attachments
 
 
 # Create global service instance

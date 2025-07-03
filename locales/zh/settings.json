@@ -23,6 +23,11 @@
     "hoursAgo": "{{count}}小时前",
     "daysAgo": "{{count}}天前"
   },
+  "SETTINGS": {
+    "GENERAL": {
+      "TITLE": "常规设置"
+    }
+  },
   "general": {
     "title": "常规设置",
     "description": "配置语言、主题和默认智能体偏好",

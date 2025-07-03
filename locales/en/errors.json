@@ -1,7 +1,8 @@
 {
   "connection": {
-    "backendUnavailable": "Backend service is unavailable",
+    "backendUnavailable": "Backend service is currently unavailable.",
     "backendStarting": "Backend service is starting...",
+    "backendCheckRunning": "Please check that the Python backend is running.",
     "retryConnection": "Retry Connection",
     "connectionFailed": "Connection failed"
   },

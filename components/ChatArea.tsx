@@ -184,7 +184,7 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, onStrea
         <div className={styles.sessionInfo}>
           <h1 className={styles.sessionTitle}>{session.title}</h1>
           <p className={styles.sessionMeta}>
-            {t('sessions.messages', { count: session.messages.length })} • Last updated {session.updatedAt.toLocaleString()}
+            {t('sessions.messages', { count: session.messages.length })} • {t('sessions.lastUpdated')} {session.updatedAt.toLocaleString()}
           </p>
         </div>
       </div>

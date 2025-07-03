@@ -14,6 +14,7 @@ import { Agent, SupportedModel, SupportedTool, AgentCreateRequest } from '../typ
 import { AppSetting, appSettingAPI } from '../utils/appSettingAPI';
 import { pythonAPI } from '../utils/pythonAPI';
 import { I18nProvider } from '../contexts/I18nContext';
+import { useTranslation } from 'react-i18next';
 import { SupportedLanguage } from '../types/i18n';
 import { agentAPI } from '../utils/agentAPI';
 import { convertBackendSession, convertBackendMessage } from '../utils/typeConverters';
@@ -24,7 +25,13 @@ interface ChatLayoutProps {
   isElectron: boolean;
 }
 
-export default function ChatLayout({ isElectron }: ChatLayoutProps) {
+// Inner component that uses translations
+function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
+  // Translation hooks
+  const { t: tChat } = useTranslation('chat');
+  const { t: tErrors } = useTranslation('errors');
+  const { t: tAgents } = useTranslation('agents');
+
   // Chat state
   const [sessions, setSessions] = useState<Session[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -865,7 +872,6 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   }
 
   return (
-    <I18nProvider initialLanguage={currentLanguage}>
     <div
       className={styles.chatLayout}
       style={{
@@ -985,26 +991,26 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         ) : (
           <div className={styles.emptyState}>
             <div className={styles.emptyStateContent}>
-              <h2>Welcome to SampleStrands</h2>
+              <h2>{tChat('welcome.title')}</h2>
               {backendAvailable ? (
                 <>
-                  <p>You don&apos;t have any chat sessions yet.</p>
+                  <p>{tChat('sessions.noSessionsYet')}</p>
                   <button
                     className={styles.createSessionButton}
                     onClick={() => createNewSession().catch(console.error)}
                   >
-                    Start New Chat
+                    {tChat('sessions.startNewChat')}
                   </button>
                 </>
               ) : (
                 <>
-                  <p>Backend service is currently unavailable.</p>
-                  <p>Please check that the Python backend is running.</p>
+                  <p>{tErrors('connection.backendUnavailable')}</p>
+                  <p>{tErrors('connection.backendCheckRunning')}</p>
                   <button
                     className={styles.retryButton}
                     onClick={() => loadSessionsFromBackend()}
                   >
-                    Retry Connection
+                    {tErrors('connection.retryConnection')}
                   </button>
                 </>
               )}
@@ -1068,26 +1074,26 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         ) : (
           <div className={styles.emptyState}>
             <div className={styles.emptyStateContent}>
-              <h2>Agent Management</h2>
+              <h2>{tAgents('management.title')}</h2>
               {backendAvailable ? (
                 <>
-                  <p>Select an agent to view its configuration.</p>
+                  <p>{tAgents('management.selectAgent')}</p>
                   <button
                     className={styles.createSessionButton}
                     onClick={handleQuickCreateAgent}
                   >
-                    Create New Agent
+                    {tAgents('management.createNewAgent')}
                   </button>
                 </>
               ) : (
                 <>
-                  <p>Backend service is currently unavailable.</p>
-                  <p>Please check that the Python backend is running.</p>
+                  <p>{tErrors('connection.backendUnavailable')}</p>
+                  <p>{tErrors('connection.backendCheckRunning')}</p>
                   <button
                     className={styles.retryButton}
                     onClick={() => loadSessionsFromBackend()}
                   >
-                    Retry Connection
+                    {tErrors('connection.retryConnection')}
                   </button>
                 </>
               )}
@@ -1112,6 +1118,14 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         supportedTools={supportedTools}
       />
     </div>
+  );
+}
+
+// Main component that provides I18n context
+export default function ChatLayout({ isElectron }: ChatLayoutProps) {
+  return (
+    <I18nProvider initialLanguage="en">
+      <ChatLayoutInner isElectron={isElectron} />
     </I18nProvider>
   );
 }

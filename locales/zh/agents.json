@@ -3,7 +3,14 @@
     "title": "智能体",
     "noAgents": "暂无智能体",
     "noAgentsDescription": "创建您的第一个智能体开始使用",
+    "noAgentsYet": "暂无智能体",
+    "createFirstAgent": "创建您的第一个AI智能体",
     "createAgent": "创建智能体"
+  },
+  "management": {
+    "title": "智能体管理",
+    "selectAgent": "选择一个智能体查看其配置。",
+    "createNewAgent": "创建新智能体"
   },
   "create": {
     "title": "创建新智能体",

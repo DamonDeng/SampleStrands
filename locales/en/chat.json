@@ -2,6 +2,7 @@
   "welcome": {
     "title": "Welcome to SampleStrands",
     "description": "Select a conversation from the sidebar or create a new one to start chatting.",
+    "startNewChat": "Start New Chat",
     "features": {
       "conversations": "Natural conversations with AI",
       "security": "Secure desktop application",
@@ -17,13 +18,17 @@
     "aiAssistant": "AI Assistant"
   },
   "sessions": {
+    "title": "Conversations",
     "messages_one": "{{count}} message",
     "messages_other": "{{count}} messages",
     "lastMessage": "Last message",
+    "lastUpdated": "Last updated",
     "deleteConversation": "Delete conversation",
     "editTitle": "Edit title",
     "noSessions": "No conversations yet",
-    "noSessionsDescription": "Create your first conversation to get started"
+    "noSessionsDescription": "Create your first conversation to get started",
+    "noSessionsYet": "You don't have any chat sessions yet.",
+    "startNewChat": "Start New Chat"
   },
   "input": {
     "placeholder": "Type your message here...",

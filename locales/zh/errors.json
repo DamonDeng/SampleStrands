@@ -1,7 +1,8 @@
 {
   "connection": {
-    "backendUnavailable": "后端服务不可用",
+    "backendUnavailable": "后端服务当前不可用。",
     "backendStarting": "后端服务正在启动...",
+    "backendCheckRunning": "请检查Python后端是否正在运行。",
     "retryConnection": "重试连接",
     "connectionFailed": "连接失败"
   },

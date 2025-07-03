@@ -2,6 +2,7 @@
   "welcome": {
     "title": "欢迎使用 SampleStrands",
     "description": "从侧边栏选择一个对话或创建新对话开始聊天。",
+    "startNewChat": "开始新对话",
     "features": {
       "conversations": "与AI进行自然对话",
       "security": "安全的桌面应用程序",
@@ -17,13 +18,17 @@
     "aiAssistant": "AI助手"
   },
   "sessions": {
+    "title": "对话",
     "messages_one": "{{count}} 条消息",
     "messages_other": "{{count}} 条消息",
     "lastMessage": "最后一条消息",
+    "lastUpdated": "最后更新",
     "deleteConversation": "删除对话",
     "editTitle": "编辑标题",
     "noSessions": "暂无对话",
-    "noSessionsDescription": "创建您的第一个对话开始使用"
+    "noSessionsDescription": "创建您的第一个对话开始使用",
+    "noSessionsYet": "您还没有任何聊天会话。",
+    "startNewChat": "开始新对话"
   },
   "input": {
     "placeholder": "在此输入您的消息...",

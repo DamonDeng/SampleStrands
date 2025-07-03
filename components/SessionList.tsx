@@ -83,7 +83,7 @@ export default function SessionList({
   return (
     <div className={styles.sessionList}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Conversations</h2>
+        <h2 className={styles.title}>{t('sessions.title')}</h2>
         <div className={styles.sessionCount}>{sessions.length}</div>
       </div>
 

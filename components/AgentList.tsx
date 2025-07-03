@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Agent } from '../types/agent';
 import { IoPeopleOutline, IoPencilOutline, IoTrashOutline, IoPlayOutline, IoPauseOutline, IoPersonOutline } from 'react-icons/io5';
+import { useTranslation } from 'react-i18next';
 import styles from '../styles/AgentList.module.css';
 
 interface AgentListProps {
@@ -22,6 +23,7 @@ export default function AgentList({
   onToggleAgent,
   onCreateAgent
 }: AgentListProps) {
+  const { t } = useTranslation('agents');
   const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
@@ -88,13 +90,13 @@ export default function AgentList({
         {agents.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}><IoPersonOutline /></div>
-            <p className={styles.emptyText}>No agents yet</p>
-            <p className={styles.emptySubtext}>Create your first AI agent</p>
+            <p className={styles.emptyText}>{t('list.noAgentsYet')}</p>
+            <p className={styles.emptySubtext}>{t('list.createFirstAgent')}</p>
             <button
               className={styles.createAgentButton}
               onClick={onCreateAgent}
             >
-              Create Agent
+              {t('list.createAgent')}
             </button>
           </div>
         ) : (

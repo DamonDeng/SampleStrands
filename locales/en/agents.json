@@ -3,7 +3,14 @@
     "title": "Agents",
     "noAgents": "No agents available",
     "noAgentsDescription": "Create your first agent to get started",
+    "noAgentsYet": "No agents yet",
+    "createFirstAgent": "Create your first AI agent",
     "createAgent": "Create Agent"
+  },
+  "management": {
+    "title": "Agent Management",
+    "selectAgent": "Select an agent to view its configuration.",
+    "createNewAgent": "Create New Agent"
   },
   "create": {
     "title": "Create New Agent",

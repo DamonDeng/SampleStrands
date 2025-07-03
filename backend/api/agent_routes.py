@@ -150,7 +150,7 @@ async def update_agent(agent_id: str, request: AgentUpdateRequest):
         logger.debug(f"   🔧 New tools: {tool_names}")
     
     if request.is_active is not None:
-        logger.debug(f"   🔄 New active status: {request.is_active}")
+        logger.debug(f"   🔄 New active status: {bool(request.is_active)}")
 
     try:
         agent = await agent_service.update_agent(agent_id, request)
@@ -218,7 +218,7 @@ async def get_agent_config(agent_id: str):
         "model_config": agent.config.model_config.dict(),
         "tools": [tool.dict() for tool in agent.config.tools],
         "enabled_tools": [tool.dict() for tool in enabled_tools],
-        "is_active": agent.is_active,
+        "is_active": bool(agent.is_active),
         "created_at": agent.created_at,
         "updated_at": agent.updated_at,
         "usage_stats": agent.usage_stats
@@ -284,7 +284,7 @@ async def get_agent_stats(agent_id: str):
         "name": agent.config.name,
         "created_at": agent.created_at,
         "updated_at": agent.updated_at,
-        "is_active": agent.is_active,
+        "is_active": bool(agent.is_active),
         "model": agent.config.model_config.model_name,
         "tools_count": len(agent.config.tools),
         "enabled_tools_count": len(agent.get_enabled_tools()),

@@ -61,7 +61,7 @@ async def _handle_session_agent_logic(session: Session, requested_agent_id: str 
             detail=f"Agent {requested_agent_id} not found"
         )
 
-    if not agent.is_active:
+    if not bool(agent.is_active):
         logger.warning(f"   ❌ Requested agent is inactive: {requested_agent_id}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

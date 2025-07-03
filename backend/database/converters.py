@@ -47,7 +47,7 @@ class ModelConverter:
             config=agent_config,
             created_at=db_agent.created_at,
             updated_at=db_agent.updated_at,
-            is_active=db_agent.is_active,
+            is_active=bool(db_agent.is_active),
             usage_stats=db_agent.usage_stats or {}
         )
     
@@ -65,7 +65,7 @@ class ModelConverter:
         db_agent.enable_advanced_settings = agent.config.enable_advanced_settings
         db_agent.llm_config = agent.config.llm_config.dict()
         db_agent.tools = [tool.dict() for tool in agent.config.tools]
-        db_agent.is_active = agent.is_active
+        db_agent.is_active = bool(agent.is_active)
         db_agent.usage_stats = agent.usage_stats
         db_agent.extra_metadata = agent.config.metadata
         db_agent.created_at = agent.created_at

@@ -184,8 +184,8 @@ class AgentService:
 
                 # Update active status if provided
                 if request.is_active is not None:
-                    logger.debug(f"   🔄 Updating active status: {request.is_active}")
-                    db_agent.is_active = request.is_active
+                    logger.debug(f"   🔄 Updating active status: {bool(request.is_active)}")
+                    db_agent.is_active = bool(request.is_active)
 
                 # Commit changes
                 session.commit()

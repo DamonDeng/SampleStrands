@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import { safePathJoin } from './pathUtils';
 
 export interface TokenInfo {
   token: string;
@@ -13,7 +14,8 @@ export class TokenManager {
   private authToken: string | null = null;
 
   constructor(userDataDir: string) {
-    this.tokenPath = path.join(userDataDir, '.samplestrands_auth_token');
+    // Use safe path joining to prevent path traversal vulnerabilities
+    this.tokenPath = safePathJoin(userDataDir, '.samplestrands_auth_token');
   }
 
   /**

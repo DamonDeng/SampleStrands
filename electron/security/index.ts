@@ -18,6 +18,7 @@
 export { TokenManager, TokenInfo } from './TokenManager';
 export { CertificateManager, CertificatePaths } from './CertificateManager';
 export { BackendManager, BackendStartResult, BackendHealthResult } from './BackendManager';
+export { safePathJoin, isPathWithinBase, isValidFilename, PATH_SECURITY_CONFIG } from './pathUtils';
 
 // Security configuration constants
 export const SECURITY_CONFIG = {

@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as forge from 'node-forge';
+import { safePathJoin } from './pathUtils';
 
 export interface CertificatePaths {
   certPath: string;
@@ -12,8 +13,9 @@ export class CertificateManager {
   private keyPath: string;
 
   constructor(userDataDir: string) {
-    this.certPath = path.join(userDataDir, 'server.crt');
-    this.keyPath = path.join(userDataDir, 'server.key');
+    // Use safe path joining to prevent path traversal vulnerabilities
+    this.certPath = safePathJoin(userDataDir, 'server.crt');
+    this.keyPath = safePathJoin(userDataDir, 'server.key');
   }
 
   /**

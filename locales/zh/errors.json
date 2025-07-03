@@ -1,33 +1,23 @@
 {
-  "connection": {
-    "backendUnavailable": "后端服务当前不可用。",
-    "backendStarting": "后端服务正在启动...",
-    "backendCheckRunning": "请检查Python后端是否正在运行。",
-    "retryConnection": "重试连接",
-    "connectionFailed": "连接失败"
-  },
-  "validation": {
-    "required": "此字段为必填项",
-    "invalidEmail": "无效的邮箱地址",
-    "invalidUrl": "无效的URL",
-    "tooShort": "太短（最少 {{min}} 个字符）",
-    "tooLong": "太长（最多 {{max}} 个字符）"
-  },
-  "api": {
-    "requestFailed": "请求失败",
-    "serverError": "服务器错误",
-    "networkError": "网络错误",
-    "timeout": "请求超时"
-  },
-  "files": {
-    "uploadFailed": "文件上传失败",
-    "fileTooLarge": "文件过大",
-    "invalidFileType": "无效的文件类型",
-    "readError": "文件读取失败"
-  },
-  "general": {
-    "somethingWentWrong": "出现了问题",
-    "tryAgain": "请重试",
-    "contactSupport": "如果问题持续存在，请联系支持"
-  }
+  "ERRORS.CONNECTION.BACKEND_UNAVAILABLE": "后端服务当前不可用。",
+  "ERRORS.CONNECTION.BACKEND_STARTING": "后端服务正在启动...",
+  "ERRORS.CONNECTION.BACKEND_CHECK_RUNNING": "请检查Python后端是否正在运行。",
+  "ERRORS.CONNECTION.RETRY_CONNECTION": "重试连接",
+  "ERRORS.CONNECTION.CONNECTION_FAILED": "连接失败",
+  "ERRORS.VALIDATION.REQUIRED": "此字段为必填项",
+  "ERRORS.VALIDATION.INVALID_EMAIL": "无效的邮箱地址",
+  "ERRORS.VALIDATION.INVALID_URL": "无效的URL",
+  "ERRORS.VALIDATION.TOO_SHORT": "太短（最少 {{min}} 个字符）",
+  "ERRORS.VALIDATION.TOO_LONG": "太长（最多 {{max}} 个字符）",
+  "ERRORS.API.REQUEST_FAILED": "请求失败",
+  "ERRORS.API.SERVER_ERROR": "服务器错误",
+  "ERRORS.API.NETWORK_ERROR": "网络错误",
+  "ERRORS.API.TIMEOUT": "请求超时",
+  "ERRORS.FILES.UPLOAD_FAILED": "文件上传失败",
+  "ERRORS.FILES.FILE_TOO_LARGE": "文件过大",
+  "ERRORS.FILES.INVALID_FILE_TYPE": "无效的文件类型",
+  "ERRORS.FILES.READ_ERROR": "文件读取失败",
+  "ERRORS.GENERAL.SOMETHING_WENT_WRONG": "出现了问题",
+  "ERRORS.GENERAL.TRY_AGAIN": "请重试",
+  "ERRORS.GENERAL.CONTACT_SUPPORT": "如果问题持续存在，请联系支持"
 }

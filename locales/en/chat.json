@@ -1,46 +1,37 @@
 {
-  "welcome": {
-    "title": "Welcome to SampleStrands",
-    "description": "Select a conversation from the sidebar or create a new one to start chatting.",
-    "startNewChat": "Start New Chat",
-    "features": {
-      "conversations": "Natural conversations with AI",
-      "security": "Secure desktop application",
-      "tools": "Powerful AI tools and capabilities",
-      "documents": "Document analysis and processing"
-    }
-  },
-  "messages": {
-    "aiThinking": "AI is thinking...",
-    "aiResponding": "AI is responding...",
-    "sendMessage": "Send message",
-    "typeMessage": "Type your message...",
-    "aiAssistant": "AI Assistant"
-  },
-  "sessions": {
-    "title": "Conversations",
-    "messages_one": "{{count}} message",
-    "messages_other": "{{count}} messages",
-    "lastMessage": "Last message",
-    "lastUpdated": "Last updated",
-    "deleteConversation": "Delete conversation",
-    "editTitle": "Edit title",
-    "noSessions": "No conversations yet",
-    "noSessionsDescription": "Create your first conversation to get started",
-    "noSessionsYet": "You don't have any chat sessions yet.",
-    "startNewChat": "Start New Chat"
-  },
-  "input": {
-    "placeholder": "Type your message here...",
-    "placeholderWithShortcut": "Type your message... ({{shortcut}} to send)",
-    "attachFiles": "Attach files",
-    "removeFile": "Remove file",
-    "fileTooLarge": "File too large (max {{maxSize}})",
-    "tooManyFiles": "Too many files (max {{maxFiles}})",
-    "unsupportedFileType": "Unsupported file type"
-  },
-  "shortcuts": {
-    "enter": "Enter",
-    "shiftEnter": "Shift+Enter"
-  }
+  "CHAT.WELCOME.TITLE": "Welcome to SampleStrands",
+  "CHAT.WELCOME.DESCRIPTION": "Select a conversation from the sidebar or create a new one to start chatting.",
+  "CHAT.WELCOME.START_NEW_CHAT": "Start New Chat",
+  "CHAT.WELCOME.FEATURES.CONVERSATIONS": "Natural conversations with AI",
+  "CHAT.WELCOME.FEATURES.SECURITY": "Secure desktop application",
+  "CHAT.WELCOME.FEATURES.TOOLS": "Powerful AI tools and capabilities",
+  "CHAT.WELCOME.FEATURES.DOCUMENTS": "Document analysis and processing",
+  "CHAT.MESSAGES.AI_THINKING": "AI is thinking...",
+  "CHAT.MESSAGES.AI_RESPONDING": "AI is responding...",
+  "CHAT.MESSAGES.SEND_MESSAGE": "Send message",
+  "CHAT.MESSAGES.TYPE_MESSAGE": "Type your message...",
+  "CHAT.MESSAGES.AI_ASSISTANT": "AI Assistant",
+  "CHAT.SESSIONS.TITLE": "Conversations",
+  "CHAT.SESSIONS.MESSAGES_ONE": "{{count}} message",
+  "CHAT.SESSIONS.MESSAGES_OTHER": "{{count}} messages",
+  "CHAT.SESSIONS.LAST_MESSAGE": "Last message",
+  "CHAT.SESSIONS.LAST_UPDATED": "Last updated",
+  "CHAT.SESSIONS.DELETE_CONVERSATION": "Delete conversation",
+  "CHAT.SESSIONS.EDIT_TITLE": "Edit title",
+  "CHAT.SESSIONS.NO_SESSIONS": "No conversations yet",
+  "CHAT.SESSIONS.NO_SESSIONS_DESCRIPTION": "Create your first conversation to get started",
+  "CHAT.SESSIONS.NO_SESSIONS_YET": "You don't have any chat sessions yet.",
+  "CHAT.SESSIONS.START_NEW_CHAT": "Start New Chat",
+  "CHAT.INPUT.PLACEHOLDER": "Type your message here...",
+  "CHAT.INPUT.PLACEHOLDER_WITH_SHORTCUT": "Type your message... ({{shortcut}} to send)",
+  "CHAT.INPUT.ATTACH_FILES": "Attach files",
+  "CHAT.INPUT.REMOVE_FILE": "Remove file",
+  "CHAT.INPUT.FILE_TOO_LARGE": "File too large (max {{maxSize}})",
+  "CHAT.INPUT.TOO_MANY_FILES": "Too many files (max {{maxFiles}})",
+  "CHAT.INPUT.UNSUPPORTED_FILE_TYPE": "Unsupported file type",
+  "CHAT.SHORTCUTS.ENTER": "Enter",
+  "CHAT.SHORTCUTS.SHIFT_ENTER": "Shift+Enter",
+  "CHAT.DROPDOWN.SELECT_AGENT": "Select Agent",
+  "CHAT.DROPDOWN.NO_ACTIVE_AGENTS": "No active agents available",
+  "CHAT.DROPDOWN.CREATE_AGENT_FIRST": "Create agents in the Agent management section first"
 }

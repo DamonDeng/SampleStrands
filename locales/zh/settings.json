@@ -1,83 +1,56 @@
 {
-  "list": {
-    "title": "设置",
-    "loading": "加载设置中...",
-    "noSettings": "暂无设置",
-    "noSettingsDescription": "设置可用时将显示在此处",
-    "failedToLoad": "设置加载失败",
-    "options": "个选项",
-    "updated": "更新于"
-  },
-  "categories": {
-    "general": "常规",
-    "advanced": "高级",
-    "descriptions": {
-      "general": "语言、主题和默认智能体设置",
-      "advanced": "高级配置选项",
-      "default": "自定义应用程序设置"
-    }
-  },
-  "time": {
-    "justNow": "刚刚",
-    "minutesAgo": "{{count}}分钟前",
-    "hoursAgo": "{{count}}小时前",
-    "daysAgo": "{{count}}天前"
-  },
-  "MODULE.FEATURE.SETTINGS.GENERAL.TITLE": "常规设置",
-  "general": {
-    "title": "常规设置",
-    "description": "配置语言、主题和默认智能体偏好",
-    "language": {
-      "title": "语言",
-      "label": "界面语言",
-      "helpText": "选择您偏好的应用程序界面语言",
-      "options": {
-        "en": "English",
-        "zh": "中文 (Chinese)",
-        "es": "Español (Spanish)",
-        "fr": "Français (French)",
-        "de": "Deutsch (German)",
-        "ja": "日本語 (Japanese)"
-      }
-    },
-    "theme": {
-      "title": "外观",
-      "label": "主题",
-      "helpText": "选择您偏好的颜色主题。自动模式将跟随您的系统偏好。",
-      "options": {
-        "dark": "深色",
-        "light": "浅色",
-        "auto": "自动"
-      }
-    },
-    "defaultAgent": {
-      "title": "默认智能体",
-      "label": "新对话的默认智能体",
-      "helpText": "选择创建新对话时默认使用的智能体",
-      "noAgent": "无默认智能体",
-      "selectAgent": "选择智能体",
-      "currentlySelected": "当前选择：",
-      "availableAgents": "可用智能体：",
-      "active": "个活跃",
-      "inactive": "（非活跃）",
-      "noAgentsAvailable": "暂无可用智能体。请在智能体管理部分创建智能体。"
-    },
-    "shortcuts": {
-      "title": "消息输入",
-      "label": "发送消息快捷键",
-      "helpText": "选择您偏好的发送消息键盘快捷键。",
-      "helpTextEnter": "按回车发送，Shift+回车换行。",
-      "helpTextShiftEnter": "按Shift+回车发送，回车换行。",
-      "options": {
-        "enter": "回车",
-        "shift_enter": "Shift + 回车"
-      }
-    }
-  },
-  "advanced": {
-    "title": "高级设置",
-    "description": "面向高级用户的高级配置选项",
-    "comingSoon": "即将推出",
-    "comingSoonDescription": "高级设置将在未来的更新中提供。"
-  }
+  "SETTINGS.LIST.TITLE": "设置",
+  "SETTINGS.LIST.LOADING": "加载设置中...",
+  "SETTINGS.LIST.NO_SETTINGS": "暂无设置",
+  "SETTINGS.LIST.NO_SETTINGS_DESCRIPTION": "设置可用时将显示在此处",
+  "SETTINGS.LIST.FAILED_TO_LOAD": "设置加载失败",
+  "SETTINGS.LIST.OPTIONS": "个选项",
+  "SETTINGS.LIST.UPDATED": "更新于",
+  "SETTINGS.CATEGORIES.GENERAL": "常规",
+  "SETTINGS.CATEGORIES.ADVANCED": "高级",
+  "SETTINGS.CATEGORIES.DESCRIPTIONS.GENERAL": "语言、主题和默认智能体设置",
+  "SETTINGS.CATEGORIES.DESCRIPTIONS.ADVANCED": "高级配置选项",
+  "SETTINGS.CATEGORIES.DESCRIPTIONS.DEFAULT": "自定义应用程序设置",
+  "SETTINGS.TIME.JUST_NOW": "刚刚",
+  "SETTINGS.TIME.MINUTES_AGO": "{{count}}分钟前",
+  "SETTINGS.TIME.HOURS_AGO": "{{count}}小时前",
+  "SETTINGS.TIME.DAYS_AGO": "{{count}}天前",
+  "SETTINGS.GENERAL.TITLE": "常规设置",
+  "SETTINGS.GENERAL.DESCRIPTION": "配置语言、主题和默认智能体偏好",
+  "SETTINGS.GENERAL.LANGUAGE.TITLE": "语言",
+  "SETTINGS.GENERAL.LANGUAGE.LABEL": "界面语言",
+  "SETTINGS.GENERAL.LANGUAGE.HELP_TEXT": "选择您偏好的应用程序界面语言",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.EN": "English",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.ZH": "中文 (Chinese)",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.ES": "Español (Spanish)",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.FR": "Français (French)",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.DE": "Deutsch (German)",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.JA": "日本語 (Japanese)",
+  "SETTINGS.GENERAL.THEME.TITLE": "外观",
+  "SETTINGS.GENERAL.THEME.LABEL": "主题",
+  "SETTINGS.GENERAL.THEME.HELP_TEXT": "选择您偏好的颜色主题。自动模式将跟随您的系统偏好。",
+  "SETTINGS.GENERAL.THEME.OPTIONS.DARK": "深色",
+  "SETTINGS.GENERAL.THEME.OPTIONS.LIGHT": "浅色",
+  "SETTINGS.GENERAL.THEME.OPTIONS.AUTO": "自动",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.TITLE": "默认智能体",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.LABEL": "新对话的默认智能体",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.HELP_TEXT": "选择创建新对话时默认使用的智能体",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.NO_AGENT": "无默认智能体",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.SELECT_AGENT": "选择智能体",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.CURRENTLY_SELECTED": "当前选择：",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.AVAILABLE_AGENTS": "可用智能体：",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.ACTIVE": "个活跃",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.INACTIVE": "（非活跃）",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.NO_AGENTS_AVAILABLE": "暂无可用智能体。请在智能体管理部分创建智能体。",
+  "SETTINGS.GENERAL.SHORTCUTS.TITLE": "消息输入",
+  "SETTINGS.GENERAL.SHORTCUTS.LABEL": "发送消息快捷键",
+  "SETTINGS.GENERAL.SHORTCUTS.HELP_TEXT": "选择您偏好的发送消息键盘快捷键。",
+  "SETTINGS.GENERAL.SHORTCUTS.HELP_TEXT_ENTER": "按回车发送，Shift+回车换行。",
+  "SETTINGS.GENERAL.SHORTCUTS.HELP_TEXT_SHIFT_ENTER": "按Shift+回车发送，回车换行。",
+  "SETTINGS.GENERAL.SHORTCUTS.OPTIONS.ENTER": "回车",
+  "SETTINGS.GENERAL.SHORTCUTS.OPTIONS.SHIFT_ENTER": "Shift + 回车",
+  "SETTINGS.ADVANCED.TITLE": "高级设置",
+  "SETTINGS.ADVANCED.DESCRIPTION": "面向高级用户的高级配置选项",
+  "SETTINGS.ADVANCED.COMING_SOON": "即将推出",
+  "SETTINGS.ADVANCED.COMING_SOON_DESCRIPTION": "高级设置将在未来的更新中提供。"
 }

@@ -1,83 +1,56 @@
 {
-  "list": {
-    "title": "Settings",
-    "loading": "Loading settings...",
-    "noSettings": "No settings available",
-    "noSettingsDescription": "Settings will appear here when available",
-    "failedToLoad": "Failed to load settings",
-    "options": "options",
-    "updated": "Updated"
-  },
-  "categories": {
-    "general": "General",
-    "advanced": "Advanced",
-    "descriptions": {
-      "general": "Language, theme, and default agent settings",
-      "advanced": "Advanced configuration options",
-      "default": "Custom application settings"
-    }
-  },
-  "time": {
-    "justNow": "just now",
-    "minutesAgo": "{{count}}m ago",
-    "hoursAgo": "{{count}}h ago",
-    "daysAgo": "{{count}}d ago"
-  },
-  "MODULE.FEATURE.SETTINGS.GENERAL.TITLE": "General Settings",
-  "general": {
-    "title": "General Settings",
-    "description": "Configure language, theme, and default agent preferences",
-    "language": {
-      "title": "Language",
-      "label": "Interface Language",
-      "helpText": "Select your preferred language for the application interface",
-      "options": {
-        "en": "English",
-        "zh": "中文 (Chinese)",
-        "es": "Español (Spanish)",
-        "fr": "Français (French)",
-        "de": "Deutsch (German)",
-        "ja": "日本語 (Japanese)"
-      }
-    },
-    "theme": {
-      "title": "Appearance",
-      "label": "Theme",
-      "helpText": "Choose your preferred color theme. Auto follows your system preference.",
-      "options": {
-        "dark": "Dark",
-        "light": "Light",
-        "auto": "Auto"
-      }
-    },
-    "defaultAgent": {
-      "title": "Default Agent",
-      "label": "Default Agent for New Chats",
-      "helpText": "Select the agent to use by default when creating new conversations",
-      "noAgent": "No default agent",
-      "selectAgent": "Select an agent",
-      "currentlySelected": "Currently selected:",
-      "availableAgents": "Available agents:",
-      "active": "active",
-      "inactive": "(inactive)",
-      "noAgentsAvailable": "No agents available. Create agents in the Agent management section."
-    },
-    "shortcuts": {
-      "title": "Message Input",
-      "label": "Send Message Shortcut",
-      "helpText": "Choose your preferred keyboard shortcut to send messages.",
-      "helpTextEnter": "Press Enter to send, Shift+Enter for new line.",
-      "helpTextShiftEnter": "Press Shift+Enter to send, Enter for new line.",
-      "options": {
-        "enter": "Enter",
-        "shift_enter": "Shift + Enter"
-      }
-    }
-  },
-  "advanced": {
-    "title": "Advanced Settings",
-    "description": "Advanced configuration options for power users",
-    "comingSoon": "Coming Soon",
-    "comingSoonDescription": "Advanced settings will be available in a future update."
-  }
+  "SETTINGS.LIST.TITLE": "Settings",
+  "SETTINGS.LIST.LOADING": "Loading settings...",
+  "SETTINGS.LIST.NO_SETTINGS": "No settings available",
+  "SETTINGS.LIST.NO_SETTINGS_DESCRIPTION": "Settings will appear here when available",
+  "SETTINGS.LIST.FAILED_TO_LOAD": "Failed to load settings",
+  "SETTINGS.LIST.OPTIONS": "options",
+  "SETTINGS.LIST.UPDATED": "Updated",
+  "SETTINGS.CATEGORIES.GENERAL": "General",
+  "SETTINGS.CATEGORIES.ADVANCED": "Advanced",
+  "SETTINGS.CATEGORIES.DESCRIPTIONS.GENERAL": "Language, theme, and default agent settings",
+  "SETTINGS.CATEGORIES.DESCRIPTIONS.ADVANCED": "Advanced configuration options",
+  "SETTINGS.CATEGORIES.DESCRIPTIONS.DEFAULT": "Custom application settings",
+  "SETTINGS.TIME.JUST_NOW": "just now",
+  "SETTINGS.TIME.MINUTES_AGO": "{{count}}m ago",
+  "SETTINGS.TIME.HOURS_AGO": "{{count}}h ago",
+  "SETTINGS.TIME.DAYS_AGO": "{{count}}d ago",
+  "SETTINGS.GENERAL.TITLE": "General Settings",
+  "SETTINGS.GENERAL.DESCRIPTION": "Configure language, theme, and default agent preferences",
+  "SETTINGS.GENERAL.LANGUAGE.TITLE": "Language",
+  "SETTINGS.GENERAL.LANGUAGE.LABEL": "Interface Language",
+  "SETTINGS.GENERAL.LANGUAGE.HELP_TEXT": "Select your preferred language for the application interface",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.EN": "English",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.ZH": "中文 (Chinese)",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.ES": "Español (Spanish)",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.FR": "Français (French)",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.DE": "Deutsch (German)",
+  "SETTINGS.GENERAL.LANGUAGE.OPTIONS.JA": "日本語 (Japanese)",
+  "SETTINGS.GENERAL.THEME.TITLE": "Appearance",
+  "SETTINGS.GENERAL.THEME.LABEL": "Theme",
+  "SETTINGS.GENERAL.THEME.HELP_TEXT": "Choose your preferred color theme. Auto follows your system preference.",
+  "SETTINGS.GENERAL.THEME.OPTIONS.DARK": "Dark",
+  "SETTINGS.GENERAL.THEME.OPTIONS.LIGHT": "Light",
+  "SETTINGS.GENERAL.THEME.OPTIONS.AUTO": "Auto",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.TITLE": "Default Agent",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.LABEL": "Default Agent for New Chats",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.HELP_TEXT": "Select the agent to use by default when creating new conversations",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.NO_AGENT": "No default agent",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.SELECT_AGENT": "Select an agent",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.CURRENTLY_SELECTED": "Currently selected:",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.AVAILABLE_AGENTS": "Available agents:",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.ACTIVE": "active",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.INACTIVE": "(inactive)",
+  "SETTINGS.GENERAL.DEFAULT_AGENT.NO_AGENTS_AVAILABLE": "No agents available. Create agents in the Agent management section.",
+  "SETTINGS.GENERAL.SHORTCUTS.TITLE": "Message Input",
+  "SETTINGS.GENERAL.SHORTCUTS.LABEL": "Send Message Shortcut",
+  "SETTINGS.GENERAL.SHORTCUTS.HELP_TEXT": "Choose your preferred keyboard shortcut to send messages.",
+  "SETTINGS.GENERAL.SHORTCUTS.HELP_TEXT_ENTER": "Press Enter to send, Shift+Enter for new line.",
+  "SETTINGS.GENERAL.SHORTCUTS.HELP_TEXT_SHIFT_ENTER": "Press Shift+Enter to send, Enter for new line.",
+  "SETTINGS.GENERAL.SHORTCUTS.OPTIONS.ENTER": "Enter",
+  "SETTINGS.GENERAL.SHORTCUTS.OPTIONS.SHIFT_ENTER": "Shift + Enter",
+  "SETTINGS.ADVANCED.TITLE": "Advanced Settings",
+  "SETTINGS.ADVANCED.DESCRIPTION": "Advanced configuration options for power users",
+  "SETTINGS.ADVANCED.COMING_SOON": "Coming Soon",
+  "SETTINGS.ADVANCED.COMING_SOON_DESCRIPTION": "Advanced settings will be available in a future update."
 }

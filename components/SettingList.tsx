@@ -35,20 +35,20 @@ export default function SettingList({
   const getSettingDescription = (settingTitle: string) => {
     switch (settingTitle.toLowerCase()) {
       case 'general':
-        return t('categories.descriptions.general');
+        return t('SETTINGS.CATEGORIES.DESCRIPTIONS.GENERAL');
       case 'advanced':
-        return t('categories.descriptions.advanced');
+        return t('SETTINGS.CATEGORIES.DESCRIPTIONS.ADVANCED');
       default:
-        return t('categories.descriptions.default');
+        return t('SETTINGS.CATEGORIES.DESCRIPTIONS.DEFAULT');
     }
   };
 
   const getSettingDisplayName = (settingTitle: string) => {
     switch (settingTitle.toLowerCase()) {
       case 'general':
-        return t('categories.general');
+        return t('SETTINGS.CATEGORIES.GENERAL');
       case 'advanced':
-        return t('categories.advanced');
+        return t('SETTINGS.CATEGORIES.ADVANCED');
       default:
         return settingTitle.charAt(0).toUpperCase() + settingTitle.slice(1);
     }
@@ -58,12 +58,12 @@ export default function SettingList({
     return (
       <div className={styles.settingList}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{t('list.title')}</h2>
+          <h2 className={styles.title}>{t('SETTINGS.LIST.TITLE')}</h2>
           <div className={styles.settingCount}>...</div>
         </div>
         <div className={styles.loadingState}>
           <div className={styles.loadingSpinner}></div>
-          <p className={styles.loadingText}>{t('list.loading')}</p>
+          <p className={styles.loadingText}>{t('SETTINGS.LIST.LOADING')}</p>
         </div>
       </div>
     );
@@ -73,11 +73,11 @@ export default function SettingList({
     return (
       <div className={styles.settingList}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{t('list.title')}</h2>
+          <h2 className={styles.title}>{t('SETTINGS.LIST.TITLE')}</h2>
         </div>
         <div className={styles.errorState}>
           <div className={styles.errorIcon}>⚠️</div>
-          <p className={styles.errorText}>{t('list.failedToLoad')}</p>
+          <p className={styles.errorText}>{t('SETTINGS.LIST.FAILED_TO_LOAD')}</p>
           <p className={styles.errorSubtext}>{error}</p>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function SettingList({
   return (
     <div className={styles.settingList}>
       <div className={styles.header}>
-        <h2 className={styles.title}>{t('list.title')}</h2>
+        <h2 className={styles.title}>{t('SETTINGS.LIST.TITLE')}</h2>
         <div className={styles.settingCount}>{settings.length}</div>
       </div>
 
@@ -95,8 +95,8 @@ export default function SettingList({
         {settings.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}><IoSettingsOutline /></div>
-            <p className={styles.emptyText}>{t('list.noSettings')}</p>
-            <p className={styles.emptySubtext}>{t('list.noSettingsDescription')}</p>
+            <p className={styles.emptyText}>{t('SETTINGS.LIST.NO_SETTINGS')}</p>
+            <p className={styles.emptySubtext}>{t('SETTINGS.LIST.NO_SETTINGS_DESCRIPTION')}</p>
           </div>
         ) : (
           settings.map((setting) => (
@@ -124,10 +124,10 @@ export default function SettingList({
                 
                 <div className={styles.settingMeta}>
                   <span className={styles.settingKeys}>
-                    {Object.keys(setting.json_data).length} {t('list.options')}
+                    {Object.keys(setting.json_data).length} {t('SETTINGS.LIST.OPTIONS')}
                   </span>
                   <span className={styles.lastUpdated}>
-                    {t('list.updated')} {formatDate(setting.updated_at, t)}
+                    {t('SETTINGS.LIST.UPDATED')} {formatDate(setting.updated_at, t)}
                   </span>
                 </div>
               </div>
@@ -145,16 +145,16 @@ function formatDate(dateString: string, t: any): string {
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   if (diffInSeconds < 60) {
-    return t('time.justNow');
+    return t('SETTINGS.TIME.JUST_NOW');
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
-    return t('time.minutesAgo', { count: minutes });
+    return t('SETTINGS.TIME.MINUTES_AGO', { count: minutes });
   } else if (diffInSeconds < 86400) {
     const hours = Math.floor(diffInSeconds / 3600);
-    return t('time.hoursAgo', { count: hours });
+    return t('SETTINGS.TIME.HOURS_AGO', { count: hours });
   } else if (diffInSeconds < 604800) {
     const days = Math.floor(diffInSeconds / 86400);
-    return t('time.daysAgo', { count: days });
+    return t('SETTINGS.TIME.DAYS_AGO', { count: days });
   } else {
     return date.toLocaleDateString();
   }

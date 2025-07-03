@@ -135,13 +135,13 @@ export default function SettingGeneralDetail({
   const getSaveStatusText = () => {
     switch (saveStatus) {
       case 'saving':
-        return t('status.saving', { ns: 'common' });
+        return t('COMMON.STATUS.SAVING', { ns: 'common' });
       case 'saved':
-        return t('status.saved', { ns: 'common' });
+        return t('COMMON.STATUS.SAVED', { ns: 'common' });
       case 'error':
-        return t('status.saveFailed', { ns: 'common' });
+        return t('COMMON.STATUS.SAVE_FAILED', { ns: 'common' });
       default:
-        return hasUnsavedChanges ? t('status.unsavedChanges', { ns: 'common' }) : '';
+        return hasUnsavedChanges ? t('COMMON.STATUS.UNSAVED_CHANGES', { ns: 'common' }) : '';
     }
   };
 
@@ -153,9 +153,9 @@ export default function SettingGeneralDetail({
             <IoSettingsOutline />
           </div>
           <div className={styles.titleInfo}>
-            <h1 className={styles.settingName}>{t('MODULE.FEATURE.SETTINGS.GENERAL.TITLE')}</h1>
+            <h1 className={styles.settingName}>{t('SETTINGS.GENERAL.TITLE')}</h1>
             <p className={styles.settingDescription}>
-              {t('general.description')}
+              {t('SETTINGS.GENERAL.DESCRIPTION')}
             </p>
           </div>
         </div>
@@ -170,24 +170,24 @@ export default function SettingGeneralDetail({
         <div className={styles.settingSection}>
           <h3 className={styles.sectionTitle}>
             <IoLanguageOutline />
-            {t('general.language.title')}
+            {t('SETTINGS.GENERAL.LANGUAGE.TITLE')}
           </h3>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t('general.language.label')}</label>
+            <label className={styles.label}>{t('SETTINGS.GENERAL.LANGUAGE.LABEL')}</label>
             <select
               className={styles.select}
               value={editForm.language}
               onChange={(e) => handleInputChange('language', e.target.value)}
             >
-              <option value="en">{t('general.language.options.en')}</option>
-              <option value="zh">{t('general.language.options.zh')}</option>
-              <option value="es">{t('general.language.options.es')}</option>
-              <option value="fr">{t('general.language.options.fr')}</option>
-              <option value="de">{t('general.language.options.de')}</option>
-              <option value="ja">{t('general.language.options.ja')}</option>
+              <option value="en">{t('SETTINGS.GENERAL.LANGUAGE.OPTIONS.EN')}</option>
+              <option value="zh">{t('SETTINGS.GENERAL.LANGUAGE.OPTIONS.ZH')}</option>
+              <option value="es">{t('SETTINGS.GENERAL.LANGUAGE.OPTIONS.ES')}</option>
+              <option value="fr">{t('SETTINGS.GENERAL.LANGUAGE.OPTIONS.FR')}</option>
+              <option value="de">{t('SETTINGS.GENERAL.LANGUAGE.OPTIONS.DE')}</option>
+              <option value="ja">{t('SETTINGS.GENERAL.LANGUAGE.OPTIONS.JA')}</option>
             </select>
             <p className={styles.helpText}>
-              {t('general.language.helpText')}
+              {t('SETTINGS.GENERAL.LANGUAGE.HELP_TEXT')}
             </p>
           </div>
         </div>
@@ -195,10 +195,10 @@ export default function SettingGeneralDetail({
         <div className={styles.settingSection}>
           <h3 className={styles.sectionTitle}>
             <IoColorPaletteOutline />
-            {t('general.theme.title')}
+            {t('SETTINGS.GENERAL.THEME.TITLE')}
           </h3>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t('general.theme.label')}</label>
+            <label className={styles.label}>{t('SETTINGS.GENERAL.THEME.LABEL')}</label>
             <div className={styles.radioGroup}>
               <label className={styles.radioOption}>
                 <input
@@ -208,7 +208,7 @@ export default function SettingGeneralDetail({
                   checked={editForm.theme === 'dark'}
                   onChange={(e) => handleInputChange('theme', e.target.value)}
                 />
-                <span className={styles.radioLabel}>{t('general.theme.options.dark')}</span>
+                <span className={styles.radioLabel}>{t('SETTINGS.GENERAL.THEME.OPTIONS.DARK')}</span>
               </label>
               <label className={styles.radioOption}>
                 <input
@@ -218,7 +218,7 @@ export default function SettingGeneralDetail({
                   checked={editForm.theme === 'light'}
                   onChange={(e) => handleInputChange('theme', e.target.value)}
                 />
-                <span className={styles.radioLabel}>{t('general.theme.options.light')}</span>
+                <span className={styles.radioLabel}>{t('SETTINGS.GENERAL.THEME.OPTIONS.LIGHT')}</span>
               </label>
               <label className={styles.radioOption}>
                 <input
@@ -228,11 +228,11 @@ export default function SettingGeneralDetail({
                   checked={editForm.theme === 'auto'}
                   onChange={(e) => handleInputChange('theme', e.target.value)}
                 />
-                <span className={styles.radioLabel}>{t('general.theme.options.auto')}</span>
+                <span className={styles.radioLabel}>{t('SETTINGS.GENERAL.THEME.OPTIONS.AUTO')}</span>
               </label>
             </div>
             <p className={styles.helpText}>
-              {t('general.theme.helpText')}
+              {t('SETTINGS.GENERAL.THEME.HELP_TEXT')}
             </p>
           </div>
         </div>
@@ -240,16 +240,16 @@ export default function SettingGeneralDetail({
         <div className={styles.settingSection}>
           <h3 className={styles.sectionTitle}>
             <IoPersonOutline />
-            {t('general.defaultAgent.title')}
+            {t('SETTINGS.GENERAL.DEFAULT_AGENT.TITLE')}
           </h3>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t('general.defaultAgent.label')}</label>
+            <label className={styles.label}>{t('SETTINGS.GENERAL.DEFAULT_AGENT.LABEL')}</label>
             <select
               className={styles.select}
               value={editForm.default_agent || ''}
               onChange={(e) => handleInputChange('default_agent', e.target.value || null)}
             >
-              <option value="">{t('general.defaultAgent.noAgent')}</option>
+              <option value="">{t('SETTINGS.GENERAL.DEFAULT_AGENT.NO_AGENT')}</option>
               {agents
                 .sort((a, b) => {
                   // Sort by active status first (active agents first), then by name
@@ -260,20 +260,20 @@ export default function SettingGeneralDetail({
                 })
                 .map((agent) => (
                   <option key={agent.id} value={agent.id}>
-                    {agent.config.name} {agent.is_active ? '✓' : t('general.defaultAgent.inactive')}
+                    {agent.config.name} {agent.is_active ? '✓' : t('SETTINGS.GENERAL.DEFAULT_AGENT.INACTIVE')}
                   </option>
                 ))
               }
             </select>
             <p className={styles.helpText}>
-              {t('general.defaultAgent.currentlySelected')} <strong>{getActiveAgentName()}</strong>
+              {t('SETTINGS.GENERAL.DEFAULT_AGENT.CURRENTLY_SELECTED')} <strong>{getActiveAgentName()}</strong>
               <br />
               {agents.length > 0 ? (
                 <>
-                  {t('general.defaultAgent.availableAgents')} {agents.filter(a => a.is_active).length} {t('general.defaultAgent.active')}, {agents.filter(a => !a.is_active).length} {t('general.defaultAgent.inactive')}
+                  {t('SETTINGS.GENERAL.DEFAULT_AGENT.AVAILABLE_AGENTS')} {agents.filter(a => a.is_active).length} {t('SETTINGS.GENERAL.DEFAULT_AGENT.ACTIVE')}, {agents.filter(a => !a.is_active).length} {t('SETTINGS.GENERAL.DEFAULT_AGENT.INACTIVE')}
                 </>
               ) : (
-                t('general.defaultAgent.noAgentsAvailable')
+                t('SETTINGS.GENERAL.DEFAULT_AGENT.NO_AGENTS_AVAILABLE')
               )}
             </p>
           </div>
@@ -282,10 +282,10 @@ export default function SettingGeneralDetail({
         <div className={styles.settingSection}>
           <h3 className={styles.sectionTitle}>
             <IoSettingsOutline />
-            {t('general.shortcuts.title')}
+            {t('SETTINGS.GENERAL.SHORTCUTS.TITLE')}
           </h3>
           <div className={styles.formGroup}>
-            <label className={styles.label}>{t('general.shortcuts.label')}</label>
+            <label className={styles.label}>{t('SETTINGS.GENERAL.SHORTCUTS.LABEL')}</label>
             <div className={styles.radioGroup}>
               <label className={styles.radioOption}>
                 <input
@@ -295,7 +295,7 @@ export default function SettingGeneralDetail({
                   checked={editForm.shortcut_to_send === 'enter'}
                   onChange={(e) => handleInputChange('shortcut_to_send', e.target.value)}
                 />
-                <span className={styles.radioLabel}>{t('general.shortcuts.options.enter')}</span>
+                <span className={styles.radioLabel}>{t('SETTINGS.GENERAL.SHORTCUTS.OPTIONS.ENTER')}</span>
               </label>
               <label className={styles.radioOption}>
                 <input
@@ -305,14 +305,14 @@ export default function SettingGeneralDetail({
                   checked={editForm.shortcut_to_send === 'shift_enter'}
                   onChange={(e) => handleInputChange('shortcut_to_send', e.target.value)}
                 />
-                <span className={styles.radioLabel}>{t('general.shortcuts.options.shift_enter')}</span>
+                <span className={styles.radioLabel}>{t('SETTINGS.GENERAL.SHORTCUTS.OPTIONS.SHIFT_ENTER')}</span>
               </label>
             </div>
             <p className={styles.helpText}>
-              {t('general.shortcuts.helpText')}
+              {t('SETTINGS.GENERAL.SHORTCUTS.HELP_TEXT')}
               {editForm.shortcut_to_send === 'enter' ?
-                ` ${t('general.shortcuts.helpTextEnter')}` :
-                ` ${t('general.shortcuts.helpTextShiftEnter')}`
+                ` ${t('SETTINGS.GENERAL.SHORTCUTS.HELP_TEXT_ENTER')}` :
+                ` ${t('SETTINGS.GENERAL.SHORTCUTS.HELP_TEXT_SHIFT_ENTER')}`
               }
             </p>
           </div>

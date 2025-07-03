@@ -149,27 +149,27 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, onStrea
       <div className={styles.chatArea}>
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}><RiRobot2Line /></div>
-          <h2 className={styles.emptyTitle}>{t('welcome.title')}</h2>
+          <h2 className={styles.emptyTitle}>{t('CHAT.WELCOME.TITLE')}</h2>
           <p className={styles.emptyDescription}>
-            {t('welcome.description')}
+            {t('CHAT.WELCOME.DESCRIPTION')}
           </p>
           <div className={styles.features}>
             <div className={styles.feature}>
               <span className={styles.featureIcon}><IoChatbubbleEllipsesOutline /></span>
-              <span>{t('welcome.features.conversations')}</span>
+              <span>{t('CHAT.WELCOME.FEATURES.CONVERSATIONS')}</span>
             </div>
             <div className={styles.feature}>
               <span className={styles.featureIcon}><IoLockClosedOutline /></span>
-              <span>{t('welcome.features.security')}</span>
+              <span>{t('CHAT.WELCOME.FEATURES.SECURITY')}</span>
             </div>
             <div className={styles.feature}>
               <span className={styles.featureIcon}><IoFlashOutline /></span>
-              <span>{t('welcome.features.tools')}</span>
+              <span>{t('CHAT.WELCOME.FEATURES.TOOLS')}</span>
             </div>
             {isElectron && (
               <div className={styles.feature}>
                 <span className={styles.featureIcon}><IoDesktopOutline /></span>
-                <span>{t('welcome.features.documents')}</span>
+                <span>{t('CHAT.WELCOME.FEATURES.DOCUMENTS')}</span>
               </div>
             )}
           </div>
@@ -184,7 +184,7 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, onStrea
         <div className={styles.sessionInfo}>
           <h1 className={styles.sessionTitle}>{session.title}</h1>
           <p className={styles.sessionMeta}>
-            {t('sessions.messages', { count: session.messages.length })} • {t('sessions.lastUpdated')} {session.updatedAt.toLocaleString()}
+            {t('CHAT.SESSIONS.MESSAGES', { count: session.messages.length })} • {t('CHAT.SESSIONS.LAST_UPDATED')} {session.updatedAt.toLocaleString()}
           </p>
         </div>
       </div>
@@ -205,9 +205,9 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, onStrea
           disabled={isLoading || isStreaming}
           shortcutToSend={shortcutToSend}
           placeholder={
-            isLoading ? t('messages.aiThinking') :
-            isStreaming ? t('messages.aiResponding') :
-            t('messages.typeMessage')
+            isLoading ? t('CHAT.MESSAGES.AI_THINKING') :
+            isStreaming ? t('CHAT.MESSAGES.AI_RESPONDING') :
+            t('CHAT.MESSAGES.TYPE_MESSAGE')
           }
         />
       </div>

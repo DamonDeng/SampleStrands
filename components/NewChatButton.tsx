@@ -92,13 +92,13 @@ export default function NewChatButton({
         <div ref={dropupRef} className={styles.dropup}>
           <div className={styles.dropupHeader}>
             <IoPersonOutline />
-            <span>{t('dropdown.selectAgent')}</span>
+            <span>{t('CHAT.DROPDOWN.SELECT_AGENT')}</span>
           </div>
           <div className={styles.agentList}>
             {activeAgents.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>{t('dropdown.noActiveAgents')}</p>
-                <p className={styles.emptySubtext}>{t('dropdown.createAgentFirst')}</p>
+                <p>{t('CHAT.DROPDOWN.NO_ACTIVE_AGENTS')}</p>
+                <p className={styles.emptySubtext}>{t('CHAT.DROPDOWN.CREATE_AGENT_FIRST')}</p>
               </div>
             ) : (
               activeAgents.map((agent) => (
@@ -141,7 +141,7 @@ export default function NewChatButton({
         <div className={styles.mainArea} onClick={handleMainButtonClick}>
           <IoAdd className={styles.addIcon} />
           <span className={styles.buttonText}>
-            {defaultAgent ? defaultAgent.config.name : t('buttons.newChat', { ns: 'common' })}
+            {defaultAgent ? defaultAgent.config.name : t('COMMON.BUTTONS.NEW_CHAT', { ns: 'common' })}
           </span>
         </div>
 

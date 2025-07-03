@@ -83,7 +83,7 @@ export default function SessionList({
   return (
     <div className={styles.sessionList}>
       <div className={styles.header}>
-        <h2 className={styles.title}>{t('sessions.title')}</h2>
+        <h2 className={styles.title}>{t('CHAT.SESSIONS.TITLE')}</h2>
         <div className={styles.sessionCount}>{sessions.length}</div>
       </div>
 
@@ -130,7 +130,7 @@ export default function SessionList({
                             e.stopPropagation();
                             handleStartEdit(session);
                           }}
-                          title={t('sessions.editTitle')}
+                          title={t('CHAT.SESSIONS.EDIT_TITLE')}
                         >
                           <IoPencilOutline />
                         </button>
@@ -140,7 +140,7 @@ export default function SessionList({
                             e.stopPropagation();
                             onDeleteSession(session.id);
                           }}
-                          title={t('sessions.deleteConversation')}
+                          title={t('CHAT.SESSIONS.DELETE_CONVERSATION')}
                         >
                           <IoTrashOutline />
                         </button>
@@ -149,7 +149,7 @@ export default function SessionList({
                     <p className={styles.lastMessage}>{getLastMessage(session)}</p>
                     <div className={styles.sessionMeta}>
                       <span className={styles.messageCount}>
-                        {t('sessions.messages', { count: session.messages.length })}
+                        {t('CHAT.SESSIONS.MESSAGES', { count: session.messages.length })}
                       </span>
                       <span className={styles.timestamp}>
                         {formatDate(session.updatedAt)}

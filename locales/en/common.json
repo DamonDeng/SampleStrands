@@ -1,36 +1,28 @@
 {
-  "buttons": {
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "create": "Create",
-    "retry": "Retry Connection",
-    "newChat": "New Chat"
-  },
-  "status": {
-    "saving": "Saving...",
-    "saved": "Saved",
-    "saveFailed": "Save failed",
-    "unsavedChanges": "Unsaved changes",
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success"
-  },
-  "navigation": {
-    "chat": "Chat",
-    "agents": "Agents", 
-    "settings": "Settings",
-    "help": "Help"
-  },
-  "common": {
-    "name": "Name",
-    "description": "Description",
-    "active": "Active",
-    "inactive": "Inactive",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "required": "Required",
-    "optional": "Optional"
-  }
+  "COMMON.BUTTONS.SAVE": "Save",
+  "COMMON.BUTTONS.CANCEL": "Cancel",
+  "COMMON.BUTTONS.DELETE": "Delete",
+  "COMMON.BUTTONS.EDIT": "Edit",
+  "COMMON.BUTTONS.CREATE": "Create",
+  "COMMON.BUTTONS.RETRY": "Retry Connection",
+  "COMMON.BUTTONS.NEW_CHAT": "New Chat",
+  "COMMON.STATUS.SAVING": "Saving...",
+  "COMMON.STATUS.SAVED": "Saved",
+  "COMMON.STATUS.SAVE_FAILED": "Save failed",
+  "COMMON.STATUS.UNSAVED_CHANGES": "Unsaved changes",
+  "COMMON.STATUS.LOADING": "Loading...",
+  "COMMON.STATUS.ERROR": "Error",
+  "COMMON.STATUS.SUCCESS": "Success",
+  "COMMON.NAVIGATION.CHAT": "Chat",
+  "COMMON.NAVIGATION.AGENTS": "Agents",
+  "COMMON.NAVIGATION.SETTINGS": "Settings",
+  "COMMON.NAVIGATION.HELP": "Help",
+  "COMMON.FIELDS.NAME": "Name",
+  "COMMON.FIELDS.DESCRIPTION": "Description",
+  "COMMON.FIELDS.ACTIVE": "Active",
+  "COMMON.FIELDS.INACTIVE": "Inactive",
+  "COMMON.FIELDS.ENABLED": "Enabled",
+  "COMMON.FIELDS.DISABLED": "Disabled",
+  "COMMON.FIELDS.REQUIRED": "Required",
+  "COMMON.FIELDS.OPTIONAL": "Optional"
 }

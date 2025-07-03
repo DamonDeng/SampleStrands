@@ -997,6 +997,55 @@ const selectSession = async (sessionId: string) => {
 - ✅ **Multi-Tool Agents**: Agents can use multiple tools simultaneously
 - ✅ **User Empowerment**: Real control over agent capabilities
 
+## **🌐 I18NEXT KEY FORMAT MIGRATION (2025-07-03)**
+
+### **Translation Key Structure Redesign**
+**Achievement**: Migrated from nested JSON structure to flat MODULE.FEATURE.* format to comply with company code scanner requirements
+
+**Key Format Pattern**: `MODULE.FEATURE.SPECIFIC_KEY`
+- **MODULE**: Main application area (COMMON, CHAT, AGENTS, SETTINGS, ERRORS)
+- **FEATURE**: Sub-feature or component area (BUTTONS, STATUS, NAVIGATION, etc.)
+- **SPECIFIC_KEY**: Actual translation identifier
+
+**Migration Mapping**:
+```typescript
+// Old nested format (❌ Scanner violation)
+{
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}
+// Usage: t('buttons.save')
+
+// New flat format (✅ Scanner compliant)
+{
+  "COMMON.BUTTONS.SAVE": "Save",
+  "COMMON.BUTTONS.CANCEL": "Cancel"
+}
+// Usage: t('COMMON.BUTTONS.SAVE')
+```
+
+**Complete Key Mapping**:
+- `buttons.*` → `COMMON.BUTTONS.*`
+- `status.*` → `COMMON.STATUS.*`
+- `navigation.*` → `COMMON.NAVIGATION.*`
+- `welcome.*` → `CHAT.WELCOME.*`
+- `messages.*` → `CHAT.MESSAGES.*`
+- `sessions.*` → `CHAT.SESSIONS.*`
+- `input.*` → `CHAT.INPUT.*`
+- `shortcuts.*` → `CHAT.SHORTCUTS.*`
+- `list.*` → `AGENTS.LIST.*`
+- `management.*` → `AGENTS.MANAGEMENT.*`
+- `detail.*` → `AGENTS.DETAIL.*`
+- `general.*` → `SETTINGS.GENERAL.*`
+- `advanced.*` → `SETTINGS.ADVANCED.*`
+- `categories.*` → `SETTINGS.CATEGORIES.*`
+- `connection.*` → `ERRORS.CONNECTION.*`
+- `validation.*` → `ERRORS.VALIDATION.*`
+- `api.*` → `ERRORS.API.*`
+- `files.*` → `ERRORS.FILES.*`
+
 ## Development Commands
 
 ### Frontend Development

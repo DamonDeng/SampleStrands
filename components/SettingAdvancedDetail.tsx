@@ -27,9 +27,9 @@ export default function SettingAdvancedDetail({
             <IoCodeSlashOutline />
           </div>
           <div className={styles.titleInfo}>
-            <h1 className={styles.settingName}>{t('advanced.title')}</h1>
+            <h1 className={styles.settingName}>{t('SETTINGS.ADVANCED.TITLE')}</h1>
             <p className={styles.settingDescription}>
-              {t('advanced.description')}
+              {t('SETTINGS.ADVANCED.DESCRIPTION')}
             </p>
           </div>
         </div>
@@ -40,9 +40,9 @@ export default function SettingAdvancedDetail({
           <div className={styles.placeholderIcon}>
             <IoConstructOutline />
           </div>
-          <h2 className={styles.placeholderTitle}>{t('advanced.comingSoon')}</h2>
+          <h2 className={styles.placeholderTitle}>{t('SETTINGS.ADVANCED.COMING_SOON')}</h2>
           <p className={styles.placeholderText}>
-            {t('advanced.comingSoonDescription')}
+            {t('SETTINGS.ADVANCED.COMING_SOON_DESCRIPTION')}
           </p>
         </div>
       </div>

@@ -1,33 +1,23 @@
 {
-  "connection": {
-    "backendUnavailable": "Backend service is currently unavailable.",
-    "backendStarting": "Backend service is starting...",
-    "backendCheckRunning": "Please check that the Python backend is running.",
-    "retryConnection": "Retry Connection",
-    "connectionFailed": "Connection failed"
-  },
-  "validation": {
-    "required": "This field is required",
-    "invalidEmail": "Invalid email address",
-    "invalidUrl": "Invalid URL",
-    "tooShort": "Too short (minimum {{min}} characters)",
-    "tooLong": "Too long (maximum {{max}} characters)"
-  },
-  "api": {
-    "requestFailed": "Request failed",
-    "serverError": "Server error",
-    "networkError": "Network error",
-    "timeout": "Request timeout"
-  },
-  "files": {
-    "uploadFailed": "File upload failed",
-    "fileTooLarge": "File is too large",
-    "invalidFileType": "Invalid file type",
-    "readError": "Failed to read file"
-  },
-  "general": {
-    "somethingWentWrong": "Something went wrong",
-    "tryAgain": "Please try again",
-    "contactSupport": "Contact support if the problem persists"
-  }
+  "ERRORS.CONNECTION.BACKEND_UNAVAILABLE": "Backend service is currently unavailable.",
+  "ERRORS.CONNECTION.BACKEND_STARTING": "Backend service is starting...",
+  "ERRORS.CONNECTION.BACKEND_CHECK_RUNNING": "Please check if the Python backend is running.",
+  "ERRORS.CONNECTION.RETRY_CONNECTION": "Retry Connection",
+  "ERRORS.CONNECTION.CONNECTION_FAILED": "Connection failed",
+  "ERRORS.VALIDATION.REQUIRED": "This field is required",
+  "ERRORS.VALIDATION.INVALID_EMAIL": "Invalid email address",
+  "ERRORS.VALIDATION.INVALID_URL": "Invalid URL",
+  "ERRORS.VALIDATION.TOO_SHORT": "Too short (minimum {{min}} characters)",
+  "ERRORS.VALIDATION.TOO_LONG": "Too long (maximum {{max}} characters)",
+  "ERRORS.API.REQUEST_FAILED": "Request failed",
+  "ERRORS.API.SERVER_ERROR": "Server error",
+  "ERRORS.API.NETWORK_ERROR": "Network error",
+  "ERRORS.API.TIMEOUT": "Request timeout",
+  "ERRORS.FILES.UPLOAD_FAILED": "File upload failed",
+  "ERRORS.FILES.FILE_TOO_LARGE": "File is too large",
+  "ERRORS.FILES.INVALID_FILE_TYPE": "Invalid file type",
+  "ERRORS.FILES.READ_ERROR": "Failed to read file",
+  "ERRORS.GENERAL.SOMETHING_WENT_WRONG": "Something went wrong",
+  "ERRORS.GENERAL.TRY_AGAIN": "Please try again",
+  "ERRORS.GENERAL.CONTACT_SUPPORT": "Contact support if the problem persists"
 }

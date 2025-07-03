@@ -1,46 +1,37 @@
 {
-  "welcome": {
-    "title": "欢迎使用 SampleStrands",
-    "description": "从侧边栏选择一个对话或创建新对话开始聊天。",
-    "startNewChat": "开始新对话",
-    "features": {
-      "conversations": "与AI进行自然对话",
-      "security": "安全的桌面应用程序",
-      "tools": "强大的AI工具和功能",
-      "documents": "文档分析和处理"
-    }
-  },
-  "messages": {
-    "aiThinking": "AI正在思考...",
-    "aiResponding": "AI正在回复...",
-    "sendMessage": "发送消息",
-    "typeMessage": "输入您的消息...",
-    "aiAssistant": "AI助手"
-  },
-  "sessions": {
-    "title": "对话",
-    "messages_one": "{{count}} 条消息",
-    "messages_other": "{{count}} 条消息",
-    "lastMessage": "最后一条消息",
-    "lastUpdated": "最后更新",
-    "deleteConversation": "删除对话",
-    "editTitle": "编辑标题",
-    "noSessions": "暂无对话",
-    "noSessionsDescription": "创建您的第一个对话开始使用",
-    "noSessionsYet": "您还没有任何聊天会话。",
-    "startNewChat": "开始新对话"
-  },
-  "input": {
-    "placeholder": "在此输入您的消息...",
-    "placeholderWithShortcut": "输入您的消息... ({{shortcut}} 发送)",
-    "attachFiles": "附加文件",
-    "removeFile": "移除文件",
-    "fileTooLarge": "文件过大 (最大 {{maxSize}})",
-    "tooManyFiles": "文件过多 (最多 {{maxFiles}})",
-    "unsupportedFileType": "不支持的文件类型"
-  },
-  "shortcuts": {
-    "enter": "回车",
-    "shiftEnter": "Shift+回车"
-  }
+  "CHAT.WELCOME.TITLE": "欢迎使用 SampleStrands",
+  "CHAT.WELCOME.DESCRIPTION": "从侧边栏选择一个对话或创建新对话开始聊天。",
+  "CHAT.WELCOME.START_NEW_CHAT": "开始新对话",
+  "CHAT.WELCOME.FEATURES.CONVERSATIONS": "与AI进行自然对话",
+  "CHAT.WELCOME.FEATURES.SECURITY": "安全的桌面应用程序",
+  "CHAT.WELCOME.FEATURES.TOOLS": "强大的AI工具和功能",
+  "CHAT.WELCOME.FEATURES.DOCUMENTS": "文档分析和处理",
+  "CHAT.MESSAGES.AI_THINKING": "AI正在思考...",
+  "CHAT.MESSAGES.AI_RESPONDING": "AI正在回复...",
+  "CHAT.MESSAGES.SEND_MESSAGE": "发送消息",
+  "CHAT.MESSAGES.TYPE_MESSAGE": "输入您的消息...",
+  "CHAT.MESSAGES.AI_ASSISTANT": "AI助手",
+  "CHAT.SESSIONS.TITLE": "对话",
+  "CHAT.SESSIONS.MESSAGES_ONE": "{{count}} 条消息",
+  "CHAT.SESSIONS.MESSAGES_OTHER": "{{count}} 条消息",
+  "CHAT.SESSIONS.LAST_MESSAGE": "最后一条消息",
+  "CHAT.SESSIONS.LAST_UPDATED": "最后更新",
+  "CHAT.SESSIONS.DELETE_CONVERSATION": "删除对话",
+  "CHAT.SESSIONS.EDIT_TITLE": "编辑标题",
+  "CHAT.SESSIONS.NO_SESSIONS": "暂无对话",
+  "CHAT.SESSIONS.NO_SESSIONS_DESCRIPTION": "创建您的第一个对话开始使用",
+  "CHAT.SESSIONS.NO_SESSIONS_YET": "您还没有任何聊天会话。",
+  "CHAT.SESSIONS.START_NEW_CHAT": "开始新对话",
+  "CHAT.INPUT.PLACEHOLDER": "在此输入您的消息...",
+  "CHAT.INPUT.PLACEHOLDER_WITH_SHORTCUT": "输入您的消息... ({{shortcut}} 发送)",
+  "CHAT.INPUT.ATTACH_FILES": "附加文件",
+  "CHAT.INPUT.REMOVE_FILE": "移除文件",
+  "CHAT.INPUT.FILE_TOO_LARGE": "文件过大（最大 {{maxSize}}）",
+  "CHAT.INPUT.TOO_MANY_FILES": "文件过多（最多 {{maxFiles}}）",
+  "CHAT.INPUT.UNSUPPORTED_FILE_TYPE": "不支持的文件类型",
+  "CHAT.SHORTCUTS.ENTER": "回车",
+  "CHAT.SHORTCUTS.SHIFT_ENTER": "Shift+回车",
+  "CHAT.DROPDOWN.SELECT_AGENT": "选择智能体",
+  "CHAT.DROPDOWN.NO_ACTIVE_AGENTS": "没有活跃的智能体",
+  "CHAT.DROPDOWN.CREATE_AGENT_FIRST": "请先在智能体管理中创建智能体"
 }

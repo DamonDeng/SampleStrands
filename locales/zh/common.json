@@ -1,36 +1,28 @@
 {
-  "buttons": {
-    "save": "保存",
-    "cancel": "取消",
-    "delete": "删除",
-    "edit": "编辑",
-    "create": "创建",
-    "retry": "重试连接",
-    "newChat": "新对话"
-  },
-  "status": {
-    "saving": "保存中...",
-    "saved": "已保存",
-    "saveFailed": "保存失败",
-    "unsavedChanges": "未保存的更改",
-    "loading": "加载中...",
-    "error": "错误",
-    "success": "成功"
-  },
-  "navigation": {
-    "chat": "对话",
-    "agents": "智能体", 
-    "settings": "设置",
-    "help": "帮助"
-  },
-  "common": {
-    "name": "名称",
-    "description": "描述",
-    "active": "活跃",
-    "inactive": "非活跃",
-    "enabled": "启用",
-    "disabled": "禁用",
-    "required": "必填",
-    "optional": "可选"
-  }
+  "COMMON.BUTTONS.SAVE": "保存",
+  "COMMON.BUTTONS.CANCEL": "取消",
+  "COMMON.BUTTONS.DELETE": "删除",
+  "COMMON.BUTTONS.EDIT": "编辑",
+  "COMMON.BUTTONS.CREATE": "创建",
+  "COMMON.BUTTONS.RETRY": "重试连接",
+  "COMMON.BUTTONS.NEW_CHAT": "新对话",
+  "COMMON.STATUS.SAVING": "保存中...",
+  "COMMON.STATUS.SAVED": "已保存",
+  "COMMON.STATUS.SAVE_FAILED": "保存失败",
+  "COMMON.STATUS.UNSAVED_CHANGES": "未保存的更改",
+  "COMMON.STATUS.LOADING": "加载中...",
+  "COMMON.STATUS.ERROR": "错误",
+  "COMMON.STATUS.SUCCESS": "成功",
+  "COMMON.NAVIGATION.CHAT": "对话",
+  "COMMON.NAVIGATION.AGENTS": "智能体",
+  "COMMON.NAVIGATION.SETTINGS": "设置",
+  "COMMON.NAVIGATION.HELP": "帮助",
+  "COMMON.FIELDS.NAME": "名称",
+  "COMMON.FIELDS.DESCRIPTION": "描述",
+  "COMMON.FIELDS.ACTIVE": "活跃",
+  "COMMON.FIELDS.INACTIVE": "非活跃",
+  "COMMON.FIELDS.ENABLED": "启用",
+  "COMMON.FIELDS.DISABLED": "禁用",
+  "COMMON.FIELDS.REQUIRED": "必填",
+  "COMMON.FIELDS.OPTIONAL": "可选"
 }

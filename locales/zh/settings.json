@@ -15,7 +15,7 @@
   "SETTINGS.TIME.MINUTES_AGO": "{{count}}分钟前",
   "SETTINGS.TIME.HOURS_AGO": "{{count}}小时前",
   "SETTINGS.TIME.DAYS_AGO": "{{count}}天前",
-  "SETTINGS.GENERAL.TITLE": "常规设置",
+  "settings:general.title": "常规设置",
   "SETTINGS.GENERAL.DESCRIPTION": "配置语言、主题和默认智能体偏好",
   "SETTINGS.GENERAL.LANGUAGE.TITLE": "语言",
   "SETTINGS.GENERAL.LANGUAGE.LABEL": "界面语言",

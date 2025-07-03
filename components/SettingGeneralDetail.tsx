@@ -153,7 +153,7 @@ export default function SettingGeneralDetail({
             <IoSettingsOutline />
           </div>
           <div className={styles.titleInfo}>
-            <h1 className={styles.settingName}>{t('SETTINGS.GENERAL.TITLE')}</h1>
+            <h1 className={styles.settingName}>{t('settings:general.title')}</h1>
             <p className={styles.settingDescription}>
               {t('SETTINGS.GENERAL.DESCRIPTION')}
             </p>

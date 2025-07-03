@@ -15,7 +15,7 @@
   "SETTINGS.TIME.MINUTES_AGO": "{{count}}m ago",
   "SETTINGS.TIME.HOURS_AGO": "{{count}}h ago",
   "SETTINGS.TIME.DAYS_AGO": "{{count}}d ago",
-  "SETTINGS.GENERAL.TITLE": "General Settings",
+  "settings:general.title": "General Settings",
   "SETTINGS.GENERAL.DESCRIPTION": "Configure language, theme, and default agent preferences",
   "SETTINGS.GENERAL.LANGUAGE.TITLE": "Language",
   "SETTINGS.GENERAL.LANGUAGE.LABEL": "Interface Language",

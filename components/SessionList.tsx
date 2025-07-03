@@ -32,7 +32,7 @@ export default function SessionList({
   onSetDefaultAgent,
   backendAvailable
 }: SessionListProps) {
-  const { t } = useAppTranslation('chat');
+  const { t: tcd } = useAppTranslation('chat');
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
 
@@ -83,7 +83,7 @@ export default function SessionList({
   return (
     <div className={styles.sessionList}>
       <div className={styles.header}>
-        <h2 className={styles.title}>{t('CHAT.SESSIONS.TITLE')}</h2>
+        <h2 className={styles.title}>{tcd('CHAT.SESSIONS.TITLE')}</h2>
         <div className={styles.sessionCount}>{sessions.length}</div>
       </div>
 
@@ -130,7 +130,7 @@ export default function SessionList({
                             e.stopPropagation();
                             handleStartEdit(session);
                           }}
-                          title={t('CHAT.SESSIONS.EDIT_TITLE')}
+                          title={tcd('CHAT.SESSIONS.EDIT_TITLE')}
                         >
                           <IoPencilOutline />
                         </button>
@@ -140,7 +140,7 @@ export default function SessionList({
                             e.stopPropagation();
                             onDeleteSession(session.id);
                           }}
-                          title={t('CHAT.SESSIONS.DELETE_CONVERSATION')}
+                          title={tcd('CHAT.SESSIONS.DELETE_CONVERSATION')}
                         >
                           <IoTrashOutline />
                         </button>
@@ -149,7 +149,7 @@ export default function SessionList({
                     <p className={styles.lastMessage}>{getLastMessage(session)}</p>
                     <div className={styles.sessionMeta}>
                       <span className={styles.messageCount}>
-                        {t('CHAT.SESSIONS.MESSAGES', { count: session.messages.length })}
+                        {tcd('CHAT.SESSIONS.MESSAGES', { count: session.messages.length })}
                       </span>
                       <span className={styles.timestamp}>
                         {formatDate(session.updatedAt)}

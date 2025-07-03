@@ -13,6 +13,14 @@ import logging
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from services.agent_service import agent_service
+
+def validate_condition(condition, error_message):
+    """Validate a condition and raise an exception if it fails.
+
+    This replaces assert statements to ensure validation works even in optimized builds.
+    """
+    if not condition:
+        raise AssertionError(error_message)
 from models.schemas import AgentCreateRequest, AgentConfig, ModelConfig, ToolConfig
 
 # Setup logging
@@ -94,7 +102,7 @@ async def test_real_agent_tools():
         # Verify we have the expected tools
         expected_tools = ["calculator", "current_time", "image_generation", "code_execution"]
         for expected_tool in expected_tools:
-            assert expected_tool in enabled_tools, f"Expected tool {expected_tool} not found in {enabled_tools}"
+            validate_condition(expected_tool in enabled_tools, f"Expected tool {expected_tool} not found in {enabled_tools}")
         
         print("   ✅ All expected tools are enabled")
         
@@ -152,10 +160,10 @@ async def test_real_agent_tools():
         expected_disabled = ["current_time"]
         
         for expected_tool in expected_enabled:
-            assert expected_tool in selective_enabled_tools, f"Expected enabled tool {expected_tool} not found in {selective_enabled_tools}"
-        
+            validate_condition(expected_tool in selective_enabled_tools, f"Expected enabled tool {expected_tool} not found in {selective_enabled_tools}")
+
         for disabled_tool in expected_disabled:
-            assert disabled_tool not in selective_enabled_tools, f"Expected disabled tool {disabled_tool} found in {selective_enabled_tools}"
+            validate_condition(disabled_tool not in selective_enabled_tools, f"Expected disabled tool {disabled_tool} found in {selective_enabled_tools}")
         
         print("   ✅ Tool selection working correctly")
         
@@ -173,7 +181,7 @@ async def test_real_agent_tools():
         print(f"   🛠️ Enabled tools: {quick_enabled_tools}")
         
         # Quick create should have calculator enabled by default
-        assert "calculator" in quick_enabled_tools, f"Expected calculator in quick create tools: {quick_enabled_tools}"
+        validate_condition("calculator" in quick_enabled_tools, f"Expected calculator in quick create tools: {quick_enabled_tools}")
         
         print("   ✅ Quick create tool selection working correctly")
         

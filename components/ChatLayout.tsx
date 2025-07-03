@@ -13,6 +13,8 @@ import { Session, Message } from '../types/chat';
 import { Agent, SupportedModel, SupportedTool, AgentCreateRequest } from '../types/agent';
 import { AppSetting, appSettingAPI } from '../utils/appSettingAPI';
 import { pythonAPI } from '../utils/pythonAPI';
+import { I18nProvider } from '../contexts/I18nContext';
+import { SupportedLanguage } from '../types/i18n';
 import { agentAPI } from '../utils/agentAPI';
 import { convertBackendSession, convertBackendMessage } from '../utils/typeConverters';
 import { sessionSync } from '../utils/sessionSync';
@@ -38,6 +40,9 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   const [selectedSettingTitle, setSelectedSettingTitle] = useState<string | null>(null);
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
+
+  // Language state for i18n
+  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('en');
 
   // Debug logging for state changes
   useEffect(() => {
@@ -589,9 +594,16 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
       const settingsData = await appSettingAPI.getAllSettings();
       setSettings(settingsData);
 
+      // Extract language from general settings and update i18n
+      const generalSetting = settingsData.find(s => s.setting_title === 'general');
+      if (generalSetting && generalSetting.json_data.language) {
+        const language = generalSetting.json_data.language as SupportedLanguage;
+        setCurrentLanguage(language);
+        console.log(`🌐 Language from settings: ${language}`);
+      }
+
       // Auto-select general setting if available and none selected
       if (settingsData.length > 0 && !selectedSettingTitle) {
-        const generalSetting = settingsData.find(s => s.setting_title === 'general');
         setSelectedSettingTitle(generalSetting ? 'general' : settingsData[0].setting_title);
       }
 
@@ -620,6 +632,15 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
           setSettings(prev => prev.map(setting =>
             setting.setting_title === settingTitle ? updatedSetting : setting
           ));
+
+          // Check if language was updated in general settings
+          if (settingTitle === 'general' && jsonData.language) {
+            const newLanguage = jsonData.language as SupportedLanguage;
+            if (newLanguage !== currentLanguage) {
+              setCurrentLanguage(newLanguage);
+              console.log(`🌐 Language changed to: ${newLanguage}`);
+            }
+          }
 
           console.log(`✏️ Updated setting ${settingTitle}`);
         }
@@ -844,6 +865,7 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
   }
 
   return (
+    <I18nProvider initialLanguage={currentLanguage}>
     <div
       className={styles.chatLayout}
       style={{
@@ -1090,5 +1112,6 @@ export default function ChatLayout({ isElectron }: ChatLayoutProps) {
         supportedTools={supportedTools}
       />
     </div>
+    </I18nProvider>
   );
 }

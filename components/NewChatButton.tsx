@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Agent } from '../types/agent';
 import { IoAdd, IoChevronUp, IoPersonOutline, IoCheckbox, IoSquareOutline } from 'react-icons/io5';
+import { useAppTranslation } from '../contexts/I18nContext';
 import styles from '../styles/NewChatButton.module.css';
 
 interface NewChatButtonProps {
@@ -18,6 +19,7 @@ export default function NewChatButton({
   onSetDefaultAgent,
   disabled = false
 }: NewChatButtonProps) {
+  const { t } = useAppTranslation('agents');
   const [showDropup, setShowDropup] = useState(false);
   const dropupRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -90,13 +92,13 @@ export default function NewChatButton({
         <div ref={dropupRef} className={styles.dropup}>
           <div className={styles.dropupHeader}>
             <IoPersonOutline />
-            <span>Select Agent</span>
+            <span>{t('dropdown.selectAgent')}</span>
           </div>
           <div className={styles.agentList}>
             {activeAgents.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>No active agents available</p>
-                <p className={styles.emptySubtext}>Create an agent first</p>
+                <p>{t('dropdown.noActiveAgents')}</p>
+                <p className={styles.emptySubtext}>{t('dropdown.createAgentFirst')}</p>
               </div>
             ) : (
               activeAgents.map((agent) => (
@@ -139,7 +141,7 @@ export default function NewChatButton({
         <div className={styles.mainArea} onClick={handleMainButtonClick}>
           <IoAdd className={styles.addIcon} />
           <span className={styles.buttonText}>
-            {defaultAgent ? defaultAgent.config.name : 'New Chat'}
+            {defaultAgent ? defaultAgent.config.name : t('buttons.newChat', { ns: 'common' })}
           </span>
         </div>
 

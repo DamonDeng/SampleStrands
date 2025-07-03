@@ -1,0 +1,32 @@
+{
+  "connection": {
+    "backendUnavailable": "后端服务不可用",
+    "backendStarting": "后端服务正在启动...",
+    "retryConnection": "重试连接",
+    "connectionFailed": "连接失败"
+  },
+  "validation": {
+    "required": "此字段为必填项",
+    "invalidEmail": "无效的邮箱地址",
+    "invalidUrl": "无效的URL",
+    "tooShort": "太短（最少 {{min}} 个字符）",
+    "tooLong": "太长（最多 {{max}} 个字符）"
+  },
+  "api": {
+    "requestFailed": "请求失败",
+    "serverError": "服务器错误",
+    "networkError": "网络错误",
+    "timeout": "请求超时"
+  },
+  "files": {
+    "uploadFailed": "文件上传失败",
+    "fileTooLarge": "文件过大",
+    "invalidFileType": "无效的文件类型",
+    "readError": "文件读取失败"
+  },
+  "general": {
+    "somethingWentWrong": "出现了问题",
+    "tryAgain": "请重试",
+    "contactSupport": "如果问题持续存在，请联系支持"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "welcome": {
+    "title": "Welcome to SampleStrands",
+    "description": "Select a conversation from the sidebar or create a new one to start chatting.",
+    "features": {
+      "conversations": "Natural conversations with AI",
+      "security": "Secure desktop application",
+      "tools": "Powerful AI tools and capabilities",
+      "documents": "Document analysis and processing"
+    }
+  },
+  "messages": {
+    "aiThinking": "AI is thinking...",
+    "aiResponding": "AI is responding...",
+    "sendMessage": "Send message",
+    "typeMessage": "Type your message...",
+    "aiAssistant": "AI Assistant"
+  },
+  "sessions": {
+    "messages_one": "{{count}} message",
+    "messages_other": "{{count}} messages",
+    "lastMessage": "Last message",
+    "deleteConversation": "Delete conversation",
+    "editTitle": "Edit title",
+    "noSessions": "No conversations yet",
+    "noSessionsDescription": "Create your first conversation to get started"
+  },
+  "input": {
+    "placeholder": "Type your message here...",
+    "placeholderWithShortcut": "Type your message... ({{shortcut}} to send)",
+    "attachFiles": "Attach files",
+    "removeFile": "Remove file",
+    "fileTooLarge": "File too large (max {{maxSize}})",
+    "tooManyFiles": "Too many files (max {{maxFiles}})",
+    "unsupportedFileType": "Unsupported file type"
+  },
+  "shortcuts": {
+    "enter": "Enter",
+    "shiftEnter": "Shift+Enter"
+  }
+}

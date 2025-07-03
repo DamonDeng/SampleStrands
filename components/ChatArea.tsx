@@ -6,6 +6,7 @@ import { mockAI } from '../utils/mockAI';
 import { pythonAPI, StreamChunk } from '../utils/pythonAPI';
 import { RiRobot2Line } from 'react-icons/ri';
 import { IoChatbubbleEllipsesOutline, IoLockClosedOutline, IoFlashOutline, IoDesktopOutline } from 'react-icons/io5';
+import { useAppTranslation } from '../contexts/I18nContext';
 import styles from '../styles/ChatArea.module.css';
 
 interface ChatAreaProps {
@@ -20,6 +21,7 @@ interface ChatAreaProps {
 }
 
 export default function ChatArea({ session, onSendMessage, onAIResponse, onStreamingUpdate, isElectron, backendAvailable, sessionId, shortcutToSend = 'shift_enter' }: ChatAreaProps) {
+  const { t } = useAppTranslation('chat');
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
@@ -147,27 +149,27 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, onStrea
       <div className={styles.chatArea}>
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}><RiRobot2Line /></div>
-          <h2 className={styles.emptyTitle}>Welcome to SampleStrands</h2>
+          <h2 className={styles.emptyTitle}>{t('welcome.title')}</h2>
           <p className={styles.emptyDescription}>
-            Select a conversation from the sidebar or create a new one to start chatting.
+            {t('welcome.description')}
           </p>
           <div className={styles.features}>
             <div className={styles.feature}>
               <span className={styles.featureIcon}><IoChatbubbleEllipsesOutline /></span>
-              <span>Natural conversations with AI</span>
+              <span>{t('welcome.features.conversations')}</span>
             </div>
             <div className={styles.feature}>
               <span className={styles.featureIcon}><IoLockClosedOutline /></span>
-              <span>Secure desktop application</span>
+              <span>{t('welcome.features.security')}</span>
             </div>
             <div className={styles.feature}>
               <span className={styles.featureIcon}><IoFlashOutline /></span>
-              <span>Fast and responsive interface</span>
+              <span>{t('welcome.features.tools')}</span>
             </div>
             {isElectron && (
               <div className={styles.feature}>
                 <span className={styles.featureIcon}><IoDesktopOutline /></span>
-                <span>Native desktop experience</span>
+                <span>{t('welcome.features.documents')}</span>
               </div>
             )}
           </div>
@@ -182,7 +184,7 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, onStrea
         <div className={styles.sessionInfo}>
           <h1 className={styles.sessionTitle}>{session.title}</h1>
           <p className={styles.sessionMeta}>
-            {session.messages.length} messages • Last updated {session.updatedAt.toLocaleString()}
+            {t('sessions.messages', { count: session.messages.length })} • Last updated {session.updatedAt.toLocaleString()}
           </p>
         </div>
       </div>
@@ -203,9 +205,9 @@ export default function ChatArea({ session, onSendMessage, onAIResponse, onStrea
           disabled={isLoading || isStreaming}
           shortcutToSend={shortcutToSend}
           placeholder={
-            isLoading ? "AI is thinking..." :
-            isStreaming ? "AI is responding..." :
-            "Type your message..."
+            isLoading ? t('messages.aiThinking') :
+            isStreaming ? t('messages.aiResponding') :
+            t('messages.typeMessage')
           }
         />
       </div>

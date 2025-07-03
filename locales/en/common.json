@@ -1,0 +1,36 @@
+{
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "retry": "Retry Connection",
+    "newChat": "New Chat"
+  },
+  "status": {
+    "saving": "Saving...",
+    "saved": "Saved",
+    "saveFailed": "Save failed",
+    "unsavedChanges": "Unsaved changes",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "navigation": {
+    "chat": "Chat",
+    "agents": "Agents", 
+    "settings": "Settings",
+    "help": "Help"
+  },
+  "common": {
+    "name": "Name",
+    "description": "Description",
+    "active": "Active",
+    "inactive": "Inactive",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "required": "Required",
+    "optional": "Optional"
+  }
+}

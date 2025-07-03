@@ -1,0 +1,72 @@
+{
+  "list": {
+    "title": "设置",
+    "noSettings": "暂无设置",
+    "noSettingsDescription": "设置可用时将显示在此处",
+    "failedToLoad": "设置加载失败"
+  },
+  "general": {
+    "title": "常规设置",
+    "description": "配置语言、主题和默认智能体偏好",
+    "language": {
+      "title": "语言",
+      "label": "界面语言",
+      "helpText": "选择您偏好的应用程序界面语言",
+      "options": {
+        "en": "English",
+        "zh": "中文 (Chinese)",
+        "es": "Español (Spanish)",
+        "fr": "Français (French)",
+        "de": "Deutsch (German)",
+        "ja": "日本語 (Japanese)"
+      }
+    },
+    "theme": {
+      "title": "主题",
+      "label": "应用程序主题",
+      "helpText": "选择您偏好的颜色方案",
+      "options": {
+        "dark": "深色",
+        "light": "浅色",
+        "auto": "自动（系统）"
+      }
+    },
+    "defaultAgent": {
+      "title": "默认智能体",
+      "label": "新对话的默认智能体",
+      "helpText": "选择创建新对话时默认使用的智能体",
+      "noAgent": "无默认智能体",
+      "selectAgent": "选择智能体"
+    },
+    "shortcuts": {
+      "title": "键盘快捷键",
+      "label": "发送消息快捷键",
+      "helpText": "选择发送消息的方式",
+      "options": {
+        "enter": "回车",
+        "shift_enter": "Shift + 回车"
+      }
+    }
+  },
+  "advanced": {
+    "title": "高级设置",
+    "description": "面向高级用户的高级配置选项",
+    "performance": {
+      "title": "性能",
+      "maxAgentPoolSize": "最大智能体池大小",
+      "maxAgentPoolSizeHelp": "内存中保持的智能体实例的最大数量"
+    },
+    "debugging": {
+      "title": "调试",
+      "debugMode": "调试模式",
+      "debugModeHelp": "启用详细日志记录以进行故障排除",
+      "performanceMonitoring": "性能监控",
+      "performanceMonitoringHelp": "监控系统性能和资源使用情况"
+    },
+    "experimental": {
+      "title": "实验性功能",
+      "experimentalFeatures": "启用实验性功能",
+      "experimentalFeaturesHelp": "启用实验性功能（可能不稳定）"
+    }
+  }
+}

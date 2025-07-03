@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Session } from '../types/chat';
 import { Agent } from '../types/agent';
 import { IoChatbubbleEllipsesOutline, IoPencilOutline, IoTrashOutline } from 'react-icons/io5';
+import { useAppTranslation } from '../contexts/I18nContext';
 import NewChatButton from './NewChatButton';
 import styles from '../styles/SessionList.module.css';
 
@@ -31,6 +32,7 @@ export default function SessionList({
   onSetDefaultAgent,
   backendAvailable
 }: SessionListProps) {
+  const { t } = useAppTranslation('chat');
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
 
@@ -128,7 +130,7 @@ export default function SessionList({
                             e.stopPropagation();
                             handleStartEdit(session);
                           }}
-                          title="Edit title"
+                          title={t('sessions.editTitle')}
                         >
                           <IoPencilOutline />
                         </button>
@@ -138,7 +140,7 @@ export default function SessionList({
                             e.stopPropagation();
                             onDeleteSession(session.id);
                           }}
-                          title="Delete conversation"
+                          title={t('sessions.deleteConversation')}
                         >
                           <IoTrashOutline />
                         </button>
@@ -147,7 +149,7 @@ export default function SessionList({
                     <p className={styles.lastMessage}>{getLastMessage(session)}</p>
                     <div className={styles.sessionMeta}>
                       <span className={styles.messageCount}>
-                        {session.messages.length} messages
+                        {t('sessions.messages', { count: session.messages.length })}
                       </span>
                       <span className={styles.timestamp}>
                         {formatDate(session.updatedAt)}

@@ -1,0 +1,41 @@
+{
+  "welcome": {
+    "title": "欢迎使用 SampleStrands",
+    "description": "从侧边栏选择一个对话或创建新对话开始聊天。",
+    "features": {
+      "conversations": "与AI进行自然对话",
+      "security": "安全的桌面应用程序",
+      "tools": "强大的AI工具和功能",
+      "documents": "文档分析和处理"
+    }
+  },
+  "messages": {
+    "aiThinking": "AI正在思考...",
+    "aiResponding": "AI正在回复...",
+    "sendMessage": "发送消息",
+    "typeMessage": "输入您的消息...",
+    "aiAssistant": "AI助手"
+  },
+  "sessions": {
+    "messages_one": "{{count}} 条消息",
+    "messages_other": "{{count}} 条消息",
+    "lastMessage": "最后一条消息",
+    "deleteConversation": "删除对话",
+    "editTitle": "编辑标题",
+    "noSessions": "暂无对话",
+    "noSessionsDescription": "创建您的第一个对话开始使用"
+  },
+  "input": {
+    "placeholder": "在此输入您的消息...",
+    "placeholderWithShortcut": "输入您的消息... ({{shortcut}} 发送)",
+    "attachFiles": "附加文件",
+    "removeFile": "移除文件",
+    "fileTooLarge": "文件过大 (最大 {{maxSize}})",
+    "tooManyFiles": "文件过多 (最多 {{maxFiles}})",
+    "unsupportedFileType": "不支持的文件类型"
+  },
+  "shortcuts": {
+    "enter": "回车",
+    "shiftEnter": "Shift+回车"
+  }
+}

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { SupportedModel, SupportedTool, AgentCreateRequest } from '../types/agent';
-import { 
+import {
   IoCloseOutline,
   IoSaveOutline,
   IoPersonOutline
 } from 'react-icons/io5';
+import { useAppTranslation } from '../contexts/I18nContext';
 import styles from '../styles/AgentCreateModal.module.css';
 
 interface AgentCreateModalProps {
@@ -30,6 +31,7 @@ export default function AgentCreateModal({
     supportedTools
   });
 
+  const { t } = useAppTranslation('agents');
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -152,25 +154,25 @@ export default function AgentCreateModal({
 
         <form onSubmit={handleSubmit} className={styles.modalForm}>
           <div className={styles.formSection}>
-            <label className={styles.formLabel}>Agent Name *</label>
+            <label className={styles.formLabel}>{t('create.agentName')} *</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className={styles.formInput}
-              placeholder="Enter agent name"
+              placeholder={t('create.agentNamePlaceholder')}
               required
               disabled={isCreating}
             />
           </div>
 
           <div className={styles.formSection}>
-            <label className={styles.formLabel}>Description</label>
+            <label className={styles.formLabel}>{t('create.agentDescription')}</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className={styles.formTextarea}
-              placeholder="Enter agent description"
+              placeholder={t('create.agentDescriptionPlaceholder')}
               rows={3}
               disabled={isCreating}
             />
@@ -226,7 +228,7 @@ export default function AgentCreateModal({
 
           <div className={styles.formRow}>
             <div className={styles.formSection}>
-              <label className={styles.formLabel}>Temperature</label>
+              <label className={styles.formLabel}>{t('create.temperature')}</label>
               <input
                 type="number"
                 min="0"
@@ -239,7 +241,7 @@ export default function AgentCreateModal({
               />
             </div>
             <div className={styles.formSection}>
-              <label className={styles.formLabel}>Max Tokens</label>
+              <label className={styles.formLabel}>{t('create.maxTokens')}</label>
               <input
                 type="number"
                 min="1"

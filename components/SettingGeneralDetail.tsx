@@ -9,6 +9,8 @@ import {
   IoSaveOutline,
   IoCheckmarkCircleOutline
 } from 'react-icons/io5';
+import { useAppTranslation, useI18nContext } from '../contexts/I18nContext';
+import { SupportedLanguage } from '../types/i18n';
 import styles from '../styles/SettingGeneralDetail.module.css';
 
 interface SettingGeneralDetailProps {
@@ -31,6 +33,9 @@ export default function SettingGeneralDetail({
   onUpdateSetting,
   onSettingChange
 }: SettingGeneralDetailProps) {
+  const { t } = useAppTranslation('settings');
+  const { changeLanguage } = useI18nContext();
+
   const [editForm, setEditForm] = useState<GeneralSettings>({
     language: setting.json_data.language || 'en',
     theme: setting.json_data.theme || 'dark',
@@ -98,6 +103,11 @@ export default function SettingGeneralDetail({
     }));
     setHasUnsavedChanges(true);
     setSaveStatus('idle');
+
+    // Immediately change language in i18n when language field is updated
+    if (field === 'language' && value) {
+      changeLanguage(value as SupportedLanguage);
+    }
   };
 
   const getActiveAgentName = () => {
@@ -125,13 +135,13 @@ export default function SettingGeneralDetail({
   const getSaveStatusText = () => {
     switch (saveStatus) {
       case 'saving':
-        return 'Saving...';
+        return t('status.saving', { ns: 'common' });
       case 'saved':
-        return 'Saved';
+        return t('status.saved', { ns: 'common' });
       case 'error':
-        return 'Save failed';
+        return t('status.saveFailed', { ns: 'common' });
       default:
-        return hasUnsavedChanges ? 'Unsaved changes' : '';
+        return hasUnsavedChanges ? t('status.unsavedChanges', { ns: 'common' }) : '';
     }
   };
 
@@ -143,9 +153,9 @@ export default function SettingGeneralDetail({
             <IoSettingsOutline />
           </div>
           <div className={styles.titleInfo}>
-            <h1 className={styles.settingName}>General Settings</h1>
+            <h1 className={styles.settingName}>{t('general.title')}</h1>
             <p className={styles.settingDescription}>
-              Configure language, theme, and default agent preferences
+              {t('general.description')}
             </p>
           </div>
         </div>
@@ -160,24 +170,24 @@ export default function SettingGeneralDetail({
         <div className={styles.settingSection}>
           <h3 className={styles.sectionTitle}>
             <IoLanguageOutline />
-            Language
+            {t('general.language.title')}
           </h3>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Interface Language</label>
+            <label className={styles.label}>{t('general.language.label')}</label>
             <select
               className={styles.select}
               value={editForm.language}
               onChange={(e) => handleInputChange('language', e.target.value)}
             >
-              <option value="en">English</option>
-              <option value="zh">中文 (Chinese)</option>
-              <option value="es">Español (Spanish)</option>
-              <option value="fr">Français (French)</option>
-              <option value="de">Deutsch (German)</option>
-              <option value="ja">日本語 (Japanese)</option>
+              <option value="en">{t('general.language.options.en')}</option>
+              <option value="zh">{t('general.language.options.zh')}</option>
+              <option value="es">{t('general.language.options.es')}</option>
+              <option value="fr">{t('general.language.options.fr')}</option>
+              <option value="de">{t('general.language.options.de')}</option>
+              <option value="ja">{t('general.language.options.ja')}</option>
             </select>
             <p className={styles.helpText}>
-              Select your preferred language for the application interface
+              {t('general.language.helpText')}
             </p>
           </div>
         </div>

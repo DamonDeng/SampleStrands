@@ -1,0 +1,72 @@
+{
+  "list": {
+    "title": "Settings",
+    "noSettings": "No settings available",
+    "noSettingsDescription": "Settings will appear here when available",
+    "failedToLoad": "Failed to load settings"
+  },
+  "general": {
+    "title": "General Settings",
+    "description": "Configure language, theme, and default agent preferences",
+    "language": {
+      "title": "Language",
+      "label": "Interface Language",
+      "helpText": "Select your preferred language for the application interface",
+      "options": {
+        "en": "English",
+        "zh": "中文 (Chinese)",
+        "es": "Español (Spanish)",
+        "fr": "Français (French)",
+        "de": "Deutsch (German)",
+        "ja": "日本語 (Japanese)"
+      }
+    },
+    "theme": {
+      "title": "Theme",
+      "label": "Application Theme",
+      "helpText": "Choose your preferred color scheme",
+      "options": {
+        "dark": "Dark",
+        "light": "Light",
+        "auto": "Auto (System)"
+      }
+    },
+    "defaultAgent": {
+      "title": "Default Agent",
+      "label": "Default Agent for New Chats",
+      "helpText": "Select the agent to use by default when creating new conversations",
+      "noAgent": "No default agent",
+      "selectAgent": "Select an agent"
+    },
+    "shortcuts": {
+      "title": "Keyboard Shortcuts",
+      "label": "Send Message Shortcut",
+      "helpText": "Choose how to send messages",
+      "options": {
+        "enter": "Enter",
+        "shift_enter": "Shift + Enter"
+      }
+    }
+  },
+  "advanced": {
+    "title": "Advanced Settings",
+    "description": "Advanced configuration options for power users",
+    "performance": {
+      "title": "Performance",
+      "maxAgentPoolSize": "Max Agent Pool Size",
+      "maxAgentPoolSizeHelp": "Maximum number of agent instances kept in memory"
+    },
+    "debugging": {
+      "title": "Debugging",
+      "debugMode": "Debug Mode",
+      "debugModeHelp": "Enable detailed logging for troubleshooting",
+      "performanceMonitoring": "Performance Monitoring",
+      "performanceMonitoringHelp": "Monitor system performance and resource usage"
+    },
+    "experimental": {
+      "title": "Experimental Features",
+      "experimentalFeatures": "Enable Experimental Features",
+      "experimentalFeaturesHelp": "Enable experimental features (may be unstable)"
+    }
+  }
+}

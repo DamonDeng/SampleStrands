@@ -19,7 +19,7 @@ export default function SettingList({
   loading = false,
   error = null
 }: SettingListProps) {
-  const { t } = useTranslation('settings');
+  const { t: tcd } = useTranslation('settings');
 
   const getSettingIcon = (settingTitle: string) => {
     switch (settingTitle.toLowerCase()) {
@@ -35,20 +35,20 @@ export default function SettingList({
   const getSettingDescription = (settingTitle: string) => {
     switch (settingTitle.toLowerCase()) {
       case 'general':
-        return t('SETTINGS.CATEGORIES.DESCRIPTIONS.GENERAL');
+        return tcd('SETTINGS.CATEGORIES.DESCRIPTIONS.GENERAL');
       case 'advanced':
-        return t('SETTINGS.CATEGORIES.DESCRIPTIONS.ADVANCED');
+        return tcd('SETTINGS.CATEGORIES.DESCRIPTIONS.ADVANCED');
       default:
-        return t('SETTINGS.CATEGORIES.DESCRIPTIONS.DEFAULT');
+        return tcd('SETTINGS.CATEGORIES.DESCRIPTIONS.DEFAULT');
     }
   };
 
   const getSettingDisplayName = (settingTitle: string) => {
     switch (settingTitle.toLowerCase()) {
       case 'general':
-        return t('SETTINGS.CATEGORIES.GENERAL');
+        return tcd('SETTINGS.CATEGORIES.GENERAL');
       case 'advanced':
-        return t('SETTINGS.CATEGORIES.ADVANCED');
+        return tcd('SETTINGS.CATEGORIES.ADVANCED');
       default:
         return settingTitle.charAt(0).toUpperCase() + settingTitle.slice(1);
     }
@@ -58,12 +58,12 @@ export default function SettingList({
     return (
       <div className={styles.settingList}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{t('SETTINGS.LIST.TITLE')}</h2>
+          <h2 className={styles.title}>{tcd('SETTINGS.LIST.TITLE')}</h2>
           <div className={styles.settingCount}>...</div>
         </div>
         <div className={styles.loadingState}>
           <div className={styles.loadingSpinner}></div>
-          <p className={styles.loadingText}>{t('SETTINGS.LIST.LOADING')}</p>
+          <p className={styles.loadingText}>{tcd('SETTINGS.LIST.LOADING')}</p>
         </div>
       </div>
     );
@@ -73,11 +73,11 @@ export default function SettingList({
     return (
       <div className={styles.settingList}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{t('SETTINGS.LIST.TITLE')}</h2>
+          <h2 className={styles.title}>{tcd('SETTINGS.LIST.TITLE')}</h2>
         </div>
         <div className={styles.errorState}>
           <div className={styles.errorIcon}>⚠️</div>
-          <p className={styles.errorText}>{t('SETTINGS.LIST.FAILED_TO_LOAD')}</p>
+          <p className={styles.errorText}>{tcd('SETTINGS.LIST.FAILED_TO_LOAD')}</p>
           <p className={styles.errorSubtext}>{error}</p>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function SettingList({
   return (
     <div className={styles.settingList}>
       <div className={styles.header}>
-        <h2 className={styles.title}>{t('SETTINGS.LIST.TITLE')}</h2>
+        <h2 className={styles.title}>{tcd('SETTINGS.LIST.TITLE')}</h2>
         <div className={styles.settingCount}>{settings.length}</div>
       </div>
 
@@ -95,8 +95,8 @@ export default function SettingList({
         {settings.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}><IoSettingsOutline /></div>
-            <p className={styles.emptyText}>{t('SETTINGS.LIST.NO_SETTINGS')}</p>
-            <p className={styles.emptySubtext}>{t('SETTINGS.LIST.NO_SETTINGS_DESCRIPTION')}</p>
+            <p className={styles.emptyText}>{tcd('SETTINGS.LIST.NO_SETTINGS')}</p>
+            <p className={styles.emptySubtext}>{tcd('SETTINGS.LIST.NO_SETTINGS_DESCRIPTION')}</p>
           </div>
         ) : (
           settings.map((setting) => (
@@ -124,10 +124,10 @@ export default function SettingList({
                 
                 <div className={styles.settingMeta}>
                   <span className={styles.settingKeys}>
-                    {Object.keys(setting.json_data).length} {t('SETTINGS.LIST.OPTIONS')}
+                    {Object.keys(setting.json_data).length} {tcd('SETTINGS.LIST.OPTIONS')}
                   </span>
                   <span className={styles.lastUpdated}>
-                    {t('SETTINGS.LIST.UPDATED')} {formatDate(setting.updated_at, t)}
+                    {tcd('SETTINGS.LIST.UPDATED')} {formatDate(setting.updated_at, tcd)}
                   </span>
                 </div>
               </div>
@@ -145,16 +145,16 @@ function formatDate(dateString: string, t: any): string {
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   if (diffInSeconds < 60) {
-    return t('SETTINGS.TIME.JUST_NOW');
+    return tcd('SETTINGS.TIME.JUST_NOW');
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
-    return t('SETTINGS.TIME.MINUTES_AGO', { count: minutes });
+    return tcd('SETTINGS.TIME.MINUTES_AGO', { count: minutes });
   } else if (diffInSeconds < 86400) {
     const hours = Math.floor(diffInSeconds / 3600);
-    return t('SETTINGS.TIME.HOURS_AGO', { count: hours });
+    return tcd('SETTINGS.TIME.HOURS_AGO', { count: hours });
   } else if (diffInSeconds < 604800) {
     const days = Math.floor(diffInSeconds / 86400);
-    return t('SETTINGS.TIME.DAYS_AGO', { count: days });
+    return tcd('SETTINGS.TIME.DAYS_AGO', { count: days });
   } else {
     return date.toLocaleDateString();
   }

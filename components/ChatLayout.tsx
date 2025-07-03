@@ -28,9 +28,9 @@ interface ChatLayoutProps {
 // Inner component that uses translations
 function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
   // Translation hooks
-  const { t: tChat } = useTranslation('chat');
-  const { t: tErrors } = useTranslation('errors');
-  const { t: tAgents } = useTranslation('agents');
+  const { t: tcdChat } = useTranslation('chat');
+  const { t: tcdErrors } = useTranslation('errors');
+  const { t: tcdAgents } = useTranslation('agents');
 
   // Chat state
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -991,26 +991,26 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
         ) : (
           <div className={styles.emptyState}>
             <div className={styles.emptyStateContent}>
-              <h2>{tChat('welcome.title')}</h2>
+              <h2>{tcdChat('welcome.title')}</h2>
               {backendAvailable ? (
                 <>
-                  <p>{tChat('sessions.noSessionsYet')}</p>
+                  <p>{tcdChat('sessions.noSessionsYet')}</p>
                   <button
                     className={styles.createSessionButton}
                     onClick={() => createNewSession().catch(console.error)}
                   >
-                    {tChat('sessions.startNewChat')}
+                    {tcdChat('sessions.startNewChat')}
                   </button>
                 </>
               ) : (
                 <>
-                  <p>{tErrors('connection.backendUnavailable')}</p>
-                  <p>{tErrors('connection.backendCheckRunning')}</p>
+                  <p>{tcdErrors('connection.backendUnavailable')}</p>
+                  <p>{tcdErrors('connection.backendCheckRunning')}</p>
                   <button
                     className={styles.retryButton}
                     onClick={() => loadSessionsFromBackend()}
                   >
-                    {tErrors('connection.retryConnection')}
+                    {tcdErrors('connection.retryConnection')}
                   </button>
                 </>
               )}
@@ -1074,26 +1074,26 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
         ) : (
           <div className={styles.emptyState}>
             <div className={styles.emptyStateContent}>
-              <h2>{tAgents('management.title')}</h2>
+              <h2>{tcdAgents('management.title')}</h2>
               {backendAvailable ? (
                 <>
-                  <p>{tAgents('management.selectAgent')}</p>
+                  <p>{tcdAgents('management.selectAgent')}</p>
                   <button
                     className={styles.createSessionButton}
                     onClick={handleQuickCreateAgent}
                   >
-                    {tAgents('management.createNewAgent')}
+                    {tcdAgents('management.createNewAgent')}
                   </button>
                 </>
               ) : (
                 <>
-                  <p>{tErrors('connection.backendUnavailable')}</p>
-                  <p>{tErrors('connection.backendCheckRunning')}</p>
+                  <p>{tcdErrors('connection.backendUnavailable')}</p>
+                  <p>{tcdErrors('connection.backendCheckRunning')}</p>
                   <button
                     className={styles.retryButton}
                     onClick={() => loadSessionsFromBackend()}
                   >
-                    {tErrors('connection.retryConnection')}
+                    {tcdErrors('connection.retryConnection')}
                   </button>
                 </>
               )}

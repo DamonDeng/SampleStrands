@@ -23,7 +23,7 @@ export default function AgentList({
   onToggleAgent,
   onCreateAgent
 }: AgentListProps) {
-  const { t } = useTranslation('agents');
+  const { t: tcd } = useTranslation('agents');
   const [editingAgentId, setEditingAgentId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
@@ -73,13 +73,13 @@ export default function AgentList({
   return (
     <div className={styles.agentList}>
       <div className={styles.header}>
-        <h2 className={styles.title}>{t('AGENTS.LIST.TITLE')}</h2>
+        <h2 className={styles.title}>{tcd('AGENTS.LIST.TITLE')}</h2>
         <div className={styles.headerActions}>
           <div className={styles.agentCount}>{agents.length}</div>
           <button
             className={styles.createButton}
             onClick={onCreateAgent}
-            title={t('AGENTS.LIST.CREATE_NEW_AGENT')}
+            title={tcd('AGENTS.LIST.CREATE_NEW_AGENT')}
           >
             +
           </button>
@@ -90,13 +90,13 @@ export default function AgentList({
         {agents.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}><IoPersonOutline /></div>
-            <p className={styles.emptyText}>{t('AGENTS.LIST.NO_AGENTS_YET')}</p>
-            <p className={styles.emptySubtext}>{t('AGENTS.LIST.CREATE_FIRST_AGENT')}</p>
+            <p className={styles.emptyText}>{tcd('AGENTS.LIST.NO_AGENTS_YET')}</p>
+            <p className={styles.emptySubtext}>{tcd('AGENTS.LIST.CREATE_FIRST_AGENT')}</p>
             <button
               className={styles.createAgentButton}
               onClick={onCreateAgent}
             >
-              {t('AGENTS.LIST.CREATE_AGENT')}
+              {tcd('AGENTS.LIST.CREATE_AGENT')}
             </button>
           </div>
         ) : (
@@ -186,7 +186,7 @@ export default function AgentList({
                     
                     <div className={styles.agentMeta}>
                       <span className={styles.timestamp}>
-                        {t('AGENTS.LIST.UPDATED')} {formatDate(agent.updated_at)}
+                        {tcd('AGENTS.LIST.UPDATED')} {formatDate(agent.updated_at)}
                       </span>
                     </div>
                   </>

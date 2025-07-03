@@ -19,7 +19,7 @@ export default function NewChatButton({
   onSetDefaultAgent,
   disabled = false
 }: NewChatButtonProps) {
-  const { t } = useAppTranslation('agents');
+  const { t: tcd } = useAppTranslation('agents');
   const [showDropup, setShowDropup] = useState(false);
   const dropupRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -92,13 +92,13 @@ export default function NewChatButton({
         <div ref={dropupRef} className={styles.dropup}>
           <div className={styles.dropupHeader}>
             <IoPersonOutline />
-            <span>{t('CHAT.DROPDOWN.SELECT_AGENT')}</span>
+            <span>{tcd('CHAT.DROPDOWN.SELECT_AGENT')}</span>
           </div>
           <div className={styles.agentList}>
             {activeAgents.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>{t('CHAT.DROPDOWN.NO_ACTIVE_AGENTS')}</p>
-                <p className={styles.emptySubtext}>{t('CHAT.DROPDOWN.CREATE_AGENT_FIRST')}</p>
+                <p>{tcd('CHAT.DROPDOWN.NO_ACTIVE_AGENTS')}</p>
+                <p className={styles.emptySubtext}>{tcd('CHAT.DROPDOWN.CREATE_AGENT_FIRST')}</p>
               </div>
             ) : (
               activeAgents.map((agent) => (
@@ -141,7 +141,7 @@ export default function NewChatButton({
         <div className={styles.mainArea} onClick={handleMainButtonClick}>
           <IoAdd className={styles.addIcon} />
           <span className={styles.buttonText}>
-            {defaultAgent ? defaultAgent.config.name : t('COMMON.BUTTONS.NEW_CHAT', { ns: 'common' })}
+            {defaultAgent ? defaultAgent.config.name : tcd('COMMON.BUTTONS.NEW_CHAT', { ns: 'common' })}
           </span>
         </div>
 

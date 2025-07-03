@@ -40,13 +40,13 @@
       }
     },
     "theme": {
-      "title": "主题",
-      "label": "应用程序主题",
-      "helpText": "选择您偏好的颜色方案",
+      "title": "外观",
+      "label": "主题",
+      "helpText": "选择您偏好的颜色主题。自动模式将跟随您的系统偏好。",
       "options": {
         "dark": "深色",
         "light": "浅色",
-        "auto": "自动（系统）"
+        "auto": "自动"
       }
     },
     "defaultAgent": {
@@ -54,12 +54,19 @@
       "label": "新对话的默认智能体",
       "helpText": "选择创建新对话时默认使用的智能体",
       "noAgent": "无默认智能体",
-      "selectAgent": "选择智能体"
+      "selectAgent": "选择智能体",
+      "currentlySelected": "当前选择：",
+      "availableAgents": "可用智能体：",
+      "active": "个活跃",
+      "inactive": "（非活跃）",
+      "noAgentsAvailable": "暂无可用智能体。请在智能体管理部分创建智能体。"
     },
     "shortcuts": {
-      "title": "键盘快捷键",
+      "title": "消息输入",
       "label": "发送消息快捷键",
-      "helpText": "选择发送消息的方式",
+      "helpText": "选择您偏好的发送消息键盘快捷键。",
+      "helpTextEnter": "按回车发送，Shift+回车换行。",
+      "helpTextShiftEnter": "按Shift+回车发送，回车换行。",
       "options": {
         "enter": "回车",
         "shift_enter": "Shift + 回车"
@@ -69,22 +76,7 @@
   "advanced": {
     "title": "高级设置",
     "description": "面向高级用户的高级配置选项",
-    "performance": {
-      "title": "性能",
-      "maxAgentPoolSize": "最大智能体池大小",
-      "maxAgentPoolSizeHelp": "内存中保持的智能体实例的最大数量"
-    },
-    "debugging": {
-      "title": "调试",
-      "debugMode": "调试模式",
-      "debugModeHelp": "启用详细日志记录以进行故障排除",
-      "performanceMonitoring": "性能监控",
-      "performanceMonitoringHelp": "监控系统性能和资源使用情况"
-    },
-    "experimental": {
-      "title": "实验性功能",
-      "experimentalFeatures": "启用实验性功能",
-      "experimentalFeaturesHelp": "启用实验性功能（可能不稳定）"
-    }
+    "comingSoon": "即将推出",
+    "comingSoonDescription": "高级设置将在未来的更新中提供。"
   }
 }

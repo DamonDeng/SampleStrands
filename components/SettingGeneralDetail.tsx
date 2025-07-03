@@ -195,10 +195,10 @@ export default function SettingGeneralDetail({
         <div className={styles.settingSection}>
           <h3 className={styles.sectionTitle}>
             <IoColorPaletteOutline />
-            Appearance
+            {t('general.theme.title')}
           </h3>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Theme</label>
+            <label className={styles.label}>{t('general.theme.label')}</label>
             <div className={styles.radioGroup}>
               <label className={styles.radioOption}>
                 <input
@@ -208,7 +208,7 @@ export default function SettingGeneralDetail({
                   checked={editForm.theme === 'dark'}
                   onChange={(e) => handleInputChange('theme', e.target.value)}
                 />
-                <span className={styles.radioLabel}>Dark</span>
+                <span className={styles.radioLabel}>{t('general.theme.options.dark')}</span>
               </label>
               <label className={styles.radioOption}>
                 <input
@@ -218,7 +218,7 @@ export default function SettingGeneralDetail({
                   checked={editForm.theme === 'light'}
                   onChange={(e) => handleInputChange('theme', e.target.value)}
                 />
-                <span className={styles.radioLabel}>Light</span>
+                <span className={styles.radioLabel}>{t('general.theme.options.light')}</span>
               </label>
               <label className={styles.radioOption}>
                 <input
@@ -228,11 +228,11 @@ export default function SettingGeneralDetail({
                   checked={editForm.theme === 'auto'}
                   onChange={(e) => handleInputChange('theme', e.target.value)}
                 />
-                <span className={styles.radioLabel}>Auto</span>
+                <span className={styles.radioLabel}>{t('general.theme.options.auto')}</span>
               </label>
             </div>
             <p className={styles.helpText}>
-              Choose your preferred color theme. Auto follows your system preference.
+              {t('general.theme.helpText')}
             </p>
           </div>
         </div>
@@ -240,16 +240,16 @@ export default function SettingGeneralDetail({
         <div className={styles.settingSection}>
           <h3 className={styles.sectionTitle}>
             <IoPersonOutline />
-            Default Agent
+            {t('general.defaultAgent.title')}
           </h3>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Default Agent for New Chats</label>
+            <label className={styles.label}>{t('general.defaultAgent.label')}</label>
             <select
               className={styles.select}
               value={editForm.default_agent || ''}
               onChange={(e) => handleInputChange('default_agent', e.target.value || null)}
             >
-              <option value="">No default agent</option>
+              <option value="">{t('general.defaultAgent.noAgent')}</option>
               {agents
                 .sort((a, b) => {
                   // Sort by active status first (active agents first), then by name
@@ -260,20 +260,20 @@ export default function SettingGeneralDetail({
                 })
                 .map((agent) => (
                   <option key={agent.id} value={agent.id}>
-                    {agent.config.name} {agent.is_active ? '✓' : '(inactive)'}
+                    {agent.config.name} {agent.is_active ? '✓' : t('general.defaultAgent.inactive')}
                   </option>
                 ))
               }
             </select>
             <p className={styles.helpText}>
-              Currently selected: <strong>{getActiveAgentName()}</strong>
+              {t('general.defaultAgent.currentlySelected')} <strong>{getActiveAgentName()}</strong>
               <br />
               {agents.length > 0 ? (
                 <>
-                  Available agents: {agents.filter(a => a.is_active).length} active, {agents.filter(a => !a.is_active).length} inactive
+                  {t('general.defaultAgent.availableAgents')} {agents.filter(a => a.is_active).length} {t('general.defaultAgent.active')}, {agents.filter(a => !a.is_active).length} {t('general.defaultAgent.inactive')}
                 </>
               ) : (
-                'No agents available. Create agents in the Agent management section.'
+                t('general.defaultAgent.noAgentsAvailable')
               )}
             </p>
           </div>
@@ -282,10 +282,10 @@ export default function SettingGeneralDetail({
         <div className={styles.settingSection}>
           <h3 className={styles.sectionTitle}>
             <IoSettingsOutline />
-            Message Input
+            {t('general.shortcuts.title')}
           </h3>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Send Message Shortcut</label>
+            <label className={styles.label}>{t('general.shortcuts.label')}</label>
             <div className={styles.radioGroup}>
               <label className={styles.radioOption}>
                 <input
@@ -295,7 +295,7 @@ export default function SettingGeneralDetail({
                   checked={editForm.shortcut_to_send === 'enter'}
                   onChange={(e) => handleInputChange('shortcut_to_send', e.target.value)}
                 />
-                <span className={styles.radioLabel}>Enter</span>
+                <span className={styles.radioLabel}>{t('general.shortcuts.options.enter')}</span>
               </label>
               <label className={styles.radioOption}>
                 <input
@@ -305,14 +305,14 @@ export default function SettingGeneralDetail({
                   checked={editForm.shortcut_to_send === 'shift_enter'}
                   onChange={(e) => handleInputChange('shortcut_to_send', e.target.value)}
                 />
-                <span className={styles.radioLabel}>Shift + Enter</span>
+                <span className={styles.radioLabel}>{t('general.shortcuts.options.shift_enter')}</span>
               </label>
             </div>
             <p className={styles.helpText}>
-              Choose your preferred keyboard shortcut to send messages.
+              {t('general.shortcuts.helpText')}
               {editForm.shortcut_to_send === 'enter' ?
-                ' Press Enter to send, Shift+Enter for new line.' :
-                ' Press Shift+Enter to send, Enter for new line.'
+                ` ${t('general.shortcuts.helpTextEnter')}` :
+                ` ${t('general.shortcuts.helpTextShiftEnter')}`
               }
             </p>
           </div>

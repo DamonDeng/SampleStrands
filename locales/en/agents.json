@@ -1,11 +1,13 @@
 {
   "list": {
-    "title": "Agents",
+    "title": "AI Agents",
     "noAgents": "No agents available",
     "noAgentsDescription": "Create your first agent to get started",
     "noAgentsYet": "No agents yet",
     "createFirstAgent": "Create your first AI agent",
-    "createAgent": "Create Agent"
+    "createAgent": "Create Agent",
+    "createNewAgent": "Create new agent",
+    "updated": "Updated"
   },
   "management": {
     "title": "Agent Management",

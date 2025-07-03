@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppSetting } from '../utils/appSettingAPI';
 import { IoSettingsOutline, IoListOutline, IoCodeSlashOutline } from 'react-icons/io5';
+import { useTranslation } from 'react-i18next';
 import styles from '../styles/SettingList.module.css';
 
 interface SettingListProps {
@@ -18,6 +19,7 @@ export default function SettingList({
   loading = false,
   error = null
 }: SettingListProps) {
+  const { t } = useTranslation('settings');
 
   const getSettingIcon = (settingTitle: string) => {
     switch (settingTitle.toLowerCase()) {
@@ -33,28 +35,35 @@ export default function SettingList({
   const getSettingDescription = (settingTitle: string) => {
     switch (settingTitle.toLowerCase()) {
       case 'general':
-        return 'Language, theme, and default agent settings';
+        return t('categories.descriptions.general');
       case 'advanced':
-        return 'Advanced configuration options';
+        return t('categories.descriptions.advanced');
       default:
-        return 'Custom application settings';
+        return t('categories.descriptions.default');
     }
   };
 
   const getSettingDisplayName = (settingTitle: string) => {
-    return settingTitle.charAt(0).toUpperCase() + settingTitle.slice(1);
+    switch (settingTitle.toLowerCase()) {
+      case 'general':
+        return t('categories.general');
+      case 'advanced':
+        return t('categories.advanced');
+      default:
+        return settingTitle.charAt(0).toUpperCase() + settingTitle.slice(1);
+    }
   };
 
   if (loading) {
     return (
       <div className={styles.settingList}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Settings</h2>
+          <h2 className={styles.title}>{t('list.title')}</h2>
           <div className={styles.settingCount}>...</div>
         </div>
         <div className={styles.loadingState}>
           <div className={styles.loadingSpinner}></div>
-          <p className={styles.loadingText}>Loading settings...</p>
+          <p className={styles.loadingText}>{t('list.loading')}</p>
         </div>
       </div>
     );
@@ -64,11 +73,11 @@ export default function SettingList({
     return (
       <div className={styles.settingList}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Settings</h2>
+          <h2 className={styles.title}>{t('list.title')}</h2>
         </div>
         <div className={styles.errorState}>
           <div className={styles.errorIcon}>⚠️</div>
-          <p className={styles.errorText}>Failed to load settings</p>
+          <p className={styles.errorText}>{t('list.failedToLoad')}</p>
           <p className={styles.errorSubtext}>{error}</p>
         </div>
       </div>
@@ -78,7 +87,7 @@ export default function SettingList({
   return (
     <div className={styles.settingList}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Settings</h2>
+        <h2 className={styles.title}>{t('list.title')}</h2>
         <div className={styles.settingCount}>{settings.length}</div>
       </div>
 
@@ -86,8 +95,8 @@ export default function SettingList({
         {settings.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}><IoSettingsOutline /></div>
-            <p className={styles.emptyText}>No settings available</p>
-            <p className={styles.emptySubtext}>Settings will appear here when available</p>
+            <p className={styles.emptyText}>{t('list.noSettings')}</p>
+            <p className={styles.emptySubtext}>{t('list.noSettingsDescription')}</p>
           </div>
         ) : (
           settings.map((setting) => (
@@ -115,10 +124,10 @@ export default function SettingList({
                 
                 <div className={styles.settingMeta}>
                   <span className={styles.settingKeys}>
-                    {Object.keys(setting.json_data).length} options
+                    {Object.keys(setting.json_data).length} {t('list.options')}
                   </span>
                   <span className={styles.lastUpdated}>
-                    Updated {formatDate(setting.updated_at)}
+                    {t('list.updated')} {formatDate(setting.updated_at, t)}
                   </span>
                 </div>
               </div>
@@ -130,22 +139,22 @@ export default function SettingList({
   );
 }
 
-function formatDate(dateString: string): string {
+function formatDate(dateString: string, t: any): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   if (diffInSeconds < 60) {
-    return 'just now';
+    return t('time.justNow');
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes}m ago`;
+    return t('time.minutesAgo', { count: minutes });
   } else if (diffInSeconds < 86400) {
     const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours}h ago`;
+    return t('time.hoursAgo', { count: hours });
   } else if (diffInSeconds < 604800) {
     const days = Math.floor(diffInSeconds / 86400);
-    return `${days}d ago`;
+    return t('time.daysAgo', { count: days });
   } else {
     return date.toLocaleDateString();
   }

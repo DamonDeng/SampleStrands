@@ -1,9 +1,27 @@
 {
   "list": {
     "title": "设置",
+    "loading": "加载设置中...",
     "noSettings": "暂无设置",
     "noSettingsDescription": "设置可用时将显示在此处",
-    "failedToLoad": "设置加载失败"
+    "failedToLoad": "设置加载失败",
+    "options": "个选项",
+    "updated": "更新于"
+  },
+  "categories": {
+    "general": "常规",
+    "advanced": "高级",
+    "descriptions": {
+      "general": "语言、主题和默认智能体设置",
+      "advanced": "高级配置选项",
+      "default": "自定义应用程序设置"
+    }
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}}分钟前",
+    "hoursAgo": "{{count}}小时前",
+    "daysAgo": "{{count}}天前"
   },
   "general": {
     "title": "常规设置",

@@ -73,13 +73,13 @@ export default function AgentList({
   return (
     <div className={styles.agentList}>
       <div className={styles.header}>
-        <h2 className={styles.title}>AI Agents</h2>
+        <h2 className={styles.title}>{t('list.title')}</h2>
         <div className={styles.headerActions}>
           <div className={styles.agentCount}>{agents.length}</div>
           <button
             className={styles.createButton}
             onClick={onCreateAgent}
-            title="Create new agent"
+            title={t('list.createNewAgent')}
           >
             +
           </button>
@@ -186,7 +186,7 @@ export default function AgentList({
                     
                     <div className={styles.agentMeta}>
                       <span className={styles.timestamp}>
-                        Updated {formatDate(agent.updated_at)}
+                        {t('list.updated')} {formatDate(agent.updated_at)}
                       </span>
                     </div>
                   </>

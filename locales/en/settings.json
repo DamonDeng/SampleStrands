@@ -1,9 +1,27 @@
 {
   "list": {
     "title": "Settings",
+    "loading": "Loading settings...",
     "noSettings": "No settings available",
     "noSettingsDescription": "Settings will appear here when available",
-    "failedToLoad": "Failed to load settings"
+    "failedToLoad": "Failed to load settings",
+    "options": "options",
+    "updated": "Updated"
+  },
+  "categories": {
+    "general": "General",
+    "advanced": "Advanced",
+    "descriptions": {
+      "general": "Language, theme, and default agent settings",
+      "advanced": "Advanced configuration options",
+      "default": "Custom application settings"
+    }
+  },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
   },
   "general": {
     "title": "General Settings",

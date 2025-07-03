@@ -316,14 +316,14 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
         return;
       }
 
-      console.log(`📥 Loading messages for session ${sessionId}`);
+      console.log('📥 Loading messages for session:', sessionId);
       const messages = await pythonAPI.getSessionMessages(sessionId);
 
       // Update the session in our local state with the loaded messages
       setSessions(prev => prev.map(session => {
         if (session.id === sessionId) {
           const backendMessages = messages.map(convertBackendMessage);
-          console.log(`✅ Loaded ${backendMessages.length} messages for session ${sessionId}`);
+          console.log('✅ Loaded messages for session:', backendMessages.length, 'messages, sessionId:', sessionId);
           return {
             ...session,
             messages: backendMessages
@@ -332,12 +332,12 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
         return session;
       }));
     } catch (error) {
-      console.error(`❌ Failed to load messages for session ${sessionId}:`, error);
+      console.error('❌ Failed to load messages for session:', sessionId, 'Error:', error);
     }
   };
 
   const selectSession = async (sessionId: string) => {
-    console.log(`🎯 Selecting session ${sessionId}`);
+    console.log('🎯 Selecting session:', sessionId);
 
     // Set the active session immediately for UI responsiveness
     setActiveSessionId(sessionId);
@@ -487,7 +487,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
       if (backendAvailable) {
         // Delete from backend
         await agentAPI.deleteAgent(agentId);
-        console.log(`🗑️ Deleted agent ${agentId}`);
+        console.log('🗑️ Deleted agent:', agentId);
       }
     } catch (error) {
       console.error('Failed to delete agent:', error);
@@ -510,7 +510,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
           agent.id === agentId ? updatedAgent : agent
         ));
 
-        console.log(`✏️ Updated agent ${agentId}`);
+        console.log('✏️ Updated agent:', agentId);
       }
     } catch (error) {
       console.error('Failed to update agent:', error);
@@ -534,7 +534,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
           agent.id === agentId ? { ...agent, is_active: isActive } : agent
         ));
 
-        console.log(`${isActive ? '▶️' : '⏸️'} ${isActive ? 'Activated' : 'Deactivated'} agent ${agentId}`);
+        console.log(isActive ? '▶️ Activated agent:' : '⏸️ Deactivated agent:', agentId);
       }
     } catch (error) {
       console.error('Failed to toggle agent:', error);
@@ -557,7 +557,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
         setAgents(prev => [newAgent, ...prev]);
         setSelectedAgentId(newAgent.id);
 
-        console.log(`🚀 Quick created new agent: ${newAgent.config.name}`);
+        console.log('🚀 Quick created new agent:', newAgent.config.name);
       }
     } catch (error) {
       console.error('Failed to quick create agent:', error);
@@ -576,7 +576,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
         setAgents(prev => [newAgent, ...prev]);
         setSelectedAgentId(newAgent.id);
 
-        console.log(`🆕 Created new agent: ${newAgent.config.name}`);
+        console.log('🆕 Created new agent:', newAgent.config.name);
       }
     } catch (error) {
       console.error('Failed to create agent:', error);
@@ -606,7 +606,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
       if (generalSetting && generalSetting.json_data.language) {
         const language = generalSetting.json_data.language as SupportedLanguage;
         setCurrentLanguage(language);
-        console.log(`🌐 Language from settings: ${language}`);
+        console.log('🌐 Language from settings:', language);
       }
 
       // Auto-select general setting if available and none selected
@@ -614,7 +614,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
         setSelectedSettingTitle(generalSetting ? 'general' : settingsData[0].setting_title);
       }
 
-      console.log(`✅ Successfully loaded ${settingsData.length} settings`);
+      console.log('✅ Successfully loaded settings:', settingsData.length);
     } catch (error) {
       console.error('❌ Failed to load settings:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -645,11 +645,11 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
             const newLanguage = jsonData.language as SupportedLanguage;
             if (newLanguage !== currentLanguage) {
               setCurrentLanguage(newLanguage);
-              console.log(`🌐 Language changed to: ${newLanguage}`);
+              console.log('🌐 Language changed to:', newLanguage);
             }
           }
 
-          console.log(`✏️ Updated setting ${settingTitle}`);
+          console.log('✏️ Updated setting:', settingTitle);
         }
       }
     } catch (error) {
@@ -717,7 +717,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
           : setting
       ));
 
-      console.log(`✅ Set default agent to: ${agentId}`);
+      console.log('✅ Set default agent to:', agentId);
     } catch (error) {
       console.error('Failed to set default agent:', error);
     }

@@ -79,12 +79,21 @@ export function useI18nContext() {
 // Enhanced useTranslation hook with namespace support
 export function useAppTranslation(namespace?: string) {
   const translation = useTranslation(namespace);
-  const context = useI18nContext();
-  
+  const context = useContext(I18nContext);
+
+  // Provide fallback values when used outside of I18nProvider (e.g., during SSR)
+  const fallbackContext = {
+    currentLanguage: 'en' as const,
+    changeLanguage: () => {},
+    isReady: false,
+  };
+
+  const contextValue = context || fallbackContext;
+
   return {
     ...translation,
-    currentLanguage: context.currentLanguage,
-    changeLanguage: context.changeLanguage,
-    isReady: context.isReady,
+    currentLanguage: contextValue.currentLanguage,
+    changeLanguage: contextValue.changeLanguage,
+    isReady: contextValue.isReady,
   };
 }

@@ -11,6 +11,7 @@ import {
   IoInformationCircleOutline,
   IoCheckmarkCircleOutline
 } from 'react-icons/io5';
+import { useAppTranslation } from '../contexts/I18nContext';
 import styles from '../styles/AgentDetail.module.css';
 
 interface AgentDetailProps {
@@ -30,6 +31,8 @@ export default function AgentDetail({
   onToggleAgent,
   onAgentChange
 }: AgentDetailProps) {
+  const { t: tcd } = useAppTranslation('agents');
+  const { t: tcdCommon } = useAppTranslation('common');
   // Always start in editing mode for seamless UX
   const [isEditing, setIsEditing] = useState(true);
   const [editForm, setEditForm] = useState({
@@ -324,7 +327,7 @@ export default function AgentDetail({
           <div className={styles.editForm}>
             {/* 1. Agent Name */}
             <div className={styles.formSection}>
-              <label className={styles.formLabel}>Agent Name</label>
+              <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.AGENT_NAME')}</label>
               <input
                 type="text"
                 value={editForm.name}
@@ -336,7 +339,7 @@ export default function AgentDetail({
 
             {/* 2. Model (moved up) */}
             <div className={styles.formSection}>
-              <label className={styles.formLabel}>Model</label>
+              <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.MODEL')}</label>
               <select
                 value={editForm.model_id}
                 onChange={(e) => handleFormChange('model_id', e.target.value)}
@@ -367,7 +370,7 @@ export default function AgentDetail({
 
             {/* 3. Preferred Region (new) */}
             <div className={styles.formSection}>
-              <label className={styles.formLabel}>Preferred Region</label>
+              <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.PREFERRED_REGION')}</label>
               <input
                 type="text"
                 value={editForm.preferred_region}
@@ -393,10 +396,10 @@ export default function AgentDetail({
             {/* 4.1 Advanced Model Settings (conditional) */}
             {editForm.enable_advanced_settings && (
               <div className={styles.advancedSettings}>
-                <h4 className={styles.advancedTitle}>Advanced Model Settings</h4>
+                <h4 className={styles.advancedTitle}>{tcd('AGENTS.FIELDS.ADVANCED_MODEL_SETTINGS')}</h4>
                 <div className={styles.formRow}>
                   <div className={styles.formSection}>
-                    <label className={styles.formLabel}>Temperature</label>
+                    <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.TEMPERATURE')}</label>
                     <input
                       type="number"
                       min="0"
@@ -408,7 +411,7 @@ export default function AgentDetail({
                     />
                   </div>
                   <div className={styles.formSection}>
-                    <label className={styles.formLabel}>Max Tokens</label>
+                    <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.MAX_TOKENS')}</label>
                     <input
                       type="number"
                       min="1"
@@ -420,7 +423,7 @@ export default function AgentDetail({
                   </div>
                 </div>
                 <div className={styles.formSection}>
-                  <label className={styles.formLabel}>Top P</label>
+                  <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.TOP_P')}</label>
                   <input
                     type="number"
                     min="0"
@@ -436,7 +439,7 @@ export default function AgentDetail({
 
             {/* 5. Description */}
             <div className={styles.formSection}>
-              <label className={styles.formLabel}>Description</label>
+              <label className={styles.formLabel}>{tcdCommon('COMMON.FIELDS.DESCRIPTION')}</label>
               <textarea
                 value={editForm.description}
                 onChange={(e) => handleFormChange('description', e.target.value)}
@@ -448,7 +451,7 @@ export default function AgentDetail({
 
             {/* 6. System Prompt */}
             <div className={styles.formSection}>
-              <label className={styles.formLabel}>System Prompt</label>
+              <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.SYSTEM_PROMPT')}</label>
               <textarea
                 value={editForm.system_prompt}
                 onChange={(e) => handleFormChange('system_prompt', e.target.value)}
@@ -462,7 +465,7 @@ export default function AgentDetail({
 
             {/* 8. Tools */}
             <div className={styles.formSection}>
-              <label className={styles.formLabel}>Tools</label>
+              <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.TOOLS')}</label>
               <div className={styles.toolsGrid}>
                 {supportedTools.map((tool) => (
                   <label key={tool.tool_id} className={styles.toolCheckbox}>
@@ -487,17 +490,17 @@ export default function AgentDetail({
               </h3>
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Description:</span>
+                  <span className={styles.infoLabel}>{tcd('AGENTS.FIELDS.DESCRIPTION_COLON')}</span>
                   <span className={styles.infoValue}>
                     {agent.config.description || 'No description provided'}
                   </span>
                 </div>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Created:</span>
+                  <span className={styles.infoLabel}>{tcd('AGENTS.FIELDS.CREATED')}</span>
                   <span className={styles.infoValue}>{formatDate(agent.created_at)}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Last Updated:</span>
+                  <span className={styles.infoLabel}>{tcd('AGENTS.FIELDS.LAST_UPDATED')}</span>
                   <span className={styles.infoValue}>{formatDate(agent.updated_at)}</span>
                 </div>
               </div>
@@ -510,19 +513,19 @@ export default function AgentDetail({
               </h3>
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Model:</span>
+                  <span className={styles.infoLabel}>{tcd('AGENTS.FIELDS.MODEL_COLON')}</span>
                   <span className={styles.infoValue}>{getModelDisplayName()}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Temperature:</span>
+                  <span className={styles.infoLabel}>{tcd('AGENTS.FIELDS.TEMPERATURE_COLON')}</span>
                   <span className={styles.infoValue}>{agent.config.model_config.temperature}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Max Tokens:</span>
+                  <span className={styles.infoLabel}>{tcd('AGENTS.FIELDS.MAX_TOKENS_COLON')}</span>
                   <span className={styles.infoValue}>{agent.config.model_config.max_tokens}</span>
                 </div>
                 <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>Top P:</span>
+                  <span className={styles.infoLabel}>{tcd('AGENTS.FIELDS.TOP_P_COLON')}</span>
                   <span className={styles.infoValue}>{agent.config.model_config.top_p}</span>
                 </div>
               </div>
@@ -530,7 +533,7 @@ export default function AgentDetail({
 
             {agent.config.system_prompt && (
               <div className={styles.infoSection}>
-                <h3 className={styles.sectionTitle}>System Prompt</h3>
+                <h3 className={styles.sectionTitle}>{tcd('AGENTS.FIELDS.SYSTEM_PROMPT')}</h3>
                 <div className={styles.systemPrompt}>
                   {agent.config.system_prompt}
                 </div>
@@ -539,7 +542,7 @@ export default function AgentDetail({
 
             <div className={styles.infoSection}>
               <h3 className={styles.sectionTitle}>
-                Enabled Tools ({getEnabledTools().length})
+{tcd('AGENTS.TOOLS.ENABLED_TOOLS')}{getEnabledTools().length})
               </h3>
               <div className={styles.toolsList}>
                 {getEnabledTools().length > 0 ? (
@@ -550,7 +553,7 @@ export default function AgentDetail({
                     </div>
                   ))
                 ) : (
-                  <p className={styles.noTools}>No tools enabled</p>
+                  <p className={styles.noTools}>{tcd('AGENTS.TOOLS.NO_TOOLS_ENABLED')}</p>
                 )}
               </div>
             </div>

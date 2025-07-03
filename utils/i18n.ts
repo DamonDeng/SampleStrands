@@ -50,8 +50,8 @@ i18n
     detection: {
       // Don't use browser language detection in Electron
       // We'll control language through app settings
-      order: ['localStorage'],
-      caches: ['localStorage'],
+      order: typeof window !== 'undefined' ? ['localStorage'] : [],
+      caches: typeof window !== 'undefined' ? ['localStorage'] : [],
       lookupLocalStorage: 'samplestrands-language',
     },
     

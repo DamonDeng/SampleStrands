@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { IoRocketOutline, IoCheckmarkCircle, IoCloseCircle, IoTimeOutline } from 'react-icons/io5';
+import { useAppTranslation } from '../contexts/I18nContext';
 import styles from '../styles/AppLoadingScreen.module.css';
 
 interface AppLoadingScreenProps {
@@ -8,6 +9,7 @@ interface AppLoadingScreenProps {
 }
 
 export default function AppLoadingScreen({ backendAvailable, isLoading }: AppLoadingScreenProps) {
+  const { t: tcd } = useAppTranslation('common');
   const [dots, setDots] = useState('');
   const [timeElapsed, setTimeElapsed] = useState(0);
 
@@ -72,7 +74,7 @@ export default function AppLoadingScreen({ backendAvailable, isLoading }: AppLoa
         </div>
 
         {/* App Title */}
-        <h1 className={styles.appTitle}>SampleStrands</h1>
+        <h1 className={styles.appTitle}>{tcd('COMMON.APP.NAME')}</h1>
 
         {/* Status Section */}
         <div className={styles.statusSection}>
@@ -85,21 +87,21 @@ export default function AppLoadingScreen({ backendAvailable, isLoading }: AppLoa
         <div className={styles.progressSection}>
           <div className={styles.progressItem}>
             <div className={`${styles.progressDot} ${isLoading ? styles.active : backendAvailable ? styles.complete : styles.pending}`} />
-            <span className={styles.progressLabel}>Backend Service</span>
+            <span className={styles.progressLabel}>{tcd('COMMON.APP.BACKEND_SERVICE')}</span>
           </div>
           <div className={styles.progressItem}>
             <div className={`${styles.progressDot} ${backendAvailable && !isLoading ? styles.active : backendAvailable ? styles.complete : styles.pending}`} />
-            <span className={styles.progressLabel}>Application Data</span>
+            <span className={styles.progressLabel}>{tcd('COMMON.APP.APPLICATION_DATA')}</span>
           </div>
         </div>
 
         {/* Time Elapsed */}
         {timeElapsed > 5 && (
           <div className={styles.timeElapsed}>
-            <p>Time elapsed: {timeElapsed}s</p>
+            <p>{tcd('COMMON.TIME.TIME_ELAPSED')}{timeElapsed}s</p>
             {timeElapsed > 15 && !backendAvailable && (
               <p className={styles.helpText}>
-                If this takes too long, try restarting the application
+                {tcd('COMMON.MESSAGES.RESTART_APP')}
               </p>
             )}
           </div>

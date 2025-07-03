@@ -2,6 +2,7 @@ import { Message, DocumentAttachment } from '../types/chat';
 import { IoPersonOutline } from 'react-icons/io5';
 import { RiRobot2Line, RiFileTextLine, RiImageLine, RiAttachment2 } from 'react-icons/ri';
 import { Markdown } from './Markdown';
+import { useAppTranslation } from '../contexts/I18nContext';
 import styles from '../styles/MessageBubble.module.css';
 
 interface MessageBubbleProps {
@@ -11,6 +12,7 @@ interface MessageBubbleProps {
 }
 
 export default function MessageBubble({ message, isFirst, isLast }: MessageBubbleProps) {
+  const { t: tcd } = useAppTranslation('chat');
   const isUser = message.sender === 'user';
   
   const formatTime = (date: Date) => {
@@ -47,7 +49,7 @@ export default function MessageBubble({ message, isFirst, isLast }: MessageBubbl
         
         <div className={`${styles.messageContent} ${isUser ? styles.userMessageContent : ''}`}>
           {isFirst && !isUser && (
-            <div className={styles.senderName}>AI Assistant</div>
+            <div className={styles.senderName}>{tcd('CHAT.MESSAGES.AI_ASSISTANT')}</div>
           )}
           
           <div className={`${styles.messageBubble} ${isUser ? styles.userBubble : styles.assistantBubble}`}>

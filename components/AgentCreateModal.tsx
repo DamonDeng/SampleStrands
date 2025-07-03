@@ -32,6 +32,7 @@ export default function AgentCreateModal({
   });
 
   const { t: tcd } = useAppTranslation('agents');
+  const { t: tcdCommon } = useAppTranslation('common');
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -140,7 +141,7 @@ export default function AgentCreateModal({
         <div className={styles.modalHeader}>
           <div className={styles.titleSection}>
             <IoPersonOutline className={styles.titleIcon} />
-            <h2 className={styles.modalTitle}>Create New Agent</h2>
+            <h2 className={styles.modalTitle}>{tcd('AGENTS.MANAGEMENT.CREATE_NEW_AGENT')}</h2>
           </div>
           <button
             className={styles.closeButton}
@@ -179,7 +180,7 @@ export default function AgentCreateModal({
           </div>
 
           <div className={styles.formSection}>
-            <label className={styles.formLabel}>System Prompt</label>
+            <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.SYSTEM_PROMPT')}</label>
             <textarea
               value={formData.system_prompt}
               onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
@@ -191,7 +192,7 @@ export default function AgentCreateModal({
           </div>
 
           <div className={styles.formSection}>
-            <label className={styles.formLabel}>Model *</label>
+            <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.MODEL_REQUIRED')}</label>
             <select
               value={formData.model_id}
               onChange={(e) => {
@@ -211,7 +212,7 @@ export default function AgentCreateModal({
 
                 if (supportedModels.length === 0) {
                   console.log('⚠️ No supported models available for dropdown');
-                  return <option value="">No models available</option>;
+                  return <option value="">{tcd('AGENTS.MESSAGES.NO_MODELS_AVAILABLE')}</option>;
                 }
 
                 return supportedModels.map((model, index) => {
@@ -255,7 +256,7 @@ export default function AgentCreateModal({
           </div>
 
           <div className={styles.formSection}>
-            <label className={styles.formLabel}>Tools</label>
+            <label className={styles.formLabel}>{tcd('AGENTS.FIELDS.TOOLS')}</label>
             <div className={styles.toolsGrid}>
               {supportedTools.map((tool) => (
                 <label key={tool.tool_id} className={styles.toolCheckbox}>
@@ -291,7 +292,7 @@ export default function AgentCreateModal({
               onClick={handleCancel}
               disabled={isCreating}
             >
-              Cancel
+              {tcdCommon('COMMON.BUTTONS.CANCEL')}
             </button>
             <button
               type="submit"

@@ -24,5 +24,15 @@
   "COMMON.FIELDS.ENABLED": "Enabled",
   "COMMON.FIELDS.DISABLED": "Disabled",
   "COMMON.FIELDS.REQUIRED": "Required",
-  "COMMON.FIELDS.OPTIONAL": "Optional"
+  "COMMON.FIELDS.OPTIONAL": "Optional",
+  "COMMON.APP.NAME": "SampleStrands",
+  "COMMON.APP.BACKEND_SERVICE": "Backend Service",
+  "COMMON.APP.APPLICATION_DATA": "Application Data",
+  "COMMON.TIME.TIME_ELAPSED": "Time elapsed: ",
+  "COMMON.MESSAGES.UNKNOWN_SETTING": "Unknown Setting",
+  "COMMON.MESSAGES.COMING_SOON": "This feature is coming soon.",
+  "COMMON.MESSAGES.COMING_SOON_DESCRIPTION": "Coming Soon",
+  "COMMON.MESSAGES.SELECT_SETTING": "Select a setting category to configure your preferences.",
+  "COMMON.MESSAGES.SETTING_NOT_RECOGNIZED": "The selected setting type is not recognized.",
+  "COMMON.MESSAGES.RESTART_APP": "If this takes too long, try restarting the application"
 }

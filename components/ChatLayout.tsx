@@ -13,8 +13,7 @@ import { Session, Message } from '../types/chat';
 import { Agent, SupportedModel, SupportedTool, AgentCreateRequest } from '../types/agent';
 import { AppSetting, appSettingAPI } from '../utils/appSettingAPI';
 import { pythonAPI } from '../utils/pythonAPI';
-import { I18nProvider } from '../contexts/I18nContext';
-import { useTranslation } from 'react-i18next';
+import { I18nProvider, useAppTranslation } from '../contexts/I18nContext';
 import { SupportedLanguage } from '../types/i18n';
 import { agentAPI } from '../utils/agentAPI';
 import { convertBackendSession, convertBackendMessage } from '../utils/typeConverters';
@@ -28,9 +27,10 @@ interface ChatLayoutProps {
 // Inner component that uses translations
 function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
   // Translation hooks
-  const { t: tcdChat } = useTranslation('chat');
-  const { t: tcdErrors } = useTranslation('errors');
-  const { t: tcdAgents } = useTranslation('agents');
+  const { t: tcdChat } = useAppTranslation('chat');
+  const { t: tcdErrors } = useAppTranslation('errors');
+  const { t: tcdAgents } = useAppTranslation('agents');
+  const { t: tcdCommon } = useAppTranslation('common');
 
   // Chat state
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -942,7 +942,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
           color: '#72767d',
           fontSize: '14px'
         }}>
-          Help
+          {tcdCommon('COMMON.NAVIGATION.HELP')}
         </div>
       )}
 
@@ -1035,26 +1035,26 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
           ) : (
             <div className={styles.emptyState}>
               <div className={styles.emptyStateContent}>
-                <h2>Unknown Setting</h2>
-                <p>The selected setting type is not recognized.</p>
+                <h2>{tcdCommon('COMMON.MESSAGES.UNKNOWN_SETTING')}</h2>
+                <p>{tcdCommon('COMMON.MESSAGES.SETTING_NOT_RECOGNIZED')}</p>
               </div>
             </div>
           )
         ) : (
           <div className={styles.emptyState}>
             <div className={styles.emptyStateContent}>
-              <h2>Settings</h2>
+              <h2>{tcdCommon('COMMON.NAVIGATION.SETTINGS')}</h2>
               {backendAvailable ? (
-                <p>Select a setting category to configure your preferences.</p>
+                <p>{tcdCommon('COMMON.MESSAGES.SELECT_SETTING')}</p>
               ) : (
                 <>
-                  <p>Backend service is currently unavailable.</p>
-                  <p>Please check that the Python backend is running.</p>
+                  <p>{tcdErrors('ERRORS.CONNECTION.BACKEND_UNAVAILABLE')}</p>
+                  <p>{tcdErrors('ERRORS.CONNECTION.BACKEND_CHECK_RUNNING')}</p>
                   <button
                     className={styles.retryButton}
                     onClick={() => loadSettingsFromBackend()}
                   >
-                    Retry Connection
+                    {tcdErrors('ERRORS.CONNECTION.RETRY_CONNECTION')}
                   </button>
                 </>
               )}
@@ -1103,8 +1103,8 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
       ) : (
         <div className={styles.emptyState}>
           <div className={styles.emptyStateContent}>
-            <h2>Help</h2>
-            <p>This feature is coming soon.</p>
+            <h2>{tcdCommon('COMMON.NAVIGATION.HELP')}</h2>
+            <p>{tcdCommon('COMMON.MESSAGES.COMING_SOON')}</p>
           </div>
         </div>
       )}

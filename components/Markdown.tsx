@@ -8,6 +8,7 @@ import RemarkGfm from "remark-gfm";
 import RehypeHighlight from "rehype-highlight";
 import { useRef, useState, RefObject, useEffect, useMemo } from "react";
 import React from "react";
+import { useAppTranslation } from '../contexts/I18nContext';
 import styles from '../styles/Markdown.module.css';
 
 // Use default rehype-highlight without custom lowlight configuration
@@ -143,6 +144,7 @@ export function Markdown(
     defaultShow?: boolean;
   } & React.DOMAttributes<HTMLDivElement>,
 ) {
+  const { t: tcd } = useAppTranslation('common');
   const mdRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -157,7 +159,7 @@ export function Markdown(
       dir="auto"
     >
       {props.loading ? (
-        <div className={styles.loading}>Loading...</div>
+        <div className={styles.loading}>{tcd('COMMON.STATUS.LOADING')}</div>
       ) : (
         <MarkdownContent content={props.content} />
       )}

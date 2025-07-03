@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppSetting } from '../utils/appSettingAPI';
 import { IoSettingsOutline, IoListOutline, IoCodeSlashOutline } from 'react-icons/io5';
-import { useTranslation } from 'react-i18next';
+import { useAppTranslation } from '../contexts/I18nContext';
 import styles from '../styles/SettingList.module.css';
 
 interface SettingListProps {
@@ -19,7 +19,7 @@ export default function SettingList({
   loading = false,
   error = null
 }: SettingListProps) {
-  const { t: tcd } = useTranslation('settings');
+  const { t: tcd } = useAppTranslation('settings');
 
   const getSettingIcon = (settingTitle: string) => {
     switch (settingTitle.toLowerCase()) {
@@ -139,7 +139,7 @@ export default function SettingList({
   );
 }
 
-function formatDate(dateString: string, t: any): string {
+function formatDate(dateString: string, tcd: any): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);

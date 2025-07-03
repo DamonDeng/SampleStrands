@@ -91,8 +91,8 @@ export default function SessionList({
         {sessions.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}><IoChatbubbleEllipsesOutline /></div>
-            <p className={styles.emptyText}>No conversations yet</p>
-            <p className={styles.emptySubtext}>Start a new chat to begin</p>
+            <p className={styles.emptyText}>{tcd('CHAT.SESSIONS.NO_SESSIONS')}</p>
+            <p className={styles.emptySubtext}>{tcd('CHAT.SESSIONS.START_NEW_CHAT_TO_BEGIN')}</p>
           </div>
         ) : (
           sessions.map((session) => (

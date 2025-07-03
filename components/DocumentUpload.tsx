@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { DocumentAttachment } from '../utils/pythonAPI';
 import { RiAttachment2, RiCloseLine, RiFileTextLine, RiImageLine } from 'react-icons/ri';
+import { useAppTranslation } from '../contexts/I18nContext';
 import styles from '../styles/DocumentUpload.module.css';
 
 interface DocumentUploadProps {
@@ -22,6 +23,7 @@ export default function DocumentUpload({
   maxFileSizeMB = 20,
   supportedTypes = ['pdf', 'docx', 'txt', 'png', 'jpg', 'jpeg']
 }: DocumentUploadProps) {
+  const { t: tcd } = useAppTranslation('chat');
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -186,7 +188,7 @@ export default function DocumentUpload({
         >
           <div className={styles.dragContent}>
             <RiAttachment2 size={48} />
-            <p>Drop files here to attach</p>
+            <p>{tcd('CHAT.UPLOAD.DROP_FILES_HERE')}</p>
           </div>
         </div>
       )}

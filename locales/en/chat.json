@@ -33,5 +33,9 @@
   "CHAT.SHORTCUTS.SHIFT_ENTER": "Shift+Enter",
   "CHAT.DROPDOWN.SELECT_AGENT": "Select Agent",
   "CHAT.DROPDOWN.NO_ACTIVE_AGENTS": "No active agents available",
-  "CHAT.DROPDOWN.CREATE_AGENT_FIRST": "Create agents in the Agent management section first"
+  "CHAT.DROPDOWN.CREATE_AGENT_FIRST": "Create agents in the Agent management section first",
+  "CHAT.SESSIONS.START_NEW_CHAT_TO_BEGIN": "Start a new chat to begin",
+  "CHAT.SESSIONS.NO_SESSIONS": "No conversations yet",
+  "CHAT.UPLOAD.DROP_FILES_HERE": "Drop files here to attach",
+  "CHAT.MESSAGES.AI_ASSISTANT": "AI Assistant"
 }

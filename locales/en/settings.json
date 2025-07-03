@@ -23,7 +23,7 @@
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
   },
-  "SETTINGS:GENERAL:TITLE": "General Settings",
+  "MODULE.FEATURE.SETTINGS.GENERAL.TITLE": "General Settings",
   "general": {
     "title": "General Settings",
     "description": "Configure language, theme, and default agent preferences",

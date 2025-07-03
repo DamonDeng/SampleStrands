@@ -6,6 +6,7 @@ import {
   IoPersonOutline
 } from 'react-icons/io5';
 import { useAppTranslation } from '../contexts/I18nContext';
+import { useNotification } from '../contexts/NotificationContext';
 import styles from '../styles/AgentCreateModal.module.css';
 
 interface AgentCreateModalProps {
@@ -32,6 +33,7 @@ export default function AgentCreateModal({
   });
 
   const { t: tcd } = useAppTranslation('agents');
+  const { showError } = useNotification();
   const { t: tcdCommon } = useAppTranslation('common');
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
@@ -75,12 +77,12 @@ export default function AgentCreateModal({
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      alert('Please enter an agent name');
+      showError('Please enter an agent name', 'Validation Error');
       return;
     }
 
     if (!formData.model_id) {
-      alert('Please select a model');
+      showError('Please select a model', 'Validation Error');
       return;
     }
 
@@ -121,7 +123,11 @@ export default function AgentCreateModal({
       onClose();
     } catch (error) {
       console.error('Failed to create agent:', error);
-      alert(`Failed to create agent: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showError(
+        error instanceof Error ? error.message : 'Unknown error occurred',
+        'Failed to Create Agent',
+        10000 // Show error for 10 seconds
+      );
     } finally {
       setIsCreating(false);
     }
@@ -216,7 +222,7 @@ export default function AgentCreateModal({
                 }
 
                 return supportedModels.map((model, index) => {
-                  console.log(`📋 Rendering model option ${index}:`, model);
+                  console.log('📋 Rendering model option:', index, model);
                   return (
                     <option key={model.model_id} value={model.model_id}>
                       {model.model_name} ({model.provider})

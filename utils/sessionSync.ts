@@ -37,8 +37,8 @@ export class SessionSyncService {
           data: convertBackendSession(updatedBackendSession)
         };
       } catch (error) {
-        console.warn(`Session sync attempt ${attempt + 1} failed:`, error);
-        
+        console.warn('Session sync attempt failed:', attempt + 1, error);
+
         if (attempt < this.retryAttempts) {
           await this.delay(this.retryDelay * (attempt + 1));
         }

@@ -47,7 +47,7 @@ export default function SettingGeneralDetail({
 
   // Debug logging for agents
   useEffect(() => {
-    console.log(`🔧 SettingGeneralDetail: Received ${agents.length} agents:`,
+    console.log('🔧 SettingGeneralDetail: Received agents:', agents.length,
       agents.map(a => ({ id: a.id, name: a.config.name, active: a.is_active }))
     );
   }, [agents]);

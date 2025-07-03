@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { DocumentAttachment } from '../utils/pythonAPI';
 import { RiAttachment2, RiCloseLine, RiFileTextLine, RiImageLine } from 'react-icons/ri';
 import { useAppTranslation } from '../contexts/I18nContext';
+import { useNotification } from '../contexts/NotificationContext';
 import styles from '../styles/DocumentUpload.module.css';
 
 interface DocumentUploadProps {
@@ -24,6 +25,7 @@ export default function DocumentUpload({
   supportedTypes = ['pdf', 'docx', 'txt', 'png', 'jpg', 'jpeg']
 }: DocumentUploadProps) {
   const { t: tcd } = useAppTranslation('chat');
+  const { showError } = useNotification();
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,14 +68,18 @@ export default function DocumentUpload({
 
     // Show errors if any
     if (errors.length > 0) {
-      alert(errors.join('\n'));
+      showError(
+        errors.join('\n'),
+        `File Validation Error${errors.length > 1 ? 's' : ''}`,
+        8000 // Show for 8 seconds
+      );
     }
 
     // Add valid files
     if (validFiles.length > 0) {
       onFilesSelected(validFiles);
     }
-  }, [selectedFiles.length, maxFiles, validateFile, onFilesSelected]);
+  }, [selectedFiles.length, maxFiles, validateFile, onFilesSelected, showError]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();

@@ -115,7 +115,7 @@ class AppSettingAPI {
       }
       return await response.json();
     } catch (error) {
-      console.error(`Failed to fetch setting '${title}':`, error);
+      console.error('Failed to fetch setting:', title, error);
       throw error;
     }
   }
@@ -158,7 +158,7 @@ class AppSettingAPI {
       }
       return await response.json();
     } catch (error) {
-      console.error(`Failed to update setting '${title}':`, error);
+      console.error('Failed to update setting:', title, error);
       throw error;
     }
   }
@@ -180,7 +180,7 @@ class AppSettingAPI {
       }
       return true;
     } catch (error) {
-      console.error(`Failed to delete setting '${title}':`, error);
+      console.error('Failed to delete setting:', title, error);
       throw error;
     }
   }

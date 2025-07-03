@@ -2,6 +2,8 @@
 
 A production-ready AI chat desktop application with AWS Bedrock integration, featuring a Slack-like three-column UI design and comprehensive document support.
 
+new version.
+
 ## 🚀 For End Users
 
 ### Quick Start

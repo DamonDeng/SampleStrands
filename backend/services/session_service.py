@@ -69,7 +69,7 @@ class SessionService:
                 return pydantic_session
 
         except Exception as e:
-            logger.error(f"❌ Failed to create session: {str(e)}")
+            logger.warning(f"❌ Failed to create session: {str(e)}")
             raise
     
     async def get_session(self, session_id: str) -> Optional[Session]:

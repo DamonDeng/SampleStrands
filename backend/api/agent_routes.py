@@ -54,7 +54,7 @@ async def quick_create_agent():
         logger.debug(f"   🤖 Model: {agent.config.llm_config.model_name}")
         return agent
     except Exception as e:
-        logger.error(f"❌ Failed to quick create agent: {str(e)}")
+        logger.warning(f"❌ Failed to quick create agent: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create agent: {str(e)}"
@@ -91,13 +91,13 @@ async def create_agent(request: AgentCreateRequest):
         logger.info(f"✅ Agent created successfully: {agent.id}")
         return agent
     except ValueError as e:
-        logger.error(f"❌ Validation error creating agent: {str(e)}")
+        logger.warning(f"❌ Validation error creating agent: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Validation error: {str(e)}"
         )
     except Exception as e:
-        logger.error(f"❌ Failed to create agent: {str(e)}")
+        logger.warning(f"❌ Failed to create agent: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create agent: {str(e)}"
@@ -164,13 +164,13 @@ async def update_agent(agent_id: str, request: AgentUpdateRequest):
         logger.info(f"✅ Agent updated successfully: {agent.config.name}")
         return agent
     except ValueError as e:
-        logger.error(f"❌ Validation error updating agent: {str(e)}")
+        logger.warning(f"❌ Validation error updating agent: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Validation error: {str(e)}"
         )
     except Exception as e:
-        logger.error(f"❌ Failed to update agent: {str(e)}")
+        logger.warning(f"❌ Failed to update agent: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update agent: {str(e)}"

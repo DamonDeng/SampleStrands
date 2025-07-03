@@ -165,7 +165,7 @@ def create_strands_agent() -> Agent:
         return agent
 
     except Exception as e:
-        logger.error(f"❌ Failed to create Strands Agent: {e}")
+        logger.warning(f"❌ Failed to create Strands Agent: {e}")
         raise
 
 def test_strands_agent_with_document_info(agent: Agent, input_text: str,
@@ -218,7 +218,7 @@ def test_strands_agent_with_document_info(agent: Agent, input_text: str,
         return content
 
     except Exception as e:
-        logger.error(f"❌ Document info test failed: {e}")
+        logger.warning(f"❌ Document info test failed: {e}")
         raise
 
 def inspect_strands_agent(agent: Agent):
@@ -474,7 +474,7 @@ def test_strands_agent_with_simple_message(agent: Agent, message: str):
         return content
 
     except Exception as e:
-        logger.error(f"❌ Simple message test failed: {e}")
+        logger.warning(f"❌ Simple message test failed: {e}")
         raise
 
 def print_message_structure(message_data, prefix=""):
@@ -601,7 +601,7 @@ def test_strands_agent_with_complex_message(agent: Agent, bedrock_message: dict)
             raise Exception("No text content found in message")
 
     except Exception as e:
-        logger.error(f"❌ All complex message approaches failed: {type(e).__name__}: {str(e)}")
+        logger.warning(f"❌ All complex message approaches failed: {type(e).__name__}: {str(e)}")
         raise
 
 def main():

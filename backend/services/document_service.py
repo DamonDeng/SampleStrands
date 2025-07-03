@@ -87,7 +87,7 @@ class DocumentService:
             return saved_attachment
             
         except Exception as e:
-            logger.error(f"❌ Failed to create attachment: {str(e)}")
+            logger.warning(f"❌ Failed to create attachment: {str(e)}")
             raise
 
     async def get_attachment(self, attachment_id: str) -> Optional[DocumentAttachment]:
@@ -117,7 +117,7 @@ class DocumentService:
                 return attachment
                 
         except Exception as e:
-            logger.error(f"❌ Failed to get attachment: {str(e)}")
+            logger.warning(f"❌ Failed to get attachment: {str(e)}")
             raise
 
     async def get_message_attachments(self, message_id: str) -> List[DocumentAttachment]:
@@ -147,7 +147,7 @@ class DocumentService:
                 return attachments
                 
         except Exception as e:
-            logger.error(f"❌ Failed to get message attachments: {str(e)}")
+            logger.warning(f"❌ Failed to get message attachments: {str(e)}")
             raise
 
     async def delete_attachment(self, attachment_id: str) -> bool:
@@ -179,7 +179,7 @@ class DocumentService:
                 return True
                 
         except Exception as e:
-            logger.error(f"❌ Failed to delete attachment: {str(e)}")
+            logger.warning(f"❌ Failed to delete attachment: {str(e)}")
             raise
 
     async def create_bedrock_content_blocks(self, attachments: List[DocumentAttachment]) -> List[Dict[str, Any]]:

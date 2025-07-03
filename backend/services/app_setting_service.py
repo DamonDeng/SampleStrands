@@ -37,7 +37,7 @@ class AppSettingService:
                 return settings
                 
         except Exception as e:
-            logger.error(f"❌ Failed to retrieve app settings: {str(e)}")
+            logger.warning(f"❌ Failed to retrieve app settings: {str(e)}")
             raise
 
     async def get_setting_by_title(self, setting_title: str) -> Optional[AppSetting]:
@@ -59,7 +59,7 @@ class AppSettingService:
                     return None
                     
         except Exception as e:
-            logger.error(f"❌ Failed to retrieve app setting {setting_title}: {str(e)}")
+            logger.warning(f"❌ Failed to retrieve app setting {setting_title}: {str(e)}")
             raise
 
     async def create_setting(self, request: AppSettingCreateRequest) -> AppSetting:
@@ -95,7 +95,7 @@ class AppSettingService:
                 return setting
                 
         except Exception as e:
-            logger.error(f"❌ Failed to create app setting: {str(e)}")
+            logger.warning(f"❌ Failed to create app setting: {str(e)}")
             raise
 
     async def update_setting(self, setting_title: str, request: AppSettingUpdateRequest) -> Optional[AppSetting]:
@@ -126,7 +126,7 @@ class AppSettingService:
                 return setting
                 
         except Exception as e:
-            logger.error(f"❌ Failed to update app setting {setting_title}: {str(e)}")
+            logger.warning(f"❌ Failed to update app setting {setting_title}: {str(e)}")
             raise
 
     async def delete_setting(self, setting_title: str) -> bool:
@@ -150,7 +150,7 @@ class AppSettingService:
                 return True
                 
         except Exception as e:
-            logger.error(f"❌ Failed to delete app setting {setting_title}: {str(e)}")
+            logger.warning(f"❌ Failed to delete app setting {setting_title}: {str(e)}")
             raise
 
     async def get_settings_summary(self) -> Dict[str, Any]:
@@ -178,7 +178,7 @@ class AppSettingService:
                 return summary
                 
         except Exception as e:
-            logger.error(f"❌ Failed to get app settings summary: {str(e)}")
+            logger.warning(f"❌ Failed to get app settings summary: {str(e)}")
             raise
 
     async def initialize_default_settings(self) -> bool:

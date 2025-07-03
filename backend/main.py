@@ -298,7 +298,7 @@ def main():
             logger.info(f"📜 Certificate: {CERT_PATH}")
             logger.info(f"🔑 Private key: {KEY_PATH}")
         else:
-            logger.error("❌ HTTPS enabled but certificate paths not provided")
+            logger.warning("❌ HTTPS enabled but certificate paths not provided")
             raise ValueError("HTTPS enabled but SAMPLESTRANDS_CERT_PATH or SAMPLESTRANDS_KEY_PATH not set")
     else:
         logger.info("🔓 HTTP mode (development)")
@@ -339,7 +339,7 @@ def main():
             ssl_certfile=ssl_certfile
         )
     except Exception as e:
-        logger.error(f"❌ Server failed to start: {e}")
+        logger.warning(f"❌ Server failed to start: {e}")
         raise
     finally:
         logger.info("🛑 Server has stopped")

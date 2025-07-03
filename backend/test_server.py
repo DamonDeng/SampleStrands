@@ -192,7 +192,7 @@ async def create_agent(request: dict):
         return agent.dict()
         
     except Exception as e:
-        logger.error(f"❌ Failed to create agent: {str(e)}")
+        logger.warning(f"❌ Failed to create agent: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create agent: {str(e)}"

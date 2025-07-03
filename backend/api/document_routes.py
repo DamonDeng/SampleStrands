@@ -91,7 +91,7 @@ async def upload_documents_for_chat(
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"   ❌ Failed to process file {file.filename}: {str(e)}")
+            logger.warning(f"   ❌ Failed to process file {file.filename}: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to process file {file.filename}: {str(e)}"
@@ -189,7 +189,7 @@ async def get_message_attachments(message_id: str):
         return attachments
         
     except Exception as e:
-        logger.error(f"❌ Failed to get attachments: {str(e)}")
+        logger.warning(f"❌ Failed to get attachments: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get attachments: {str(e)}"
@@ -233,7 +233,7 @@ async def download_attachment(attachment_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to download attachment: {str(e)}")
+        logger.warning(f"❌ Failed to download attachment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to download attachment: {str(e)}"
@@ -267,7 +267,7 @@ async def delete_attachment(attachment_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to delete attachment: {str(e)}")
+        logger.warning(f"❌ Failed to delete attachment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete attachment: {str(e)}"

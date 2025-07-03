@@ -33,7 +33,7 @@ async def get_all_settings():
         )
         
     except Exception as e:
-        logger.error(f"❌ API: Failed to retrieve app settings: {str(e)}")
+        logger.warning(f"❌ API: Failed to retrieve app settings: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retrieve app settings: {str(e)}"
@@ -60,7 +60,7 @@ async def get_setting_by_title(setting_title: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ API: Failed to retrieve app setting {setting_title}: {str(e)}")
+        logger.warning(f"❌ API: Failed to retrieve app setting {setting_title}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retrieve app setting: {str(e)}"
@@ -84,7 +84,7 @@ async def create_setting(request: AppSettingCreateRequest):
             detail=str(e)
         )
     except Exception as e:
-        logger.error(f"❌ API: Failed to create app setting: {str(e)}")
+        logger.warning(f"❌ API: Failed to create app setting: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create app setting: {str(e)}"
@@ -111,7 +111,7 @@ async def update_setting(setting_title: str, request: AppSettingUpdateRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ API: Failed to update app setting {setting_title}: {str(e)}")
+        logger.warning(f"❌ API: Failed to update app setting {setting_title}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update app setting: {str(e)}"
@@ -138,7 +138,7 @@ async def delete_setting(setting_title: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ API: Failed to delete app setting {setting_title}: {str(e)}")
+        logger.warning(f"❌ API: Failed to delete app setting {setting_title}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete app setting: {str(e)}"
@@ -156,7 +156,7 @@ async def get_settings_summary():
         return summary
         
     except Exception as e:
-        logger.error(f"❌ API: Failed to get app settings summary: {str(e)}")
+        logger.warning(f"❌ API: Failed to get app settings summary: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get app settings summary: {str(e)}"
@@ -174,7 +174,7 @@ async def initialize_default_settings():
             logger.info("✅ API: Default app settings initialized successfully")
             return {"message": "Default settings initialized successfully"}
         else:
-            logger.error("❌ API: Failed to initialize default app settings")
+            logger.warning("❌ API: Failed to initialize default app settings")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to initialize default settings"
@@ -183,7 +183,7 @@ async def initialize_default_settings():
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ API: Failed to initialize default app settings: {str(e)}")
+        logger.warning(f"❌ API: Failed to initialize default app settings: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to initialize default settings: {str(e)}"

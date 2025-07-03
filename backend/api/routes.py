@@ -136,7 +136,7 @@ async def create_session(request: SessionCreateRequest):
         logger.debug(f"   📊 Messages: {len(session.messages)}")
         return session
     except Exception as e:
-        logger.error(f"❌ Failed to create session: {str(e)}")
+        logger.warning(f"❌ Failed to create session: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create session: {str(e)}"
@@ -234,7 +234,7 @@ async def create_message(session_id: str, request: ChatRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to create message: {str(e)}")
+        logger.warning(f"❌ Failed to create message: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create message: {str(e)}"
@@ -317,7 +317,7 @@ async def process_message(session_id: str, message_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Failed to process message: {str(e)}")
+        logger.warning(f"❌ Failed to process message: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process message: {str(e)}"
@@ -422,7 +422,7 @@ async def chat_completion(session_id: str, request: ChatRequest):
         )
 
     except Exception as e:
-        logger.error(f"❌ Failed to process chat request: {str(e)}")
+        logger.warning(f"❌ Failed to process chat request: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process chat request: {str(e)}"
@@ -654,7 +654,7 @@ async def clear_agent_pool():
         llm_service.clear_agent_pool()
         return {"message": "Agent pool cleared successfully"}
     except Exception as e:
-        logger.error(f"❌ Failed to clear agent pool: {e}")
+        logger.warning(f"❌ Failed to clear agent pool: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to clear agent pool: {str(e)}"

@@ -151,7 +151,7 @@ class AgentService:
             return saved_agent
 
         except Exception as e:
-            logger.error(f"❌ Failed to create agent: {str(e)}")
+            logger.warning(f"❌ Failed to create agent: {str(e)}")
             raise
     
     async def update_agent(self, agent_id: str, request: AgentUpdateRequest) -> Optional[Agent]:
@@ -381,7 +381,7 @@ class AgentService:
             max_tokens = model_config.get('max_tokens')
             logger.debug(f"🔍 Using dict access: model_id={model_id}")
         else:
-            logger.error(f"❌ Invalid model_config format: {type(model_config)}")
+            logger.warning(f"❌ Invalid model_config format: {type(model_config)}")
             raise ValueError("Invalid model_config format")
 
         logger.debug(f"🔍 Validating model config: {model_id} (allow_legacy: {allow_legacy})")

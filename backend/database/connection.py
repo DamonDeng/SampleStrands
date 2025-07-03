@@ -56,7 +56,7 @@ def init_database():
         Base.metadata.create_all(bind=engine)
         logger.info("✅ Database initialized successfully")
     except Exception as e:
-        logger.error(f"❌ Failed to initialize database: {str(e)}")
+        logger.warning(f"❌ Failed to initialize database: {str(e)}")
         raise
 
 
@@ -67,7 +67,7 @@ def drop_database():
         Base.metadata.drop_all(bind=engine)
         logger.info("✅ Database tables dropped successfully")
     except Exception as e:
-        logger.error(f"❌ Failed to drop database tables: {str(e)}")
+        logger.warning(f"❌ Failed to drop database tables: {str(e)}")
         raise
 
 
@@ -83,7 +83,7 @@ def get_db_session() -> Generator[Session, None, None]:
         session.commit()
     except Exception as e:
         session.rollback()
-        logger.error(f"❌ Database session error: {str(e)}")
+        logger.warning(f"❌ Database session error: {str(e)}")
         raise
     finally:
         session.close()
@@ -98,7 +98,7 @@ def get_db() -> Generator[Session, None, None]:
         yield session
     except Exception as e:
         session.rollback()
-        logger.error(f"❌ Database session error: {str(e)}")
+        logger.warning(f"❌ Database session error: {str(e)}")
         raise
     finally:
         session.close()

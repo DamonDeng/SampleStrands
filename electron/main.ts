@@ -69,7 +69,9 @@ async function startPythonBackend(): Promise<boolean> {
       const maxAttempts = 30; // 30 seconds
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
-          const response = await fetch(`http://127.0.0.1:3867/health`);
+          const fetch_addr = `https://127.0.0.1:3867/health`;
+          const dev_fetch_addr = fetch_addr.replace('https://', 'http://');
+          const response = await fetch(dev_fetch_addr);
           if (response.ok) {
             console.log('✅ External backend is ready');
 

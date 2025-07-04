@@ -520,10 +520,10 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
     }
   };
 
-  const handleToggleAgent = async (agentId: string, isActive: boolean) => {
+  const handleToggleAgent = async (agentId: string, active: boolean) => {
     try {
       if (backendAvailable) {
-        if (isActive) {
+        if (active) {
           await agentAPI.activateAgent(agentId);
         } else {
           await agentAPI.deactivateAgent(agentId);
@@ -531,10 +531,10 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
 
         // Update local state
         setAgents(prev => prev.map(agent =>
-          agent.id === agentId ? { ...agent, is_active: isActive } : agent
+          agent.id === agentId ? { ...agent, active: active } : agent
         ));
 
-        console.log(isActive ? '▶️ Activated agent:' : '⏸️ Deactivated agent:', agentId);
+        console.log(active ? '▶️ Activated agent:' : '⏸️ Deactivated agent:', agentId);
       }
     } catch (error) {
       console.error('Failed to toggle agent:', error);
@@ -678,7 +678,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
       settingsCount: settings.length,
       generalSetting: generalSetting?.json_data,
       agentsCount: agents.length,
-      activeAgentsCount: agents.filter(a => a.is_active).length
+      activeAgentsCount: agents.filter(a => a.active).length
     });
 
     if (!generalSetting?.json_data?.default_agent) {
@@ -687,7 +687,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
     }
 
     const defaultAgentId = generalSetting.json_data.default_agent;
-    const defaultAgent = agents.find(agent => agent.id === defaultAgentId && agent.is_active);
+    const defaultAgent = agents.find(agent => agent.id === defaultAgentId && agent.active);
     console.log('🎯 Default agent result:', defaultAgent?.config.name || 'Not found');
     return defaultAgent || null;
   }, [settings, agents]);

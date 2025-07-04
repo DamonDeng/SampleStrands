@@ -75,7 +75,7 @@ export default function NewChatButton({
   };
 
   // Filter to only active agents
-  const activeAgents = agents.filter(agent => agent.is_active);
+  const activeAgents = agents.filter(agent => agent.active);
 
   // Debug logging
   console.log('🔧 NewChatButton props:', {

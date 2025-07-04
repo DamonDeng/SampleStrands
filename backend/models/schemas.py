@@ -284,7 +284,7 @@ class Agent(BaseModel):
     config: AgentConfig = Field(..., description="Agent configuration")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    is_active: bool = Field(default=True, description="Whether the agent is active")
+    active: bool = Field(default=True, description="Whether the agent is active")
     usage_stats: Dict[str, Any] = Field(default_factory=dict, description="Usage statistics")
 
     model_config = ConfigDict(
@@ -313,7 +313,7 @@ class AgentCreateRequest(BaseModel):
 class AgentUpdateRequest(BaseModel):
     """Request model for updating an agent."""
     config: Optional[AgentConfig] = Field(default=None, description="Updated agent configuration")
-    is_active: Optional[bool] = Field(default=None, description="Whether the agent is active")
+    active: Optional[bool] = Field(default=None, description="Whether the agent is active")
 
 
 class AgentListResponse(BaseModel):

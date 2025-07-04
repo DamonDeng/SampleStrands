@@ -197,7 +197,7 @@ class DatabaseManager:
                             system_prompt=agent_data.get("config", {}).get("system_prompt"),
                             llm_config=agent_data.get("config", {}).get("llm_config", {}),
                             tools=agent_data.get("config", {}).get("tools", []),
-                            is_active=agent_data.get("is_active", True),
+                            active=agent_data.get("active", True),
                             usage_stats=agent_data.get("usage_stats", {}),
                             metadata=agent_data.get("metadata", {}),
                             created_at=agent_data.get("created_at"),

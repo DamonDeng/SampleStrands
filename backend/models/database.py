@@ -77,7 +77,7 @@ class AgentDB(Base):
     tools = Column(JSON, default=list)
     
     # Agent metadata
-    is_active = Column(Boolean, default=True)
+    active = Column(Boolean, default=True)
     usage_stats = Column(JSON, default=dict)
     extra_metadata = Column(JSON, default=dict)
     

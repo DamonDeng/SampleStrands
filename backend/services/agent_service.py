@@ -183,9 +183,9 @@ class AgentService:
                     db_agent.extra_metadata = request.config.metadata
 
                 # Update active status if provided
-                if request.is_active is not None:
-                    logger.debug(f"   🔄 Updating active status: {bool(request.is_active)}")
-                    db_agent.is_active = bool(request.is_active)
+                if request.active is not None:
+                    logger.debug(f"   🔄 Updating active status: {bool(request.active)}")
+                    db_agent.active = bool(request.active)
 
                 # Commit changes
                 session.commit()
@@ -322,7 +322,7 @@ class AgentService:
             with get_db_session() as session:
                 # Get basic counts
                 total_agents = session.query(AgentDB).count()
-                active_agents = session.query(AgentDB).filter(AgentDB.is_active == True).count()
+                active_agents = session.query(AgentDB).filter(AgentDB.active == True).count()
 
                 # Get all agents for detailed analysis
                 db_agents = session.query(AgentDB).all()

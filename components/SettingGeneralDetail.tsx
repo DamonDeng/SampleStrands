@@ -48,7 +48,7 @@ export default function SettingGeneralDetail({
   // Debug logging for agents
   useEffect(() => {
     console.log('🔧 SettingGeneralDetail: Received agents:', agents.length,
-      agents.map(a => ({ id: a.id, name: a.config.name, active: a.is_active }))
+      agents.map(a => ({ id: a.id, name: a.config.name, active: a.active }))
     );
   }, [agents]);
 
@@ -115,7 +115,7 @@ export default function SettingGeneralDetail({
     const agent = agents.find(a => a.id === editForm.default_agent);
     if (!agent) return 'Unknown agent (may have been deleted)';
 
-    const statusText = agent.is_active ? '' : ' (inactive)';
+    const statusText = agent.active ? '' : ' (inactive)';
     return `${agent.config.name}${statusText}`;
   };
 
@@ -256,14 +256,14 @@ export default function SettingGeneralDetail({
               {agents
                 .sort((a, b) => {
                   // Sort by active status first (active agents first), then by name
-                  if (a.is_active !== b.is_active) {
-                    return a.is_active ? -1 : 1;
+                  if (a.active !== b.active) {
+                    return a.active ? -1 : 1;
                   }
                   return a.config.name.localeCompare(b.config.name);
                 })
                 .map((agent) => (
                   <option key={agent.id} value={agent.id}>
-                    {agent.config.name} {agent.is_active ? '✓' : tcd('SETTINGS.GENERAL.DEFAULT_AGENT.INACTIVE')}
+                    {agent.config.name} {agent.active ? '✓' : tcd('SETTINGS.GENERAL.DEFAULT_AGENT.INACTIVE')}
                   </option>
                 ))
               }
@@ -273,7 +273,7 @@ export default function SettingGeneralDetail({
               <br />
               {agents.length > 0 ? (
                 <>
-                  {tcd('SETTINGS.GENERAL.DEFAULT_AGENT.AVAILABLE_AGENTS')} {agents.filter(a => a.is_active).length} {tcd('SETTINGS.GENERAL.DEFAULT_AGENT.ACTIVE')}, {agents.filter(a => !a.is_active).length} {tcd('SETTINGS.GENERAL.DEFAULT_AGENT.INACTIVE')}
+                  {tcd('SETTINGS.GENERAL.DEFAULT_AGENT.AVAILABLE_AGENTS')} {agents.filter(a => a.active).length} {tcd('SETTINGS.GENERAL.DEFAULT_AGENT.ACTIVE')}, {agents.filter(a => !a.active).length} {tcd('SETTINGS.GENERAL.DEFAULT_AGENT.INACTIVE')}
                 </>
               ) : (
                 tcd('SETTINGS.GENERAL.DEFAULT_AGENT.NO_AGENTS_AVAILABLE')

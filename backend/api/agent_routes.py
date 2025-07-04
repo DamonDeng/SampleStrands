@@ -34,7 +34,7 @@ async def list_agents():
         # logger.debug(f"   🤖 Agent {agent.id}: '{agent.config.name}' "
         #             f"({agent.config.model_config.model_name}, "
         #             f"{len(agent.config.tools)} tools, "
-        #             f"{'active' if agent.is_active else 'inactive'})")
+        #             f"{'active' if agent.active else 'inactive'})")
 
     return AgentListResponse(
         agents=agents,
@@ -149,8 +149,8 @@ async def update_agent(agent_id: str, request: AgentUpdateRequest):
             tool_names.append(tool_name)
         logger.debug(f"   🔧 New tools: {tool_names}")
     
-    if request.is_active is not None:
-        logger.debug(f"   🔄 New active status: {bool(request.is_active)}")
+    if request.active is not None:
+        logger.debug(f"   🔄 New active status: {bool(request.active)}")
 
     try:
         agent = await agent_service.update_agent(agent_id, request)
@@ -218,7 +218,7 @@ async def get_agent_config(agent_id: str):
         "model_config": agent.config.model_config.dict(),
         "tools": [tool.dict() for tool in agent.config.tools],
         "enabled_tools": [tool.dict() for tool in enabled_tools],
-        "is_active": bool(agent.is_active),
+        "active": bool(agent.active),
         "created_at": agent.created_at,
         "updated_at": agent.updated_at,
         "usage_stats": agent.usage_stats
@@ -233,7 +233,7 @@ async def activate_agent(agent_id: str):
     """Activate an agent."""
     logger.info(f"🔄 Activating agent: {agent_id}")
     
-    request = AgentUpdateRequest(is_active=True)
+    request = AgentUpdateRequest(active=True)
     agent = await agent_service.update_agent(agent_id, request)
     
     if not agent:
@@ -252,7 +252,7 @@ async def deactivate_agent(agent_id: str):
     """Deactivate an agent."""
     logger.info(f"🔄 Deactivating agent: {agent_id}")
     
-    request = AgentUpdateRequest(is_active=False)
+    request = AgentUpdateRequest(active=False)
     agent = await agent_service.update_agent(agent_id, request)
     
     if not agent:
@@ -284,7 +284,7 @@ async def get_agent_stats(agent_id: str):
         "name": agent.config.name,
         "created_at": agent.created_at,
         "updated_at": agent.updated_at,
-        "is_active": bool(agent.is_active),
+        "active": bool(agent.active),
         "model": agent.config.model_config.model_name,
         "tools_count": len(agent.config.tools),
         "enabled_tools_count": len(agent.get_enabled_tools()),

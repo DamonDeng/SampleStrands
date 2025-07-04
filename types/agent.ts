@@ -34,7 +34,7 @@ export interface Agent {
   config: AgentConfig;
   created_at: string;
   updated_at: string;
-  is_active: boolean;
+  active: boolean;
   usage_stats: Record<string, any>;
 }
 
@@ -44,7 +44,7 @@ export interface AgentCreateRequest {
 
 export interface AgentUpdateRequest {
   config?: AgentConfig;
-  is_active?: boolean;
+  active?: boolean;
 }
 
 export interface AgentListResponse {

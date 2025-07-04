@@ -65,7 +65,7 @@ The application will now use persistent database storage instead of in-memory st
    - `name`, `description`, `system_prompt`
    - `llm_config` (JSON) - Model configuration
    - `tools` (JSON) - Tool configurations
-   - `is_active`, `usage_stats`, `metadata`
+   - `active`, `usage_stats`, `metadata`
    - `created_at`, `updated_at`
 
 2. **sessions** - Chat sessions

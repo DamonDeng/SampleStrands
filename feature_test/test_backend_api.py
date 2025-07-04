@@ -61,7 +61,7 @@ def get_available_agent():
             if agents:
                 # Use the first active agent
                 for agent in agents:
-                    if agent.get("is_active", True):
+                    if agent.get("active", True):
                         agent_id = agent["id"]
                         agent_name = agent["config"]["name"]
                         print_colored(f"   ✅ Found active agent: {agent_name} ({agent_id[:8]}...)", Colors.GREEN)

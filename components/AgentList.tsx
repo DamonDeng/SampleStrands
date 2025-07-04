@@ -10,7 +10,7 @@ interface AgentListProps {
   onSelectAgent: (agentId: string) => void;
   onDeleteAgent: (agentId: string) => void;
   onUpdateAgent: (agentId: string, name: string) => void;
-  onToggleAgent: (agentId: string, isActive: boolean) => void;
+  onToggleAgent: (agentId: string, active: boolean) => void;
   onCreateAgent: () => void;
 }
 
@@ -105,7 +105,7 @@ export default function AgentList({
               key={agent.id}
               className={`${styles.agentItem} ${
                 selectedAgentId === agent.id ? styles.active : ''
-              } ${!agent.is_active ? styles.inactive : ''}`}
+              } ${!agent.active ? styles.inactive : ''}`}
               onClick={() => onSelectAgent(agent.id)}
             >
               <div className={styles.agentContent}>
@@ -130,7 +130,7 @@ export default function AgentList({
                       <div className={styles.agentTitleRow}>
                         <h3 className={styles.agentTitle}>{agent.config.name}</h3>
                         <div className={styles.agentStatus}>
-                          {agent.is_active ? (
+                          {agent.active ? (
                             <span className={styles.statusActive} title="Active">●</span>
                           ) : (
                             <span className={styles.statusInactive} title="Inactive">●</span>
@@ -142,11 +142,11 @@ export default function AgentList({
                           className={styles.actionButton}
                           onClick={(e) => {
                             e.stopPropagation();
-                            onToggleAgent(agent.id, !agent.is_active);
+                            onToggleAgent(agent.id, !agent.active);
                           }}
-                          title={agent.is_active ? "Deactivate agent" : "Activate agent"}
+                          title={agent.active ? "Deactivate agent" : "Activate agent"}
                         >
-                          {agent.is_active ? <IoPauseOutline /> : <IoPlayOutline />}
+                          {agent.active ? <IoPauseOutline /> : <IoPlayOutline />}
                         </button>
                         <button
                           className={styles.actionButton}

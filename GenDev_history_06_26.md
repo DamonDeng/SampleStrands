@@ -2024,7 +2024,7 @@ The Agent management system is now complete and ready for production use with:
 **Core Tables with UUID Primary Keys**:
 ```sql
 -- Agents: AI agent configurations
-agents (id UUID, name, description, system_prompt, llm_config JSON, tools JSON, is_active, usage_stats JSON, metadata JSON, created_at, updated_at)
+agents (id UUID, name, description, system_prompt, llm_config JSON, tools JSON, active, usage_stats JSON, metadata JSON, created_at, updated_at)
 
 -- Sessions: Chat sessions with agent relationships
 sessions (id UUID, title, agent_id FK, metadata JSON, created_at, updated_at)

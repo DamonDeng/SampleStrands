@@ -263,8 +263,8 @@ export default function AgentDetail({
           <div className={styles.titleInfo}>
             <h1 className={styles.agentName}>{agent.config.name}</h1>
             <div className={styles.agentStatus}>
-              <span className={`${styles.statusIndicator} ${agent.is_active ? styles.active : styles.inactive}`}>
-                {agent.is_active ? 'Active' : 'Inactive'}
+              <span className={`${styles.statusIndicator} ${agent.active ? styles.active : styles.inactive}`}>
+                {agent.active ? 'Active' : 'Inactive'}
               </span>
             </div>
           </div>
@@ -298,12 +298,12 @@ export default function AgentDetail({
           </div>
 
           <button
-            className={`${styles.actionButton} ${agent.is_active ? styles.pauseButton : styles.playButton}`}
-            onClick={() => onToggleAgent(agent.id, !agent.is_active)}
-            title={agent.is_active ? "Deactivate agent" : "Activate agent"}
+            className={`${styles.actionButton} ${agent.active ? styles.pauseButton : styles.playButton}`}
+            onClick={() => onToggleAgent(agent.id, !agent.active)}
+            title={agent.active ? "Deactivate agent" : "Activate agent"}
           >
-            {agent.is_active ? <IoPauseOutline /> : <IoPlayOutline />}
-            {agent.is_active ? 'Deactivate' : 'Activate'}
+            {agent.active ? <IoPauseOutline /> : <IoPlayOutline />}
+            {agent.active ? 'Deactivate' : 'Activate'}
           </button>
 
           

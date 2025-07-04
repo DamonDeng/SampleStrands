@@ -31,6 +31,7 @@ def check_backend():
     
     try:
         response = requests.get(f"{BASE_URL}/health", timeout=5)
+        response.raise_for_status()
         if response.status_code == 200:
             print_colored("   ✅ Backend is running", Colors.GREEN)
             try:
@@ -53,6 +54,7 @@ def get_available_agent():
 
     try:
         response = requests.get(f"{BASE_URL}/agents", timeout=10)
+        response.raise_for_status()
 
         if response.status_code == 200:
             agents_data = response.json()
@@ -76,6 +78,7 @@ def get_available_agent():
                 print_colored("   ⚠️ No agents found, creating a quick agent...", Colors.YELLOW)
                 # Create a quick agent
                 response = requests.post(f"{BASE_URL}/agents/quick", timeout=10)
+                response.raise_for_status()
                 if response.status_code == 200:
                     agent = response.json()
                     agent_id = agent["id"]
@@ -103,6 +106,7 @@ def create_session(agent_id):
             "agent_id": agent_id
         }
         response = requests.post(f"{BASE_URL}/sessions", json=session_data, timeout=10)
+        response.raise_for_status()
 
         if response.status_code == 200:
             session = response.json()
@@ -127,7 +131,8 @@ def test_simple_chat(session_id):
             "message": "Hello, this is a test message without documents"
         }
         response = requests.post(f"{BASE_URL}/sessions/{session_id}/chat", json=message_data, timeout=30)
-        
+        response.raise_for_status()
+
         if response.status_code == 200:
             chat_response = response.json()
             print_colored("   ✅ Simple chat successful", Colors.GREEN)
@@ -168,6 +173,7 @@ def test_message_create_upload_process(session_id):
         }
 
         create_response = requests.post(f"{BASE_URL}/sessions/{session_id}/messages", json=message_data, timeout=30)
+        create_response.raise_for_status()
 
         if create_response.status_code != 200:
             print_colored(f"   ❌ Message creation failed: {create_response.status_code}", Colors.RED)
@@ -182,6 +188,7 @@ def test_message_create_upload_process(session_id):
         # Verify the message exists by checking session messages
         print("      🔍 Verifying message exists...")
         session_response = requests.get(f"{BASE_URL}/sessions/{session_id}/messages", timeout=10)
+        session_response.raise_for_status()
         if session_response.status_code == 200:
             messages = session_response.json()
             print(f"      📋 Session has {len(messages)} message(s)")
@@ -212,6 +219,7 @@ def test_message_create_upload_process(session_id):
         print(f"      📋 Message ID: {message_id}")
 
         upload_response = requests.post(f"{BASE_URL}/documents/upload", files=files, data=data, timeout=30)
+        upload_response.raise_for_status()
 
         # Close files
         for file_tuple in files:
@@ -240,6 +248,7 @@ def test_message_create_upload_process(session_id):
         print("   🤖 Step 3: Processing message with attachments...")
 
         process_response = requests.post(f"{BASE_URL}/sessions/{session_id}/messages/{message_id}/process", timeout=60)
+        process_response.raise_for_status()
 
         if process_response.status_code == 200:
             response_data = process_response.json()
@@ -284,7 +293,8 @@ def test_supported_types():
     
     try:
         response = requests.get(f"{BASE_URL}/documents/supported-types", timeout=10)
-        
+        response.raise_for_status()
+
         if response.status_code == 200:
             types_info = response.json()
             print_colored("   ✅ Supported types retrieved", Colors.GREEN)

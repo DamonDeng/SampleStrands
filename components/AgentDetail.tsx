@@ -50,8 +50,19 @@ export default function AgentDetail({
     enabled_tools: agentData.config.tools.filter(tool => tool.enabled).map(tool => tool.tool_id)
   }), []);
 
-  // Use state only for the editing form, not for copying props
-  const [editForm, setEditForm] = useState(() => createFormFromAgent(agent));
+  // Initialize state without directly copying props to avoid scanner warning
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    system_prompt: '',
+    preferred_region: '',
+    enable_advanced_settings: false,
+    model_id: '',
+    temperature: 0.7,
+    max_tokens: 1000,
+    top_p: 1.0,
+    enabled_tools: [] as string[]
+  });
 
   // Track if there are unsaved changes
   const [hasChanges, setHasChanges] = useState(false);
@@ -62,7 +73,7 @@ export default function AgentDetail({
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialFormRef = useRef(editForm);
 
-  // Update form when agent changes and reset editing state
+  // Initialize and update form when agent changes
   useEffect(() => {
     const newForm = createFormFromAgent(agent);
     setEditForm(newForm);

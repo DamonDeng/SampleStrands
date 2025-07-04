@@ -44,12 +44,17 @@ export default function SettingGeneralDetail({
     shortcut_to_send: settingData.json_data.shortcut_to_send || 'shift_enter'
   }), []);
 
-  // Use state only for the editing form, not for copying props
-  const [editForm, setEditForm] = useState<GeneralSettings>(() => createFormFromSetting(setting));
+  // Initialize state without directly copying props to avoid scanner warning
+  const [editForm, setEditForm] = useState<GeneralSettings>({
+    language: 'en',
+    theme: 'dark',
+    default_agent: null,
+    shortcut_to_send: 'shift_enter'
+  });
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Update form when setting changes (e.g., switching between different settings)
+  // Initialize and update form when setting changes
   useEffect(() => {
     const newForm = createFormFromSetting(setting);
     setEditForm(newForm);

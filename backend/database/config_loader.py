@@ -47,7 +47,7 @@ class ConfigurationLoader:
             return 0
 
         try:
-            with open(config_file, 'r') as f:
+            with open(config_file, 'r', encoding='utf-8') as f:
                 config_data = json.load(f)
 
             if config_type == "models":
@@ -114,7 +114,7 @@ class ConfigurationLoader:
             return False
 
         try:
-            with open(models_file, 'r') as f:
+            with open(models_file, 'r', encoding='utf-8') as f:
                 models_data = json.load(f)
 
             with get_db_session() as session:
@@ -194,7 +194,7 @@ class ConfigurationLoader:
             return False
         
         try:
-            with open(tools_file, 'r') as f:
+            with open(tools_file, 'r', encoding='utf-8') as f:
                 tools_data = json.load(f)
             
             with get_db_session() as session:
@@ -321,7 +321,7 @@ class ConfigurationLoader:
                 if models_data["models"]:
                     models_data["default_model"] = models_data["models"][0]["model_id"]
                 
-                with open(output_file, 'w') as f:
+                with open(output_file, 'w', encoding='utf-8') as f:
                     json.dump(models_data, f, indent=2)
                 
                 logger.info(f"✅ Exported {len(db_models)} models to {output_file}")
@@ -356,7 +356,7 @@ class ConfigurationLoader:
                     }
                     tools_data["tools"].append(tool_dict)
                 
-                with open(output_file, 'w') as f:
+                with open(output_file, 'w', encoding='utf-8') as f:
                     json.dump(tools_data, f, indent=2)
                 
                 logger.info(f"✅ Exported {len(db_tools)} tools to {output_file}")

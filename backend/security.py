@@ -23,7 +23,7 @@ def load_auth_token():
     token_file = os.getenv('SAMPLESTRANDS_AUTH_TOKEN_FILE')
     if token_file and os.path.exists(token_file):
         try:
-            with open(token_file, 'r') as f:
+            with open(token_file, 'r', encoding='utf-8') as f:
                 token_data = json.load(f)
                 token = token_data.get('token')
                 if token:

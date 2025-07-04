@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const forge = require('node-forge');
 
 // Setup development security files (token and certificates)
 function setupDevSecurity() {
@@ -29,7 +30,6 @@ function setupDevSecurity() {
   // Generate self-signed certificate if it doesn't exist
   if (!fs.existsSync(certFile) || !fs.existsSync(keyFile)) {
     try {
-      const forge = require('node-forge');
       
       // Generate key pair
       const keys = forge.pki.rsa.generateKeyPair(2048);

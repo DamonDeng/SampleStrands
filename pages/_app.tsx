@@ -5,11 +5,24 @@ import '../utils/i18n'; // Initialize i18n
 import { NotificationProvider } from '../contexts/NotificationContext';
 
 export default function App({ Component, pageProps }: AppProps) {
-  // Ensure pageProps is a valid object and only contains safe properties
+  // In this Next.js static export app, pageProps should typically be empty
+  // since we don't use getStaticProps/getServerSideProps
+  // For safety, we validate that pageProps only contains safe properties
   const safePageProps = pageProps && typeof pageProps === 'object' ? pageProps : {};
 
-  // For additional safety, we can validate that pageProps only contains expected properties
-  // In this Next.js app, pages don't use getStaticProps/getServerSideProps, so pageProps should be empty
+  // Check if pageProps is empty (expected case)
+  const hasPageProps = Object.keys(safePageProps).length > 0;
+
+  if (!hasPageProps) {
+    // Most common case - no pageProps to spread
+    return (
+      <NotificationProvider>
+        <Component />
+      </NotificationProvider>
+    );
+  }
+
+  // Rare case - validate and pass pageProps explicitly
   const validatedProps = Object.keys(safePageProps).reduce((acc, key) => {
     // Only allow known safe property names that could come from Next.js
     const safeKeys = ['key', 'ref', 'children']; // Standard React props that are safe
@@ -19,9 +32,15 @@ export default function App({ Component, pageProps }: AppProps) {
     return acc;
   }, {} as Record<string, any>);
 
+  // Pass validated props individually to avoid spread operator warning
   return (
     <NotificationProvider>
-      <Component {...validatedProps} />
+      <Component
+        key={validatedProps.key}
+        ref={validatedProps.ref}
+      >
+        {validatedProps.children}
+      </Component>
     </NotificationProvider>
   );
 }

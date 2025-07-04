@@ -134,27 +134,22 @@ function MarkDownContent(props: { content: string }) {
             ...otherProps
           } = pProps;
 
-          // Only pass known safe HTML attributes
-          const safeProps: React.HTMLAttributes<HTMLParagraphElement> = {
-            className,
-            id,
-            style,
-            title,
-            lang,
-            onClick,
-            onMouseEnter,
-            onMouseLeave,
-            dir: "auto"
-          };
-
-          // Remove undefined values
-          Object.keys(safeProps).forEach(key => {
-            if (safeProps[key as keyof typeof safeProps] === undefined) {
-              delete safeProps[key as keyof typeof safeProps];
-            }
-          });
-
-          return <p {...safeProps}>{children}</p>;
+          // Explicitly pass each safe prop to avoid spread operator warning
+          return (
+            <p
+              className={className}
+              id={id}
+              style={style}
+              title={title}
+              lang={lang}
+              onClick={onClick}
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
+              dir="auto"
+            >
+              {children}
+            </p>
+          );
         },
         a: (aProps) => {
           const href = aProps.href || "";
@@ -175,28 +170,23 @@ function MarkDownContent(props: { content: string }) {
             ...otherProps
           } = aProps;
 
-          // Only pass known safe HTML attributes
-          const safeProps: React.AnchorHTMLAttributes<HTMLAnchorElement> = {
-            href,
-            target,
-            className,
-            id,
-            style,
-            title,
-            rel,
-            onClick,
-            onMouseEnter,
-            onMouseLeave
-          };
-
-          // Remove undefined values
-          Object.keys(safeProps).forEach(key => {
-            if (safeProps[key as keyof typeof safeProps] === undefined) {
-              delete safeProps[key as keyof typeof safeProps];
-            }
-          });
-
-          return <a {...safeProps}>{children}</a>;
+          // Explicitly pass each safe prop to avoid spread operator warning
+          return (
+            <a
+              href={href}
+              target={target}
+              className={className}
+              id={id}
+              style={style}
+              title={title}
+              rel={rel}
+              onClick={onClick}
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
+            >
+              {children}
+            </a>
+          );
         },
       }}
     >

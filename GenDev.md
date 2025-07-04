@@ -997,6 +997,98 @@ const selectSession = async (sessionId: string) => {
 - ✅ **Multi-Tool Agents**: Agents can use multiple tools simultaneously
 - ✅ **User Empowerment**: Real control over agent capabilities
 
+## **🔒 SECURITY COMPLIANCE: External Backend Launch Architecture (2025-07-04)**
+
+### **Major Security Achievement: Eliminated `shell: true` Warnings**
+**Problem Solved**: Company code scanner flagged `spawn-shell-true` warnings due to Electron spawning backend with `shell: true`
+**Solution**: Complete architectural redesign using external backend launch approach
+
+### **New Development Architecture: Separate Process Management**
+**Innovation**: Clean separation between backend and frontend processes for enhanced security and maintainability
+
+#### **1. External Backend Launch System**
+**Architecture**: Backend and frontend run as independent processes instead of Electron-managed subprocess
+```bash
+# Old approach (❌ Security scanner violation)
+Electron Main Process → spawn(conda command, {shell: true}) → Python Backend
+
+# New approach (✅ Security compliant)
+Terminal 1: npm run start:backend → Python Backend (independent)
+Terminal 2: npm run dev:frontend → Electron App (connects to external backend)
+```
+
+#### **2. New NPM Scripts Architecture**
+**Complete Script Ecosystem**: Granular control over development workflow
+```json
+{
+  "start:backend": "cd backend && conda run -n for_sample_strands python main.py",
+  "start:backend:secure": "./scripts/start-secure-backend.sh",
+  "dev:frontend": "concurrently \"npm run dev:next\" \"node scripts/wait-for-backend.js http://localhost:3867/health && npm run dev:electron:frontend-only\"",
+  "dev:frontend:secure": "concurrently \"npm run dev:next\" \"node scripts/wait-for-backend.js https://localhost:3867/health && cross-env SECURITY_MODE=true npm run dev:electron:frontend-only\"",
+  "dev": "concurrently \"npm run start:backend\" \"npm run dev:frontend\"",
+  "secure-dev": "concurrently \"npm run start:backend:secure\" \"npm run dev:frontend:secure\"",
+  "dev:electron:frontend-only": "cross-env BACKEND_EXTERNAL=true wait-on http://localhost:3000 && electron ."
+}
+```
+
+#### **3. Custom Backend Detection System**
+**Innovation**: Replaced problematic `wait-on` package with custom Node.js script for reliable backend detection
+```javascript
+// scripts/wait-for-backend.js - Custom backend detection
+function waitForBackend(url, maxAttempts = 30, interval = 1000) {
+  // Uses native Node.js HTTP/HTTPS clients
+  // Handles self-signed certificates for HTTPS mode
+  // Provides detailed logging and error handling
+  // Works reliably with FastAPI backend (wait-on package failed)
+}
+```
+
+#### **4. Secure Development Token Management**
+**Implementation**: Pre-generated token files for consistent secure development experience
+```bash
+# scripts/setup-dev-security.js - Token and certificate management
+- Generates persistent auth tokens in dev_user_data/.samplestrands_auth_token
+- Creates self-signed HTTPS certificates (server.crt, server.key)
+- Ensures consistent security setup across development sessions
+- Eliminates token regeneration on each restart
+```
+
+#### **5. Electron External Backend Detection**
+**Architecture**: Electron main process detects external backend mode and skips internal spawning
+```typescript
+// electron/main.ts - External backend detection
+const isExternalBackend = process.env.BACKEND_EXTERNAL === 'true';
+
+if (isExternalBackend) {
+  // Skip internal backend spawning
+  // Wait for external backend to be available
+  // Load authentication tokens from dev_user_data
+  // Connect to existing backend process
+}
+```
+
+### **Security Compliance Achievements**
+**Code Scanner Violations Resolved**:
+- ✅ **`spawn-shell-true`**: Eliminated by removing Electron subprocess spawning
+- ✅ **`react-props-spreading`**: Fixed by explicit prop passing
+- ✅ **`react-props-in-state`**: Fixed by avoiding direct prop initialization
+- ✅ **`react-href-var`**: Fixed by URL sanitization
+
+### **Development Workflow Benefits**
+**Enhanced Developer Experience**:
+- ✅ **Independent Process Control**: Start/stop backend and frontend separately
+- ✅ **Faster Iteration**: Backend changes don't require Electron restart
+- ✅ **Better Debugging**: Clear separation of backend and frontend logs
+- ✅ **Security Testing**: Easy switching between HTTP and HTTPS modes
+- ✅ **Production Parity**: Development workflow matches production architecture
+
+### **Backward Compatibility**
+**Seamless Migration**: All existing functionality preserved
+- ✅ **Production Builds**: PyInstaller backend integration unchanged
+- ✅ **User Experience**: No changes to end-user application behavior
+- ✅ **API Compatibility**: All frontend-backend communication unchanged
+- ✅ **Feature Parity**: Document support, streaming, agent management all functional
+
 ## **🌐 I18NEXT KEY FORMAT MIGRATION (2025-07-03)**
 
 ### **Translation Key Structure Redesign**
@@ -1048,34 +1140,82 @@ const selectSession = async (sessionId: string) => {
 
 ## Development Commands
 
-### Frontend Development
+### **New External Backend Architecture (2025-07-04)**
+
+#### **Combined Development Scripts (Recommended)**
 ```bash
-npm run dev                    # Start dev environment (HTTP, no auth - fast development)
-npm run secure-dev            # Start secure dev environment (HTTPS + auth - security testing)
-npm run build                 # Full production build (always secure)
+npm run dev                    # HTTP mode: Start backend + frontend together
+npm run secure-dev            # HTTPS mode: Start secure backend + frontend together
+```
+
+#### **Individual Process Control (Advanced)**
+```bash
+# Backend only
+npm run start:backend          # HTTP backend (fast development)
+npm run start:backend:secure   # HTTPS backend (security testing)
+
+# Frontend only (requires backend running separately)
+npm run dev:frontend           # Connect to HTTP backend
+npm run dev:frontend:secure    # Connect to HTTPS backend
+
+# Setup utilities
+npm run setup:dev-security     # Generate auth tokens and certificates
+```
+
+#### **Production & Distribution**
+```bash
+npm run build                  # Full production build (always secure)
 npm run dist:mac              # macOS DMG (Intel + ARM64)
 npm run dist:win              # Windows installer
 ```
 
-### Security Testing
+### **Development Workflow Options**
+
+#### **Option 1: Combined Scripts (Easiest)**
+```bash
+# For regular development
+npm run dev
+# - Automatically starts both backend (HTTP) and frontend
+# - Backend runs on http://127.0.0.1:3867
+# - No authentication required
+# - Fast iteration and debugging
+
+# For security testing
+npm run secure-dev
+# - Automatically starts both secure backend (HTTPS) and frontend
+# - Backend runs on https://127.0.0.1:3867
+# - Token authentication required
+# - Self-signed certificates auto-generated
+# - Production-like security testing
+```
+
+#### **Option 2: Manual Process Control (Advanced)**
+```bash
+# Terminal 1: Start backend
+npm run start:backend          # or npm run start:backend:secure
+
+# Terminal 2: Start frontend (waits for backend)
+npm run dev:frontend          # or npm run dev:frontend:secure
+```
+
+### **Security Testing Modes**
 ```bash
 # Development mode (HTTP, no authentication)
 npm run dev
-# - Fast development with minimal security overhead
-# - Backend runs on http://127.0.0.1:3867
-# - No token authentication required
-# - Development data stored in dev_user_data/ (gitignored)
-# - Suitable for rapid iteration and debugging
+# ✅ Fast development with minimal security overhead
+# ✅ Backend: http://127.0.0.1:3867 (no auth required)
+# ✅ External backend process (no shell spawning)
+# ✅ Development data in dev_user_data/ (gitignored)
+# ✅ Suitable for rapid iteration and debugging
 
 # Secure development mode (HTTPS + authentication)
 npm run secure-dev
-# - Full security stack testing with production-like security
-# - Backend runs on https://127.0.0.1:3867
-# - Token authentication required for all API calls
-# - Self-signed certificates auto-generated and managed
-# - Development data stored in dev_user_data/ (gitignored)
-# - Certificate acceptance configured for Electron renderer
-# - Suitable for security validation and production testing
+# ✅ Full security stack with production-like security
+# ✅ Backend: https://127.0.0.1:3867 (token auth required)
+# ✅ Self-signed certificates auto-generated and managed
+# ✅ Pre-generated persistent auth tokens
+# ✅ Certificate acceptance configured for Electron
+# ✅ Suitable for security validation and production testing
 ```
 
 ### Development Data Structure

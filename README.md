@@ -91,23 +91,47 @@ new version.
 
 ### Development Commands
 
+#### **New External Backend Architecture (Security Compliant)**
+
+**Combined Development (Recommended)**
+```bash
+npm run dev                    # HTTP mode: Backend + Frontend together
+npm run secure-dev            # HTTPS mode: Secure Backend + Frontend together
+```
+
+**Individual Process Control (Advanced)**
+```bash
+# Backend only
+npm run start:backend          # HTTP backend for development
+npm run start:backend:secure   # HTTPS backend for security testing
+
+# Frontend only (requires backend running)
+npm run dev:frontend           # Connect to HTTP backend
+npm run dev:frontend:secure    # Connect to HTTPS backend
+
+# Setup utilities
+npm run setup:dev-security     # Generate auth tokens and certificates
+```
+
 #### Quick Development (HTTP Mode)
 ```bash
 npm run dev
 ```
-- Fast development with minimal security overhead
-- Backend runs on `http://127.0.0.1:3867`
-- No authentication required
-- Hot reload enabled for both frontend and backend changes
+- **External Backend Process**: No shell spawning (security compliant)
+- **Fast Development**: Minimal security overhead for rapid iteration
+- **Backend**: `http://127.0.0.1:3867` (no authentication required)
+- **Hot Reload**: Both frontend and backend changes supported
+- **Process Separation**: Backend and frontend run independently
 
 #### Secure Development Testing
 ```bash
 npm run secure-dev
 ```
-- Full security stack with HTTPS + token authentication
-- Backend runs on `https://127.0.0.1:3867`
-- Self-signed certificates auto-generated
-- Production-like security for testing
+- **Full Security Stack**: HTTPS + token authentication
+- **Backend**: `https://127.0.0.1:3867` (token auth required)
+- **Auto-Generated Security**: Self-signed certificates and persistent tokens
+- **Production-Like**: Security testing with production architecture
+- **Certificate Handling**: Electron configured to accept self-signed certificates
 
 #### Production Build
 ```bash
@@ -129,22 +153,59 @@ npm run dist
 
 ### Development Workflow
 
+#### **New External Backend Architecture**
+
+**Option 1: Combined Development (Recommended)**
+```bash
+# Regular development (HTTP mode)
+npm run dev
+# - Automatically starts backend and frontend together
+# - Backend runs independently (no shell spawning)
+# - Fast iteration with hot reload
+
+# Security testing (HTTPS mode)
+npm run secure-dev
+# - Automatically starts secure backend and frontend
+# - Full HTTPS + token authentication
+# - Production-like security testing
+```
+
+**Option 2: Manual Process Control**
+```bash
+# Terminal 1: Start backend
+npm run start:backend          # HTTP mode
+# or
+npm run start:backend:secure   # HTTPS mode
+
+# Terminal 2: Start frontend (waits for backend)
+npm run dev:frontend           # HTTP mode
+# or
+npm run dev:frontend:secure    # HTTPS mode
+```
+
 #### Backend Development
 ```bash
 # Activate conda environment
 conda activate for_sample_strands
 
-# Start backend server directly (for API testing)
-python backend/main.py
+# Direct backend testing (bypasses npm scripts)
+cd backend && python main.py
 
 # Reset database for fresh testing
 python backend/cli.py reset
+
+# Test backend health
+curl http://localhost:3867/health
+curl -k https://localhost:3867/health  # For HTTPS mode
 ```
 
 #### Frontend Development
 ```bash
-# Development with hot reload
-npm run dev
+# Development with external backend
+npm run dev                    # Full stack development
+
+# Frontend-only development (requires backend running)
+npm run dev:frontend
 
 # Build frontend only
 npm run build:next
@@ -203,10 +264,12 @@ samplestrands/
 - **Error Handling**: Comprehensive error recovery and fallback
 
 #### 2. Security Architecture
+- **External Backend Process**: No shell spawning (eliminates security scanner warnings)
 - **Development Mode**: HTTP without authentication for fast iteration
 - **Secure Mode**: HTTPS with token authentication for production testing
 - **Certificate Management**: Auto-generated self-signed certificates
-- **Token Rotation**: Fresh tokens on each app launch
+- **Token Persistence**: Pre-generated tokens for consistent development experience
+- **Custom Backend Detection**: Reliable Node.js-based backend health checking
 
 #### 3. Database Management
 - **SQLite**: Lightweight database with automatic initialization
@@ -311,6 +374,24 @@ python test_real_agent_tools.py
    - Ensure Next.js build completed: `npm run build:next`
    - Check that port 3867 is available for backend
    - Try restarting: `npm run dev`
+   - For manual control, use separate terminals:
+     ```bash
+     # Terminal 1
+     npm run start:backend
+     # Terminal 2 (after backend is ready)
+     npm run dev:frontend
+     ```
+
+4. **Backend connection issues**:
+   - Check if backend is running: `curl http://localhost:3867/health`
+   - For HTTPS mode: `curl -k https://localhost:3867/health`
+   - Verify conda environment: `conda activate for_sample_strands`
+   - Check backend logs for error messages
+
+5. **Security mode (HTTPS) issues**:
+   - SSL handshake errors are normal with self-signed certificates
+   - Ensure certificates are generated: `npm run setup:dev-security`
+   - Check dev_user_data folder contains: `.samplestrands_auth_token`, `server.crt`, `server.key`
 
 4. **PyInstaller build fails**:
    - Ensure conda environment is activated
@@ -364,9 +445,11 @@ Senior Programmer and Solution Architect
 
 ✅ **Production Ready** - Complete AI chat application with full document support and AWS Bedrock integration
 
-**Latest Achievement**: Multi-tool agent support with all 8 tools functional (calculator, file operations, web search, code execution, image generation, time operations, email, database)
+**Latest Achievement**: Security compliance with external backend architecture - eliminated all code scanner warnings while maintaining full functionality
 
 **Key Milestones**:
+- ✅ **Security Compliance**: External backend launch (no shell spawning)
+- ✅ **Code Scanner Clean**: All security warnings resolved
 - ✅ Complete document support (Word, PDF, images, etc.)
 - ✅ Real-time streaming AI responses
 - ✅ Secure HTTPS + token authentication
@@ -375,3 +458,10 @@ Senior Programmer and Solution Architect
 - ✅ Multi-tool agent capabilities
 - ✅ Session-based agent management
 - ✅ Professional three-column UI design
+
+**Security Achievements (2025-07-04)**:
+- ✅ **`spawn-shell-true`**: Eliminated by external backend architecture
+- ✅ **`react-props-spreading`**: Fixed by explicit prop passing
+- ✅ **`react-props-in-state`**: Fixed by avoiding direct prop initialization
+- ✅ **`react-href-var`**: Fixed by URL sanitization
+- ✅ **Development Workflow**: Enhanced with granular process control

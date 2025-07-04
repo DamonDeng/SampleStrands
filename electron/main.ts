@@ -59,6 +59,51 @@ function getUserDataPath(isDevelopment: boolean): string {
 // Secure backend management functions
 async function startPythonBackend(): Promise<boolean> {
   try {
+    // Check if backend is external (started separately)
+    const isExternalBackend = process.env.BACKEND_EXTERNAL === 'true';
+
+    if (isExternalBackend) {
+      console.log('🔗 Using external backend (started separately)...');
+
+      // Wait for external backend to be available
+      const maxAttempts = 30; // 30 seconds
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const response = await fetch(`http://127.0.0.1:3867/health`);
+          if (response.ok) {
+            console.log('✅ External backend is ready');
+
+            // For external backend, we don't manage the token
+            // The frontend will handle authentication based on security mode
+            const securityMode = isSecurityModeEnabled();
+            if (securityMode) {
+              // Try to read token from dev_user_data for secure mode
+              const userDataPath = getUserDataPath(isDev);
+              const tokenPath = path.join(userDataPath, '.samplestrands_auth_token');
+              try {
+                const tokenData = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
+                currentAuthToken = tokenData.token;
+                console.log('🔐 Loaded auth token for external backend');
+              } catch (error) {
+                console.warn('⚠️ Could not load auth token for external backend:', error);
+              }
+            }
+
+            return true;
+          }
+        } catch (error) {
+          // Backend not ready yet, continue waiting
+        }
+
+        console.log(`🔄 Waiting for external backend... (${attempt}/${maxAttempts})`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      console.error('❌ External backend not available after 30 seconds');
+      await showBackendErrorDialog();
+      return false;
+    }
+
     console.log('🔐 Starting secure Python backend...');
 
     // Initialize backend manager if not already done

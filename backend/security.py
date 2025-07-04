@@ -4,14 +4,39 @@ Provides authentication and authorization functionality.
 """
 
 import os
+import json
 import logging
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 logger = logging.getLogger(__name__)
 
+def load_auth_token():
+    """Load authentication token from environment variable or file."""
+    # First try environment variable (for backward compatibility)
+    token = os.getenv('SAMPLESTRANDS_AUTH_TOKEN')
+    if token:
+        logger.debug("🔐 Using auth token from environment variable")
+        return token
+
+    # Try to load from token file
+    token_file = os.getenv('SAMPLESTRANDS_AUTH_TOKEN_FILE')
+    if token_file and os.path.exists(token_file):
+        try:
+            with open(token_file, 'r') as f:
+                token_data = json.load(f)
+                token = token_data.get('token')
+                if token:
+                    logger.debug(f"🔐 Using auth token from file: {token_file}")
+                    return token
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to read token file {token_file}: {e}")
+
+    logger.debug("🔓 No auth token configured")
+    return None
+
 # Security configuration
-AUTH_TOKEN = os.getenv('SAMPLESTRANDS_AUTH_TOKEN')
+AUTH_TOKEN = load_auth_token()
 security = HTTPBearer(auto_error=False)
 
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):

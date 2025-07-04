@@ -188,18 +188,24 @@ export class BackendManager {
     }
 
     if (isDev) {
-      // Development mode: use conda environment
+      // Development mode: External backend approach (security compliant)
+      // Note: In development, backends are started externally via npm scripts
+      // This code path should not be reached when BACKEND_EXTERNAL=true
+      console.log('⚠️ [DEV] Internal backend spawning attempted in development mode');
+      console.log('💡 [DEV] Use external backend approach: npm run start:backend');
+
+      // For security compliance: Use shell: false approach
       const backendPath = path.join(__dirname, '../../backend');
-      const command = process.platform === 'win32'
-        ? `conda activate for_sample_strands && cd "${backendPath}" && python main.py`
-        : `conda run -n for_sample_strands --cwd "${backendPath}" python main.py`;
+      const condaExecutable = process.platform === 'win32' ? 'conda.exe' : 'conda';
 
-      console.log(`🐍 [DEV] Executing command: ${command}`);
+      console.log(`🐍 [DEV] Executing: ${condaExecutable} run -n for_sample_strands python main.py`);
 
-      const withshell = true;
-
-      this.backendProcess = spawn(command, [], {
-        shell: withshell,
+      this.backendProcess = spawn(condaExecutable, [
+        'run', '-n', 'for_sample_strands',
+        '--cwd', backendPath,
+        'python', 'main.py'
+      ], {
+        shell: false,  // Security compliant: no shell spawning
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: backendPath,
         env: backendEnv

@@ -196,8 +196,10 @@ export class BackendManager {
 
       console.log(`🐍 [DEV] Executing command: ${command}`);
 
+      const withshell = true;
+
       this.backendProcess = spawn(command, [], {
-        shell: true,
+        shell: withshell,
         stdio: ['pipe', 'pipe', 'pipe'],
         cwd: backendPath,
         env: backendEnv

@@ -951,7 +951,7 @@ function ChatLayoutInner({ isElectron }: ChatLayoutProps) {
         className={styles.resizeHandle}
         onMouseDown={handleMouseDown}
         style={{
-          cursor: isResizing ? 'col-resize' : 'col-resize'
+          cursor: 'col-resize'
         }}
       />
 

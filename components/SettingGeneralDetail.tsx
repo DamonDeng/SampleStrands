@@ -36,14 +36,26 @@ export default function SettingGeneralDetail({
   const { t: tcd } = useAppTranslation('settings');
   const { changeLanguage } = useI18nContext();
 
-  const [editForm, setEditForm] = useState<GeneralSettings>({
-    language: setting.json_data.language || 'en',
-    theme: setting.json_data.theme || 'dark',
-    default_agent: setting.json_data.default_agent || null,
-    shortcut_to_send: setting.json_data.shortcut_to_send || 'shift_enter'
-  });
+  // Helper function to create form data from setting props
+  const createFormFromSetting = useCallback((settingData: AppSetting): GeneralSettings => ({
+    language: settingData.json_data.language || 'en',
+    theme: settingData.json_data.theme || 'dark',
+    default_agent: settingData.json_data.default_agent || null,
+    shortcut_to_send: settingData.json_data.shortcut_to_send || 'shift_enter'
+  }), []);
+
+  // Use state only for the editing form, not for copying props
+  const [editForm, setEditForm] = useState<GeneralSettings>(() => createFormFromSetting(setting));
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Update form when setting changes (e.g., switching between different settings)
+  useEffect(() => {
+    const newForm = createFormFromSetting(setting);
+    setEditForm(newForm);
+    setHasUnsavedChanges(false);
+    setSaveStatus('idle');
+  }, [setting, createFormFromSetting]);
 
   // Debug logging for agents
   useEffect(() => {

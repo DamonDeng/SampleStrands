@@ -119,12 +119,84 @@ function MarkDownContent(props: { content: string }) {
       ]}
       components={{
         pre: PreCode,
-        p: (pProps) => <p {...pProps} dir="auto" />,
+        p: (pProps) => {
+          // Extract only valid HTML attributes for <p> element
+          const {
+            className,
+            id,
+            style,
+            title,
+            lang,
+            onClick,
+            onMouseEnter,
+            onMouseLeave,
+            children,
+            ...otherProps
+          } = pProps;
+
+          // Only pass known safe HTML attributes
+          const safeProps: React.HTMLAttributes<HTMLParagraphElement> = {
+            className,
+            id,
+            style,
+            title,
+            lang,
+            onClick,
+            onMouseEnter,
+            onMouseLeave,
+            dir: "auto"
+          };
+
+          // Remove undefined values
+          Object.keys(safeProps).forEach(key => {
+            if (safeProps[key as keyof typeof safeProps] === undefined) {
+              delete safeProps[key as keyof typeof safeProps];
+            }
+          });
+
+          return <p {...safeProps}>{children}</p>;
+        },
         a: (aProps) => {
           const href = aProps.href || "";
           const isInternal = /^\/#/i.test(href);
           const target = isInternal ? "_self" : aProps.target ?? "_blank";
-          return <a {...aProps} target={target} />;
+
+          // Extract only valid HTML attributes for <a> element
+          const {
+            className,
+            id,
+            style,
+            title,
+            rel,
+            onClick,
+            onMouseEnter,
+            onMouseLeave,
+            children,
+            ...otherProps
+          } = aProps;
+
+          // Only pass known safe HTML attributes
+          const safeProps: React.AnchorHTMLAttributes<HTMLAnchorElement> = {
+            href,
+            target,
+            className,
+            id,
+            style,
+            title,
+            rel,
+            onClick,
+            onMouseEnter,
+            onMouseLeave
+          };
+
+          // Remove undefined values
+          Object.keys(safeProps).forEach(key => {
+            if (safeProps[key as keyof typeof safeProps] === undefined) {
+              delete safeProps[key as keyof typeof safeProps];
+            }
+          });
+
+          return <a {...safeProps}>{children}</a>;
         },
       }}
     >

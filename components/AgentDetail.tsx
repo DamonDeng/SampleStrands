@@ -35,18 +35,23 @@ export default function AgentDetail({
   const { t: tcdCommon } = useAppTranslation('common');
   // Always start in editing mode for seamless UX
   const [isEditing, setIsEditing] = useState(true);
-  const [editForm, setEditForm] = useState({
-    name: agent.config.name,
-    description: agent.config.description || '',
-    system_prompt: agent.config.system_prompt || '',
-    preferred_region: agent.config.preferred_region || '',
-    enable_advanced_settings: agent.config.enable_advanced_settings || false,
-    model_id: agent.config.model_config.model_id,
-    temperature: agent.config.model_config.temperature,
-    max_tokens: agent.config.model_config.max_tokens,
-    top_p: agent.config.model_config.top_p,
-    enabled_tools: agent.config.tools.filter(tool => tool.enabled).map(tool => tool.tool_id)
-  });
+
+  // Helper function to create form data from agent props
+  const createFormFromAgent = useCallback((agentData: Agent) => ({
+    name: agentData.config.name,
+    description: agentData.config.description || '',
+    system_prompt: agentData.config.system_prompt || '',
+    preferred_region: agentData.config.preferred_region || '',
+    enable_advanced_settings: agentData.config.enable_advanced_settings || false,
+    model_id: agentData.config.model_config.model_id,
+    temperature: agentData.config.model_config.temperature,
+    max_tokens: agentData.config.model_config.max_tokens,
+    top_p: agentData.config.model_config.top_p,
+    enabled_tools: agentData.config.tools.filter(tool => tool.enabled).map(tool => tool.tool_id)
+  }), []);
+
+  // Use state only for the editing form, not for copying props
+  const [editForm, setEditForm] = useState(() => createFormFromAgent(agent));
 
   // Track if there are unsaved changes
   const [hasChanges, setHasChanges] = useState(false);
@@ -59,25 +64,13 @@ export default function AgentDetail({
 
   // Update form when agent changes and reset editing state
   useEffect(() => {
-    const newForm = {
-      name: agent.config.name,
-      description: agent.config.description || '',
-      system_prompt: agent.config.system_prompt || '',
-      preferred_region: agent.config.preferred_region || '',
-      enable_advanced_settings: agent.config.enable_advanced_settings || false,
-      model_id: agent.config.model_config.model_id,
-      temperature: agent.config.model_config.temperature,
-      max_tokens: agent.config.model_config.max_tokens,
-      top_p: agent.config.model_config.top_p,
-      enabled_tools: agent.config.tools.filter(tool => tool.enabled).map(tool => tool.tool_id)
-    };
-
+    const newForm = createFormFromAgent(agent);
     setEditForm(newForm);
     initialFormRef.current = newForm;
     setIsEditing(true); // Always enter editing mode
     setHasChanges(false);
     setLastSaved(null);
-  }, [agent]);
+  }, [agent, createFormFromAgent]);
 
   // Check if form has changes compared to initial state
   const checkForChanges = useCallback(() => {
@@ -190,19 +183,7 @@ export default function AgentDetail({
   };
 
   const handleCancel = () => {
-    const originalForm = {
-      name: agent.config.name,
-      description: agent.config.description || '',
-      system_prompt: agent.config.system_prompt || '',
-      preferred_region: agent.config.preferred_region || '',
-      enable_advanced_settings: agent.config.enable_advanced_settings || false,
-      model_id: agent.config.model_config.model_id,
-      temperature: agent.config.model_config.temperature,
-      max_tokens: agent.config.model_config.max_tokens,
-      top_p: agent.config.model_config.top_p,
-      enabled_tools: agent.config.tools.filter(tool => tool.enabled).map(tool => tool.tool_id)
-    };
-
+    const originalForm = createFormFromAgent(agent);
     setEditForm(originalForm);
     initialFormRef.current = originalForm;
     setHasChanges(false);

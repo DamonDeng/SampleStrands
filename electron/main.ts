@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Menu, shell, dialog, ipcMain } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 import { spawn, ChildProcess } from 'child_process';
 import * as http from 'http';
 import { BackendManager, isSecurityModeEnabled, shouldUseHttps } from './security';
@@ -40,7 +41,6 @@ function getUserDataPath(isDevelopment: boolean): string {
     const devUserDataPath = path.join(__dirname, '../dev_user_data');
 
     // Ensure directory exists
-    const fs = require('fs');
     if (!fs.existsSync(devUserDataPath)) {
       fs.mkdirSync(devUserDataPath, { recursive: true });
       console.log(`📁 Created development user data directory: ${devUserDataPath}`);

@@ -152,7 +152,34 @@ function MarkDownContent(props: { content: string }) {
           );
         },
         a: (aProps) => {
-          const href = aProps.href || "";
+          const rawHref = aProps.href || "";
+
+          // Sanitize href to prevent XSS attacks - only allow safe protocols
+          const sanitizeHref = (url: string): string => {
+            if (!url) return "";
+
+            // Allow relative URLs (starting with / or # or ?)
+            if (/^[/#?]/.test(url)) {
+              return url;
+            }
+
+            // Allow safe protocols only
+            const safeProtocols = ['http:', 'https:', 'mailto:', 'tel:', 'ftp:'];
+            try {
+              const urlObj = new URL(url);
+              if (safeProtocols.includes(urlObj.protocol.toLowerCase())) {
+                return url;
+              }
+            } catch {
+              // Invalid URL, treat as relative
+              return url.startsWith('/') ? url : `/${url}`;
+            }
+
+            // Block dangerous protocols like javascript:, data:, etc.
+            return "#";
+          };
+
+          const href = sanitizeHref(rawHref);
           const isInternal = /^\/#/i.test(href);
           const target = isInternal ? "_self" : aProps.target ?? "_blank";
 
